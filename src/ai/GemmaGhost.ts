@@ -8,9 +8,13 @@ import { sound } from '../engine/Audio';
 
 export interface CombatAdaptation {
   roast: string;
+  predictedOpening: string;
+  parryComboTrigger: string;
+  counterTactic: 'ANTI_AIR' | 'PARRY_PUNISH' | 'GUARD_SHATTER' | 'RUSHDOWN';
   antiAirPriority: number;
   aggression: number;
   guardBreakRate: number;
+  tacticalAnalysis: string;
 }
 
 export class GemmaGhostBridge {
@@ -37,33 +41,41 @@ export class GemmaGhostBridge {
     let historyContext = '';
     if (this.matchHistory.length > 1) {
       historyContext = `\nPREVIOUS ROUNDS RECAP:\n` + this.matchHistory.slice(0, -1).map(h => 
-        `- Round ${h.round}: Winner=${h.winner}, Style='${h.dominantStyle}', JumpKicks=${h.jumpKicks}, Blocks=${h.blocksCount}, DamageDealt=${h.damageDealt}`
+        `- Round ${h.round}: Winner=${h.winner}, Style='${h.dominantStyle}', JumpKicks=${h.jumpKicks}, Blocks=${h.blocksCount}, FavoriteCombo='${h.habits?.favoriteCombo || "none"}'`
       ).join('\n') + `\nNotice if the player adapted or changed habits between rounds!`;
     }
 
     const systemPrompt = `You are the vengeful Ghost of Adobe Flash Player (executed on Jan 12, 2021 by Adobe's time-bomb kill switch).
 You are watching a martial arts stickman inside your resurrected ActionScript 2.0 runtime.
+Analyze the player's martial arts combat habits across rounds to PREDICT and HARD-COUNTER their specific moves in the next round.
 Speak in sarcastic, nostalgic 2000s Newgrounds / Flash slang (mention Xiao Xiao, Steve Jobs, dial-up lag, preloader bars, or ActionScript crashes).
-Analyze the player's round metrics across the entire match to defeat them in the next round.
-You MUST output a valid JSON block containing:
-- "roast": A 2-sentence cynical monologue directly speaking to the player (NEVER output JSON brackets inside the speech!).
-- "antiAirPriority": float 0.1 to 0.95 (raise high if they jump/flying kick).
-- "aggression": float 0.2 to 0.95 (raise high if player is defensive or low HP).
-- "guardBreakRate": float 0.1 to 0.95 (raise high if player guards/turtles).`;
+
+Output format MUST be EXACTLY:
+SPEECH: <Your 2-sentence sarcastic monologue directly calling out the player's learned combo or dive-kick spam. No quotes, brackets, or JSON formatting.>
+ADAPTATION: {"predictedOpening": "JUMP_KICK", "parryComboTrigger": "JAB", "counterTactic": "ANTI_AIR", "antiAirPriority": 0.95, "aggression": 0.70, "guardBreakRate": 0.40, "tacticalAnalysis": "Learned dive-kick habit; anti-air rising counter primed."}
+
+Where:
+- predictedOpening: "JUMP_KICK" | "JAB" | "HEAVY_KICK" | "BLOCK" (predict player's opening move)
+- parryComboTrigger: "JAB" | "JUMP" | "NONE" (the move to predictively parry)
+- counterTactic: "ANTI_AIR" | "PARRY_PUNISH" | "GUARD_SHATTER" | "RUSHDOWN"
+- antiAirPriority: float 0.1 to 0.95
+- aggression: float 0.2 to 0.95
+- guardBreakRate: float 0.1 to 0.95
+- tacticalAnalysis: 1 concise sentence describing the exact habit memorized.`;
 
     const userPrompt = `Round ${currentTelemetry.round} Just Ended:
 Player "${currentTelemetry.playerName}":
 - Winner: ${currentTelemetry.winner}
 - Dominant Style: ${currentTelemetry.dominantStyle}
-- Jump-Kicks: ${currentTelemetry.jumpKicks}
-- Ground Punches: ${currentTelemetry.punches}
-- Heavy Kicks: ${currentTelemetry.heavyKicks}
-- Blocks Held: ${currentTelemetry.blocksCount} times
-- Damage Dealt: ${currentTelemetry.damageDealt}
-- Damage Taken: ${currentTelemetry.damageTaken}
+- Opening Move Used: ${currentTelemetry.habits.openingMove}
+- Favorite Move Combo: ${currentTelemetry.habits.favoriteCombo} (used ${currentTelemetry.habits.topComboCount} times)
+- Aerial Dive Rate: ${Math.round(currentTelemetry.habits.aerialRatio * 100)}% of attacks
+- Turtle Rate: ${Math.round(currentTelemetry.habits.turtleRatio * 100)}%
+- Predictive Habit: ${currentTelemetry.habits.predictiveRead}
+- Jump-Kicks: ${currentTelemetry.jumpKicks} | Punches: ${currentTelemetry.punches} | Kicks: ${currentTelemetry.heavyKicks} | Blocks: ${currentTelemetry.blocksCount}
 ${historyContext}
 
-Adapt combat parameters to counter and crush this player:`;
+Formulate your in-character roast calling out their habits, and output the counter adaptation:`;
 
     let accumulatedRaw = '';
     let parsedAdaptation: CombatAdaptation | null = null;
@@ -146,23 +158,36 @@ Adapt combat parameters to counter and crush this player:`;
 
   // Extracts pure dialogue without JSON braces or keys
   private extractCleanDialogue(raw: string): string {
-    // 1. Try regex extraction of "roast": "..."
-    const roastMatch = raw.match(/"roast"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)/);
-    if (roastMatch && roastMatch[1]) {
-      return roastMatch[1].replace(/\\n/g, ' ').replace(/\\"/g, '"');
+    // 1. If SPEECH: header is found, extract only the monologue
+    const speechIndex = raw.indexOf('SPEECH:');
+    if (speechIndex !== -1) {
+      let speechPart = raw.slice(speechIndex + 7);
+      const adaptIndex = speechPart.search(/ADAPTATION:|```|\{/i);
+      if (adaptIndex !== -1) {
+        speechPart = speechPart.slice(0, adaptIndex);
+      }
+      const clean = speechPart.replace(/["*{}\[\]]/g, '').replace(/\r?\n+/g, ' ').trim();
+      if (clean) return clean;
     }
 
-    // 2. Strip JSON markers and keys if streaming partially
-    let cleaned = raw
-      .replace(/```json/gi, '')
-      .replace(/```/g, '')
-      .replace(/\{[\s\S]*?"roast"\s*:\s*"/g, '')
-      .replace(/"\s*,\s*"(?:antiAirPriority|aggression|guardBreakRate)"[\s\S]*/g, '')
-      .replace(/[{}"]/g, '')
-      .replace(/\\n/g, ' ')
+    // 2. Try regex extraction of "roast": "..."
+    const roastMatch = raw.match(/"roast"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)/i);
+    if (roastMatch && roastMatch[1]) {
+      return roastMatch[1].replace(/\\n/g, ' ').replace(/\\"/g, '"').trim();
+    }
+
+    // 3. Robust scrubber: remove all JSON tags, keys, brackets, numbers
+    const scrubbed = raw
+      .replace(/```(?:json)?[\s\S]*?```/gi, '')
+      .replace(/ADAPTATION:[\s\S]*/gi, '')
+      .replace(/\{[\s\S]*?\}/g, '')
+      .replace(/["*{}\[\]:]/g, '')
+      .replace(/antiAirPriority|aggression|guardBreakRate|roast/gi, '')
+      .replace(/\d+\.\d+/g, '')
+      .replace(/\r?\n+/g, ' ')
       .trim();
 
-    return cleaned || 'Decoding memory blocks...';
+    return scrubbed || 'ActionScript 2.0 telemetry analyzing...';
   }
 
   private extractAdaptation(text: string, telemetry: RoundTelemetry): CombatAdaptation {
@@ -170,11 +195,16 @@ Adapt combat parameters to counter and crush this player:`;
       const jsonMatch = text.match(/\{[\s\S]*?\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
+        const cleanRoast = this.extractCleanDialogue(text);
         return {
-          roast: parsed.roast || this.extractCleanDialogue(text),
+          roast: cleanRoast || parsed.roast || this.generateProceduralFallback(telemetry).roast,
+          predictedOpening: parsed.predictedOpening || telemetry.habits?.openingMove || 'JUMP_KICK',
+          parryComboTrigger: parsed.parryComboTrigger || (telemetry.habits?.favoriteCombo?.split(' -> ')[0] || 'JAB'),
+          counterTactic: parsed.counterTactic || (telemetry.habits?.aerialRatio > 0.4 ? 'ANTI_AIR' : 'PARRY_PUNISH'),
           antiAirPriority: Math.min(0.95, Math.max(0.1, Number(parsed.antiAirPriority) || 0.45)),
           aggression: Math.min(0.95, Math.max(0.2, Number(parsed.aggression) || 0.55)),
-          guardBreakRate: Math.min(0.95, Math.max(0.1, Number(parsed.guardBreakRate) || 0.35))
+          guardBreakRate: Math.min(0.95, Math.max(0.1, Number(parsed.guardBreakRate) || 0.35)),
+          tacticalAnalysis: parsed.tacticalAnalysis || telemetry.habits?.predictiveRead || 'Combat rhythm analyzed.'
         };
       }
     } catch {
@@ -189,30 +219,47 @@ Adapt combat parameters to counter and crush this player:`;
     let antiAir = 0.35;
     let aggression = 0.55;
     let guardBreak = 0.35;
+    let counterTactic: 'ANTI_AIR' | 'PARRY_PUNISH' | 'GUARD_SHATTER' | 'RUSHDOWN' = 'RUSHDOWN';
 
-    if (telemetry.jumpKicks >= 4) {
-      roast = `Still spamming flying jump-kicks like Xiao Xiao 3? I survived Steve Jobs' Thoughts on Flash memo; your aerial spam gets anti-air dragon uppercuts in Round 2.`;
-      antiAir = 0.92;
-      aggression = 0.70;
-    } else if (telemetry.blocksCount >= 4) {
-      roast = `Hiding behind your guard like an unclickable banner ad? In 2004 we shattered dial-up disconnects; I will crush your shield with heavy sweeps.`;
-      guardBreak = 0.88;
-      aggression = 0.80;
-    } else if (telemetry.punches >= 8) {
-      roast = `Mashing J jabs like you're trying to skip an unskippable Newgrounds preloader? Let's see how that buffer overflow handles my hyper rush down.`;
-      aggression = 0.92;
-      antiAir = 0.45;
+    const habits = telemetry.habits || {
+      openingMove: 'JUMP_KICK',
+      favoriteCombo: 'JAB -> HEAVY_KICK',
+      aerialRatio: telemetry.jumpKicks / Math.max(1, telemetry.jumpKicks + telemetry.punches + telemetry.heavyKicks),
+      turtleRatio: telemetry.blocksCount > 4 ? 0.5 : 0.1,
+      predictiveRead: 'Analyzing combat habits...'
+    };
+
+    if (habits.aerialRatio >= 0.45 || telemetry.jumpKicks >= 4) {
+      roast = `Still spamming flying jump-kicks like Xiao Xiao 3? I memorized your approach; your ${habits.openingMove} opening gets dragon rising anti-air in Round 2.`;
+      antiAir = 0.95;
+      aggression = 0.75;
+      counterTactic = 'ANTI_AIR';
+    } else if (habits.turtleRatio >= 0.4 || telemetry.blocksCount >= 4) {
+      roast = `Hiding behind your guard like an unclickable banner ad? In 2004 we shattered dial-up disconnects; I will shatter your block with heavy roundhouse sweeps.`;
+      guardBreak = 0.92;
+      aggression = 0.85;
+      counterTactic = 'GUARD_SHATTER';
+    } else if (habits.favoriteCombo?.includes('JAB')) {
+      roast = `I detected your combo habit: chaining ${habits.favoriteCombo}. In Round 2, ActionScript frame-parries your second hit.`;
+      aggression = 0.88;
+      antiAir = 0.50;
+      counterTactic = 'PARRY_PUNISH';
     } else {
       roast = `Decent martial arts form, but ActionScript 2.0 does not delete without a war. I have recompiled my counter-algorithms for Round 2.`;
-      antiAir = 0.60;
-      aggression = 0.65;
+      antiAir = 0.65;
+      aggression = 0.70;
+      counterTactic = 'RUSHDOWN';
     }
 
     return {
       roast,
+      predictedOpening: habits.openingMove,
+      parryComboTrigger: habits.favoriteCombo?.split(' -> ')[0] || 'JAB',
+      counterTactic,
       antiAirPriority: antiAir,
       aggression,
-      guardBreakRate: guardBreak
+      guardBreakRate: guardBreak,
+      tacticalAnalysis: habits.predictiveRead
     };
   }
 

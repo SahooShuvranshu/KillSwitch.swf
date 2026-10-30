@@ -95,6 +95,10 @@ export class Arena {
   public playerCombo: number = 0;
   public ghostCombo: number = 0;
 
+  // Gemma Neural Read & Move Prediction Banner
+  public tacticalBannerText: string | null = null;
+  public tacticalBannerFrames: number = 0;
+
   public onRoundEnd?: (winner: string) => void;
 
   constructor(canvas: HTMLCanvasElement, playerName: string = 'The Second Coming', playerSkin: CharacterSkin = 'orange') {
@@ -326,31 +330,34 @@ export class Arena {
       }
     }
 
-    // Dynamic Camera Tracking & Zoom
+    // Dynamic Camera Tracking & Zoom (Grounded Horizon Tracking)
     const midX = (this.player.x + this.ghost.x) / 2;
-    const midY = (this.player.y + this.ghost.y) / 2 - 35;
+    const floorY = this.height - 90;
+    const stageCenterY = floorY - 140;
     const dist = Math.abs(this.player.x - this.ghost.x);
 
     let desiredZoom = 1.0;
-    if (dist < 120) {
-      desiredZoom = 1.28;
-    } else if (dist < 220) {
-      desiredZoom = 1.15;
-    } else {
-      desiredZoom = 1.0;
+    if (dist < 140) {
+      desiredZoom = 1.16; // Dramatic impact focus on close quarters
+    } else if (dist > 560) {
+      desiredZoom = 0.94; // Wide view when fighters spread out
     }
 
     this.targetCameraX = midX;
-    this.targetCameraY = midY;
+    this.targetCameraY = stageCenterY; // Locked vertically to stage horizon so jumps feel grounded!
     this.targetCameraZoom = desiredZoom;
 
-    this.cameraX += (this.targetCameraX - this.cameraX) * 0.12;
-    this.cameraY += (this.targetCameraY - this.cameraY) * 0.12;
+    this.cameraX += (this.targetCameraX - this.cameraX) * 0.10;
+    this.cameraY += (this.targetCameraY - this.cameraY) * 0.10;
     this.cameraZoom += (this.targetCameraZoom - this.cameraZoom) * 0.08;
 
     if (this.screenShake > 0) {
       this.screenShake *= 0.84;
       if (this.screenShake < 0.5) this.screenShake = 0;
+    }
+
+    if (this.tacticalBannerFrames > 0) {
+      this.tacticalBannerFrames--;
     }
 
     // Hit Detection
@@ -437,7 +444,28 @@ export class Arena {
     }
   }
 
+  // Dynamically adapt canvas buffer to window dimensions with zero letterboxing
+  public resize() {
+    const parent = this.canvas.parentElement;
+    const w = parent ? parent.clientWidth : window.innerWidth;
+    const h = parent ? parent.clientHeight : window.innerHeight;
+
+    if (w > 100 && h > 100 && (this.canvas.width !== w || this.canvas.height !== h)) {
+      this.canvas.width = w;
+      this.canvas.height = h;
+      this.width = w;
+      this.height = h;
+
+      const floorY = this.height - 90;
+      this.player.groundY = floorY;
+      this.ghost.groundY = floorY;
+      if (this.player.isGrounded) this.player.y = floorY;
+      if (this.ghost.isGrounded) this.ghost.y = floorY;
+    }
+  }
+
   public render() {
+    this.resize();
     this.ctx.save();
 
     if (this.impactFlashFrames > 0) {
@@ -471,12 +499,7 @@ export class Arena {
     this.player.render(this.ctx);
     this.ghost.render(this.ctx);
 
-    // 5. Giant Animator Mouse Cursor (Alan Becker signature!)
-    if (this.stage === 'animator' || this.stage === 'desktop') {
-      this.renderAnimatorCursor();
-    }
-
-    // 6. Sparks
+    // 5. Sparks
     for (const p of this.sparks) {
       const alpha = 1 - p.life / p.maxLife;
       this.ctx.fillStyle = p.color;
@@ -487,17 +510,12 @@ export class Arena {
     }
     this.ctx.globalAlpha = 1.0;
 
-    // 7. Floating Damage Numbers
+    // 6. Floating Damage Numbers
     this.renderDamageNumbers();
 
     this.ctx.restore();
 
-    // 8. Static HUD & Flash Timeline Chrome
-    if (this.stage === 'animator') {
-      this.renderFlashTimeline();
-      this.renderFlashToolsPalette();
-    }
-
+    // 7. Clean, Uncluttered HUD
     this.renderHUD();
 
     if (this.announcementFrames > 0) {
@@ -540,27 +558,27 @@ export class Arena {
 
   // --- Stage Background Rendering ---
   private renderStage() {
-    const floorY = 410;
+    const floorY = this.height - 90;
 
     if (this.stage === 'animator') {
       // Alan Becker "Animator vs. Animation" Flash Workspace
       // Clean white/light-gray drawing canvas with subtle vector grid
-      this.ctx.fillStyle = '#f4f4f6';
-      this.ctx.fillRect(-400, 0, this.width + 800, this.height);
+      this.ctx.fillStyle = '#f8f8fa';
+      this.ctx.fillRect(-1500, -500, this.width + 3000, this.height + 1000);
 
       // Fine grid dots/lines
-      this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.05)';
+      this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.04)';
       this.ctx.lineWidth = 1;
-      for (let x = -400; x <= this.width + 400; x += 30) {
+      for (let x = -1500; x <= this.width + 1500; x += 32) {
         this.ctx.beginPath();
-        this.ctx.moveTo(x, 0);
-        this.ctx.lineTo(x, this.height);
+        this.ctx.moveTo(x, -500);
+        this.ctx.lineTo(x, this.height + 500);
         this.ctx.stroke();
       }
-      for (let y = 0; y <= this.height; y += 30) {
+      for (let y = -500; y <= this.height + 500; y += 32) {
         this.ctx.beginPath();
-        this.ctx.moveTo(-400, y);
-        this.ctx.lineTo(this.width + 400, y);
+        this.ctx.moveTo(-1500, y);
+        this.ctx.lineTo(this.width + 1500, y);
         this.ctx.stroke();
       }
 
@@ -568,15 +586,15 @@ export class Arena {
       this.ctx.strokeStyle = '#222222';
       this.ctx.lineWidth = 4;
       this.ctx.beginPath();
-      this.ctx.moveTo(-400, floorY);
-      this.ctx.lineTo(this.width + 400, floorY);
+      this.ctx.moveTo(-1500, floorY);
+      this.ctx.lineTo(this.width + 1500, floorY);
       this.ctx.stroke();
 
       // "Document 1 - Macromedia Flash" watermark
       this.ctx.save();
-      this.ctx.font = 'bold 16px "Share Tech Mono", monospace';
-      this.ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
-      this.ctx.fillText('[Scene 1: 550 x 400 px @ 60.0 fps]', 60, floorY + 40);
+      this.ctx.font = 'bold 14px "Share Tech Mono", monospace';
+      this.ctx.fillStyle = 'rgba(0, 0, 0, 0.16)';
+      this.ctx.fillText('[Flash Canvas 10.3 — Scene 1 @ 60.0 fps]', 60, floorY + 40);
       this.ctx.restore();
 
     } else if (this.stage === 'desktop') {
@@ -587,7 +605,7 @@ export class Arena {
       skyGrad.addColorStop(0.65, '#68b1f5');
       skyGrad.addColorStop(1, '#c5e2fe');
       this.ctx.fillStyle = skyGrad;
-      this.ctx.fillRect(-400, 0, this.width + 800, floorY);
+      this.ctx.fillRect(-1500, -500, this.width + 3000, floorY + 500);
 
       // Rolling Green Grass Hills
       const hillGrad = this.ctx.createLinearGradient(0, floorY - 140, 0, floorY);
@@ -595,20 +613,20 @@ export class Arena {
       hillGrad.addColorStop(1, '#3b7811');
       this.ctx.fillStyle = hillGrad;
       this.ctx.beginPath();
-      this.ctx.moveTo(-400, floorY);
-      this.ctx.bezierCurveTo(-100, floorY - 120, 200, floorY - 60, 500, floorY - 100);
-      this.ctx.bezierCurveTo(700, floorY - 130, 900, floorY - 70, this.width + 400, floorY);
-      this.ctx.lineTo(this.width + 400, floorY);
-      this.ctx.lineTo(-400, floorY);
+      this.ctx.moveTo(-1500, floorY);
+      this.ctx.bezierCurveTo(-400, floorY - 120, 200, floorY - 60, 500, floorY - 100);
+      this.ctx.bezierCurveTo(700, floorY - 130, 900, floorY - 70, this.width + 1500, floorY);
+      this.ctx.lineTo(this.width + 1500, floorY);
+      this.ctx.lineTo(-1500, floorY);
       this.ctx.fill();
 
       // Windows XP Blue Taskbar (Acts as the combat floor!)
       this.ctx.fillStyle = '#245ddc';
-      this.ctx.fillRect(-400, floorY, this.width + 800, this.height - floorY);
+      this.ctx.fillRect(-1500, floorY, this.width + 3000, this.height - floorY + 500);
 
       // Taskbar top rim
       this.ctx.fillStyle = '#3f82fc';
-      this.ctx.fillRect(-400, floorY, this.width + 800, 3);
+      this.ctx.fillRect(-1500, floorY, this.width + 3000, 3);
 
       // Green "start" Button
       this.ctx.fillStyle = '#388e3c';
@@ -632,14 +650,14 @@ export class Arena {
       grad.addColorStop(0.7, '#141424');
       grad.addColorStop(1, '#050508');
       this.ctx.fillStyle = grad;
-      this.ctx.fillRect(-400, 0, this.width + 800, this.height);
+      this.ctx.fillRect(-1500, -500, this.width + 3000, this.height + 1000);
 
       this.ctx.fillStyle = '#0f0f1c';
-      this.ctx.fillRect(-400, floorY, this.width + 800, this.height - floorY);
+      this.ctx.fillRect(-1500, floorY, this.width + 3000, this.height - floorY + 500);
 
       this.ctx.beginPath();
-      this.ctx.moveTo(-400, floorY);
-      this.ctx.lineTo(this.width + 400, floorY);
+      this.ctx.moveTo(-1500, floorY);
+      this.ctx.lineTo(this.width + 1500, floorY);
       this.ctx.strokeStyle = 'rgba(0, 255, 255, 0.4)';
       this.ctx.lineWidth = 2.5;
       this.ctx.stroke();
@@ -841,15 +859,20 @@ export class Arena {
   }
 
   private renderHUD() {
-    const barWidth = 300;
-    const barHeight = 20;
-    // Lower HUD slightly if timeline is rendered
-    const barY = this.stage === 'animator' ? 36 : 24;
+    const isLightStage = this.stage === 'animator' || this.stage === 'desktop';
+    const textColor = isLightStage ? '#111111' : '#ffffff';
+    const cpuColor = isLightStage ? '#990055' : '#ff75df';
+    const timerColor = isLightStage ? '#111111' : '#ffd700';
 
-    // Player Health Bar
-    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    const barWidth = Math.min(340, Math.max(220, this.width * 0.32));
+    const barHeight = 20;
+    const barY = 22;
+
+    // Player Health Bar (Left)
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
     this.ctx.fillRect(40, barY, barWidth, barHeight);
-    this.ctx.strokeStyle = '#444';
+    this.ctx.strokeStyle = '#222';
+    this.ctx.lineWidth = 2;
     this.ctx.strokeRect(40, barY, barWidth, barHeight);
 
     const playerHpWidth = (this.player.health / this.player.maxHealth) * barWidth;
@@ -859,16 +882,17 @@ export class Arena {
     this.ctx.fillStyle = playerGrad;
     this.ctx.fillRect(40, barY, playerHpWidth, barHeight);
 
-    this.ctx.fillStyle = '#fff';
+    this.ctx.fillStyle = textColor;
     this.ctx.font = 'bold 12px "Share Tech Mono", monospace';
     this.ctx.textAlign = 'left';
     this.ctx.fillText(`P1: ${this.player.name.toUpperCase()} (${this.player.skin.toUpperCase()}) [${Math.round(this.player.health)}%]`, 40, barY - 6);
 
-    // Ghost Health Bar
+    // Ghost Health Bar (Right)
     const ghostBarX = this.width - 40 - barWidth;
-    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
     this.ctx.fillRect(ghostBarX, barY, barWidth, barHeight);
-    this.ctx.strokeStyle = '#444';
+    this.ctx.strokeStyle = '#222';
+    this.ctx.lineWidth = 2;
     this.ctx.strokeRect(ghostBarX, barY, barWidth, barHeight);
 
     const ghostHpWidth = (this.ghost.health / this.ghost.maxHealth) * barWidth;
@@ -878,27 +902,59 @@ export class Arena {
     this.ctx.fillStyle = ghostGrad;
     this.ctx.fillRect(ghostBarX + (barWidth - ghostHpWidth), barY, ghostHpWidth, barHeight);
 
-    this.ctx.fillStyle = '#ff75df';
+    this.ctx.fillStyle = cpuColor;
     this.ctx.font = 'bold 12px "Share Tech Mono", monospace';
     this.ctx.textAlign = 'right';
     this.ctx.fillText(`CPU: FLASH GHOST (GEMMA 3:4B) [${Math.round(this.ghost.health)}%]`, this.width - 40, barY - 6);
 
     // Center Round Timer
-    this.ctx.fillStyle = '#ffd700';
-    this.ctx.font = 'bold 26px "Share Tech Mono", monospace';
+    this.ctx.fillStyle = timerColor;
+    this.ctx.font = 'bold 28px "Share Tech Mono", monospace';
     this.ctx.textAlign = 'center';
     this.ctx.fillText(`${this.roundTime}`, this.width / 2, barY + 18);
 
     // Combo Counter
     if (this.playerCombo > 1) {
-      this.ctx.fillStyle = '#00ffff';
+      this.ctx.fillStyle = '#ff4400';
       this.ctx.font = 'bold 18px "Press Start 2P", monospace';
       this.ctx.textAlign = 'left';
-      this.ctx.shadowColor = '#00ffff';
-      this.ctx.shadowBlur = 10;
-      this.ctx.fillText(`${this.playerCombo} HITS!`, 44, barY + 45);
+      this.ctx.shadowColor = 'rgba(255, 68, 0, 0.5)';
+      this.ctx.shadowBlur = 8;
+      this.ctx.fillText(`${this.playerCombo} HITS!`, 44, barY + 46);
       this.ctx.shadowBlur = 0;
     }
+
+    // Gemma Neural Cognition Read Banner (Real-Time Learned Counter Alert)
+    if (this.tacticalBannerFrames > 0 && this.tacticalBannerText) {
+      this.ctx.save();
+      const bannerW = Math.min(460, this.width - 80);
+      const bannerH = 28;
+      const bannerX = this.width / 2 - bannerW / 2;
+      const bannerY = barY + 34;
+
+      // Dark Neon Pill
+      this.ctx.fillStyle = 'rgba(12, 10, 22, 0.94)';
+      this.ctx.strokeStyle = '#ff00aa';
+      this.ctx.lineWidth = 1.8;
+      this.ctx.shadowColor = '#ff00aa';
+      this.ctx.shadowBlur = 14;
+      this.ctx.beginPath();
+      this.ctx.roundRect(bannerX, bannerY, bannerW, bannerH, 4);
+      this.ctx.fill();
+      this.ctx.stroke();
+
+      this.ctx.fillStyle = '#00ffff';
+      this.ctx.font = 'bold 12px "Share Tech Mono", monospace';
+      this.ctx.textAlign = 'center';
+      this.ctx.shadowBlur = 6;
+      this.ctx.fillText(this.tacticalBannerText, this.width / 2, bannerY + 19);
+      this.ctx.restore();
+    }
+  }
+
+  public showTacticalBanner(text: string) {
+    this.tacticalBannerText = text;
+    this.tacticalBannerFrames = 85;
   }
 
   private renderAnnouncements() {

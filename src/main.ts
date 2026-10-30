@@ -37,7 +37,8 @@ class KillSwitchGame {
     const defaultName = (document.getElementById('player-name-input') as HTMLInputElement)?.value || 'The Second Coming';
     this.arena = new Arena(this.canvas, defaultName, 'orange');
     this.telemetry = new TelemetryTracker(defaultName);
-    this.aiController = new AIController(this.arena.ghost, this.arena.player);
+    this.aiController = new AIController(this.arena.ghost, this.arena.player, this.telemetry);
+    this.aiController.onTacticalRead = (text) => this.arena.showTacticalBanner(text);
     this.cemetery = new CemeteryManager();
 
     this.setupUIEvents();
@@ -45,6 +46,7 @@ class KillSwitchGame {
     this.setupInputListeners();
     this.setupRoundEndPipeline();
     this.startRenderLoop();
+    (window as any).__game = this;
   }
 
   // --- Window Titlebar Controls (Maximize, Close, Minimize) ---
@@ -210,6 +212,7 @@ class KillSwitchGame {
       if (e.code === 'KeyW' || e.code === 'ArrowUp') {
         if (p.isGrounded) {
           p.jump();
+          this.telemetry.recordJump();
           sound.playJump();
         }
       }
@@ -310,6 +313,15 @@ class KillSwitchGame {
         roastText.innerText = 'Extracting ActionScript 2.0 bytecode... Sending telemetry to Google Gemma 3:4B...';
       }
 
+      // Update Learned Habits UI
+      const valCombo = document.getElementById('val-habit-combo');
+      const valTactic = document.getElementById('val-habit-tactic');
+      if (valCombo) {
+        valCombo.innerText = summary.habits.favoriteCombo !== 'None'
+          ? `${summary.habits.favoriteCombo} (${summary.habits.topComboCount}x)`
+          : (summary.habits.aerialRatio > 0.4 ? 'SPAMMING JUMP-KICKS' : 'DIVERSE TACTICS');
+      }
+
       // Call streaming Gemma 3:4B inference
       gemmaGhost.streamCombatAnalysis(
         summary,
@@ -320,6 +332,10 @@ class KillSwitchGame {
         },
         (adaptation) => {
           this.currentAdaptation = adaptation;
+
+          if (valTactic) {
+            valTactic.innerText = `${adaptation.counterTactic} (VS ${adaptation.predictedOpening})`;
+          }
 
           // Animate UI adaptation meters
           if (meterAntiAir) {
