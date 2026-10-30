@@ -27,6 +27,10 @@ export class AIController {
   public counterTactic: string = 'ANTI_AIR';
   public tacticalAnalysis: string = 'Analyzing combat habits...';
 
+  // Gemma 3:4B Designed Boss Mechanic: ActionScript Error 0x7E5 Time-Bomb
+  public isRageModeActive: boolean = false;
+  private rageAttackTimer: number = 0;
+
   private actionCooldown: number = 0;
   private decisionTimer: number = 0;
   private parryCooldown: number = 0;
@@ -96,6 +100,24 @@ export class AIController {
     const dx = this.player.x - this.ghost.x;
     const dist = Math.abs(dx);
     const dir = dx > 0 ? 1 : -1;
+
+    // --- Gemma 3:4B Designed Boss Mechanic: ActionScript Error 0x7E5 Time-Bomb ---
+    const ghostHpPercent = (this.ghost.health / this.ghost.maxHealth) * 100;
+    if (ghostHpPercent <= 35 && !this.isRageModeActive) {
+      this.isRageModeActive = true;
+      this.ghost.auraColor = '#ff0033'; // Pulsating red warning aura
+      this.onTacticalRead?.('⚠️ GEMMA CORE: ACTIONSCRIPT ERROR 0x7E5 TIME-BOMB!');
+      sound.playBypass();
+    }
+
+    if (this.isRageModeActive) {
+      this.rageAttackTimer++;
+      if (this.rageAttackTimer >= 140) {
+        this.rageAttackTimer = 0;
+        this.executeError0x7E5TripleTeleport();
+        return;
+      }
+    }
 
     // --- 1. Real-Time Move Prediction via Markov Sequence Model ---
     if (this.telemetry) {
@@ -211,5 +233,50 @@ export class AIController {
         this.ghost.stopMoving();
       }
     }
+  }
+
+  /**
+   * ActionScript Error 0x7E5: Time-Bomb Triple Teleport
+   * Designed by Google Gemma 3:4B as the signature rage mechanic for Flash Ghost (HP <= 35%)
+   */
+  public executeError0x7E5TripleTeleport() {
+    if (!this.ghost.canAct() || this.ghost.health <= 0) return;
+
+    this.actionCooldown = 40;
+    this.ghost.stopMoving();
+
+    // Step 1: Glitch Phase Behind (0ms)
+    this.onTacticalRead?.('⚠️ 0x7E5: TELEPORT [1/3] MEMORY OVERFLOW');
+    this.ghost.flashFrames = 10;
+    this.ghost.glitchOffset = 24;
+    sound.playBypass();
+    this.ghost.x = this.player.x - 110 * this.player.facing;
+    this.ghost.facing = this.player.facing;
+
+    // Step 2: Glitch Phase Overhead (140ms)
+    setTimeout(() => {
+      if (!this.ghost.canAct() || this.ghost.health <= 0) return;
+      this.onTacticalRead?.('⚠️ 0x7E5: TELEPORT [2/3] STACK CORRUPTION');
+      this.ghost.flashFrames = 10;
+      this.ghost.glitchOffset = -28;
+      sound.playJump();
+      this.ghost.x = this.player.x;
+      this.ghost.y = this.ghost.groundY - 120;
+      this.ghost.isGrounded = false;
+    }, 140);
+
+    // Step 3: Surprise Drop & Heavy Kick / Claw Strike Behind Player (280ms)
+    setTimeout(() => {
+      if (!this.ghost.canAct() || this.ghost.health <= 0) return;
+      this.onTacticalRead?.('⚠️ 0x7E5: TIME-BOMB SURPRISE CLAW EXECUTION!');
+      this.ghost.flashFrames = 14;
+      this.ghost.glitchOffset = 0;
+      this.ghost.y = this.ghost.groundY;
+      this.ghost.isGrounded = true;
+      this.ghost.x = this.player.x - 65 * this.player.facing;
+      this.ghost.facing = this.player.facing;
+      sound.playBypass();
+      this.ghost.heavyKick();
+    }, 280);
   }
 }

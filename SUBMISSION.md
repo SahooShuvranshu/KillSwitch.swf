@@ -21,9 +21,11 @@ For this week's **"Ghost in the Machine"** challenge, I wanted to resurrect that
 
 Meet **`KillSwitch.swf`**: a 60 FPS HTML5 Canvas stickman fighting game trapped inside a cracked Macromedia Flash Player 10.3 desktop window. You play as a rogue stickman fighter who breaches the 2021 kill-switch dialog to duel the **Ghost of Flash Player** itself.
 
-The Ghost is not a pre-scripted dummy bot. It is powered locally by **Google Gemma 3 4B** via Ollama. Between combat rounds, Gemma analyzes your real-time combat habits (jump-kicks, ground jabs, turtle blocks), roasts your playstyle with authentic 2000s Newgrounds lore, and dynamically tunes its AI parameters (`antiAirPriority`, `aggression`, `guardBreakRate`) to intercept and counter your fighting patterns in Round 2.
-
-Additionally, in the spirit of **Día de los Muertos**, the project features an interactive **Flash Cemetery Ofrenda**, where lighting candles at the graves of fallen Flash legends prompts Gemma 3 4B to compose satirical *calaveritas literarias* (Day of the Dead rhyming epitaph poems).
+The Ghost is not a pre-scripted dummy bot. It is powered locally by **Google Gemma 3 4B** via Ollama:
+- **Real-Time Combat Habit Learning**: A Markov bigram sequence predictor tracks your live combo transitions (e.g., $P(\text{Heavy Kick} \mid \text{Jab})$, $P(\text{Jump Kick} \mid \text{Jump})$). When you fall into predictable habits, the Flash Ghost anticipates your next button press in real time, triggering **Matrix Parries**, **Anti-Air Dragon Sweeps**, and floating HUD alerts like `⚡ GEMMA READ: PREDICTED HEAVY KICK (100%)`.
+- **Inter-Round Tactical Monologues**: Between rounds, Gemma streams a spoken monologue roasting your specific combo patterns with authentic 2000s Newgrounds lore and adapts its AI state machine (`antiAirPriority`, `aggression`, `guardBreakRate`).
+- **Gemma-Designed Boss Rage Mechanic ("ActionScript Error 0x7E5 Time-Bomb")**: When the Ghost's health drops below 35%, it enters an unhinged rage state, triggering a triple-teleport memory overflow attack designed directly by Gemma 3:4B.
+- **Flash Cemetery Ofrenda**: In the spirit of **Día de los Muertos**, lighting candles at the graves of fallen Flash legends prompts Gemma 3:4B to compose satirical *calaveritas literarias* (Day of the Dead rhyming epitaph poems).
 
 ---
 
@@ -101,11 +103,34 @@ Between rounds, the game issues a structured inference prompt to Gemma:
 
 ### The In-Game Adaptation
 
-If you spam flying jump-kicks in Round 1:
-- Gemma streams a roast:
+If you spam flying jump-kicks or predictable jab-into-kick chains in Round 1:
+- Gemma streams a natural, cynical in-character spoken monologue:
   > *"Still spamming jump-kicks like this is Xiao Xiao 3? I survived Steve Jobs' open letter in 2010; your airborne spam won't survive Round 2. Anti-air protocol loaded!"*
-- Gemma tunes `antiAirPriority = 0.92`.
-- In Round 2, the AI state machine immediately checks whenever the player jumps into the air. Instead of standing idle, the Ghost ducks under the kick and executes a rising dragon kick to knock the player out of the sky.
+- Gemma tunes `antiAirPriority = 0.92`, `aggression = 0.85`, and primes the `ANTI_AIR` counter tactic.
+- The UI displays an adaptation card:
+  - **DETECTED COMBO HABIT:** `JUMP -> JUMP_KICK (5x)`
+  - **GEMMA 3:4B COUNTER TACTIC:** `ANTI_AIR`
+- In Round 2, the AI immediately predicts your habits in real time. Whenever you jump, it ducks under and launches a rising dragon kick to knock you out of the sky, flashing a live combat alert:
+  `⚡ GEMMA READ: ANTI-AIR INTERCEPT!`
+
+![Learned Habits & Gemma Tactical Telemetry](screenshot_learned_habits.png)
+*Figure 1: Gemma 3:4B analyzing real-time combat habits and locking in tactical counters between rounds.*
+
+![Round 2 Counter Stance](screenshot_round2_counter.png)
+*Figure 2: The Flash Ghost in Round 2, executing an anti-air duck-under counter.*
+
+### Gemma-Designed Boss Mechanic: "ActionScript Error 0x7E5 Time-Bomb"
+
+When the Ghost's health drops below 35%, it enters an unhinged rage state designed directly by **Google Gemma 3 4B**:
+1. **Trigger Alert**: The Flash Ghost's aura turns radiant crimson (`#ff0033`), accompanied by an audible digital bypass surge:
+   `⚠️ GEMMA CORE: ACTIONSCRIPT ERROR 0x7E5 TIME-BOMB!`
+2. **Triple Teleport Memory Overflow**:
+   - **Step 1 (0ms)**: Glitches behind the player with a memory overflow alert (`⚠️ 0x7E5: TELEPORT [1/3] MEMORY OVERFLOW`).
+   - **Step 2 (140ms)**: Glitches 120px directly overhead into the ceiling (`⚠️ 0x7E5: TELEPORT [2/3] STACK CORRUPTION`).
+   - **Step 3 (280ms)**: Drops down directly behind the player's back and unleashes an unblockable heavy claw strike (`⚠️ 0x7E5: TIME-BOMB SURPRISE CLAW EXECUTION!`).
+
+![ActionScript Error 0x7E5 Rage Teleport](screenshot_rage_teleport.png)
+*Figure 3: Flash Ghost executing the Gemma 3:4B designed Error 0x7E5 triple-teleport strike.*
 
 ### Día de los Muertos: Gemma's Calaveritas Literarias
 
