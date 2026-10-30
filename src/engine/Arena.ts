@@ -53,6 +53,13 @@ export class Arena {
   public stage: ArenaStage = 'animator';
   public difficulty: GameDifficulty = 'veteran';
 
+  // --- Low-RAM Offscreen Background Cache ---
+  private stageCacheCanvas: HTMLCanvasElement | null = null;
+  private stageCacheCtx: CanvasRenderingContext2D | null = null;
+  private cachedStage: ArenaStage | null = null;
+  private cachedWidth: number = 0;
+  private cachedHeight: number = 0;
+
   public sparks: SparkParticle[] = [];
   public damageNumbers: DamageNumber[] = [];
   public afterimages: Afterimage[] = [];
@@ -582,225 +589,493 @@ export class Arena {
     this.ctx.closePath();
   }
 
-  // --- Stage Background Rendering ---
+  // --- Low-RAM Offscreen Stage Caching & Vector Background Engine ---
   private renderStage() {
+    if (!this.stageCacheCanvas || this.cachedStage !== this.stage || this.cachedWidth !== this.width || this.cachedHeight !== this.height) {
+      this.rebuildStageCache();
+    }
+    if (this.stageCacheCanvas) {
+      this.ctx.drawImage(this.stageCacheCanvas, -800, -400);
+    }
+    if (this.stage === 'animator') {
+      this.renderAnimatorCursor();
+    }
+  }
+
+  private rebuildStageCache() {
+    const padW = 800;
+    const padH = 400;
+    const totalW = this.width + padW * 2;
+    const totalH = this.height + padH * 2;
+
+    if (!this.stageCacheCanvas) {
+      this.stageCacheCanvas = document.createElement('canvas');
+      this.stageCacheCtx = this.stageCacheCanvas.getContext('2d');
+    }
+
+    if (!this.stageCacheCanvas || !this.stageCacheCtx) return;
+
+    this.stageCacheCanvas.width = totalW;
+    this.stageCacheCanvas.height = totalH;
+
+    const ctx = this.stageCacheCtx;
+    ctx.save();
+    // Offset so (0,0) in game coordinates corresponds to (padW, padH) in cache
+    ctx.translate(padW, padH);
+
     const floorY = this.height - 90;
+    const minX = -padW;
+    const maxX = this.width + padW;
+    const minY = -padH;
+    const maxY = this.height + padH;
 
     if (this.stage === 'animator') {
-      // Flash Studio Drawing Canvas
-      // Clean white/light-gray drawing canvas with subtle vector grid
-      this.ctx.fillStyle = '#f8f8fa';
-      this.ctx.fillRect(-1500, -500, this.width + 3000, this.height + 1000);
+      // 1. FLASH STUDIO CANVAS (Round 1)
+      ctx.fillStyle = '#f6f6f8';
+      ctx.fillRect(minX, minY, totalW, totalH);
 
-      // Fine grid dots/lines
-      this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.04)';
-      this.ctx.lineWidth = 1;
-      for (let x = -1500; x <= this.width + 1500; x += 32) {
-        this.ctx.beginPath();
-        this.ctx.moveTo(x, -500);
-        this.ctx.lineTo(x, this.height + 500);
-        this.ctx.stroke();
+      // Flash Stage Document Border with subtle drop shadow
+      const docW = Math.min(this.width - 80, 850);
+      const docH = this.height - 120;
+      const docX = (this.width - docW) / 2;
+      const docY = 40;
+
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.12)';
+      ctx.shadowBlur = 18;
+      ctx.fillRect(docX, docY, docW, docH);
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = '#cccccc';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(docX, docY, docW, docH);
+
+      // Fine grid drafting lines inside document
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.035)';
+      ctx.lineWidth = 1;
+      for (let x = docX; x <= docX + docW; x += 24) {
+        ctx.beginPath();
+        ctx.moveTo(x, docY);
+        ctx.lineTo(x, docY + docH);
+        ctx.stroke();
       }
-      for (let y = -500; y <= this.height + 500; y += 32) {
-        this.ctx.beginPath();
-        this.ctx.moveTo(-1500, y);
-        this.ctx.lineTo(this.width + 1500, y);
-        this.ctx.stroke();
+      for (let y = docY; y <= docY + docH; y += 24) {
+        ctx.beginPath();
+        ctx.moveTo(docX, y);
+        ctx.lineTo(docX + docW, y);
+        ctx.stroke();
       }
 
-      // Drawn Ground Line (Like drawn by the Animator's Pencil Tool)
-      this.ctx.strokeStyle = '#222222';
-      this.ctx.lineWidth = 4;
-      this.ctx.beginPath();
-      this.ctx.moveTo(-1500, floorY);
-      this.ctx.lineTo(this.width + 1500, floorY);
-      this.ctx.stroke();
+      // Hand-Drawn Dark Graphite Pencil Ground Line
+      ctx.strokeStyle = '#1e1e24';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(minX, floorY);
+      ctx.lineTo(maxX, floorY);
+      ctx.stroke();
 
-      // "Document 1 - Macromedia Flash" watermark
-      this.ctx.save();
-      this.ctx.font = 'bold 14px "Share Tech Mono", monospace';
-      this.ctx.fillStyle = 'rgba(0, 0, 0, 0.16)';
-      this.ctx.fillText('[Flash Canvas 10.3 — Scene 1 @ 60.0 fps]', 60, floorY + 40);
-      this.ctx.restore();
+      // Top Flash Timeline Header Bar
+      ctx.fillStyle = '#ece9d8';
+      ctx.fillRect(docX, docY, docW, 26);
+      ctx.strokeStyle = '#a0a0a0';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(docX, docY, docW, 26);
+
+      ctx.fillStyle = '#222';
+      ctx.font = 'bold 11px Tahoma, sans-serif';
+      ctx.fillText('📁 Layer 1', docX + 10, docY + 17);
+
+      ctx.font = '9px monospace';
+      ctx.fillStyle = '#666';
+      for (let f = 1; f <= 35; f += 5) {
+        const fx = docX + 85 + f * 12;
+        if (fx < docX + docW - 10) {
+          ctx.fillText(`${f}`, fx, docY + 11);
+          ctx.beginPath();
+          ctx.moveTo(fx, docY + 13);
+          ctx.lineTo(fx, docY + 26);
+          ctx.strokeStyle = '#ccc';
+          ctx.stroke();
+        }
+      }
+
+      // Left Flash Tools Palette
+      const toolBoxW = 26;
+      const toolBoxH = 220;
+      const toolBoxX = docX + 8;
+      const toolBoxY = docY + 36;
+      ctx.fillStyle = '#ece9d8';
+      ctx.fillRect(toolBoxX, toolBoxY, toolBoxW, toolBoxH);
+      ctx.strokeStyle = '#716f64';
+      ctx.strokeRect(toolBoxX, toolBoxY, toolBoxW, toolBoxH);
+      const tools = ['↖', '▲', '╱', '✎', '🖌', '○', '□', '🪣', '🧹'];
+      ctx.font = '12px sans-serif';
+      ctx.fillStyle = '#333';
+      ctx.textAlign = 'center';
+      tools.forEach((t, i) => {
+        ctx.fillText(t, toolBoxX + toolBoxW / 2, toolBoxY + 20 + i * 22);
+      });
+      ctx.textAlign = 'left';
+
+      // Stage Watermark
+      ctx.font = 'bold 13px "Share Tech Mono", monospace';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
+      ctx.fillText('[Flash Studio MX — Scene 1 @ 60.0 fps]', docX + 45, floorY + 36);
 
     } else if (this.stage === 'desktop') {
-      // Windows XP "Bliss" Desktop
-      // Blue Sky with Gradient
-      const skyGrad = this.ctx.createLinearGradient(0, 0, 0, floorY);
-      skyGrad.addColorStop(0, '#1c74d8');
-      skyGrad.addColorStop(0.65, '#68b1f5');
-      skyGrad.addColorStop(1, '#c5e2fe');
-      this.ctx.fillStyle = skyGrad;
-      this.ctx.fillRect(-1500, -500, this.width + 3000, floorY + 500);
+      // 2. WINDOWS XP BLISS DESKTOP (Round 2)
+      // Multi-stop Radiant Azure Sky Gradient
+      const skyGrad = ctx.createLinearGradient(0, minY, 0, floorY);
+      skyGrad.addColorStop(0, '#1565c0');
+      skyGrad.addColorStop(0.4, '#42a5f5');
+      skyGrad.addColorStop(0.85, '#90caf9');
+      skyGrad.addColorStop(1, '#e3f2fd');
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(minX, minY, totalW, floorY - minY);
 
-      // Rolling Green Grass Hills
-      const hillGrad = this.ctx.createLinearGradient(0, floorY - 140, 0, floorY);
-      hillGrad.addColorStop(0, '#74ba27');
-      hillGrad.addColorStop(1, '#3b7811');
-      this.ctx.fillStyle = hillGrad;
-      this.ctx.beginPath();
-      this.ctx.moveTo(-1500, floorY);
-      this.ctx.bezierCurveTo(-400, floorY - 120, 200, floorY - 60, 500, floorY - 100);
-      this.ctx.bezierCurveTo(700, floorY - 130, 900, floorY - 70, this.width + 1500, floorY);
-      this.ctx.lineTo(this.width + 1500, floorY);
-      this.ctx.lineTo(-1500, floorY);
-      this.ctx.fill();
+      // Cumulus Clouds
+      this.drawPuffyCloud(ctx, 120, floorY - 260, 1.2);
+      this.drawPuffyCloud(ctx, this.width - 200, floorY - 320, 1.5);
+      this.drawPuffyCloud(ctx, -180, floorY - 200, 0.9);
 
-      // Windows XP Blue Taskbar (Acts as the combat floor!)
-      this.ctx.fillStyle = '#245ddc';
-      this.ctx.fillRect(-1500, floorY, this.width + 3000, this.height - floorY + 500);
+      // Distant rolling hills
+      const backHillGrad = ctx.createLinearGradient(0, floorY - 180, 0, floorY);
+      backHillGrad.addColorStop(0, '#558b2f');
+      backHillGrad.addColorStop(1, '#33691e');
+      ctx.fillStyle = backHillGrad;
+      ctx.beginPath();
+      ctx.moveTo(minX, floorY);
+      ctx.bezierCurveTo(-100, floorY - 140, 300, floorY - 90, 600, floorY - 130);
+      ctx.bezierCurveTo(900, floorY - 160, 1200, floorY - 100, maxX, floorY);
+      ctx.lineTo(maxX, floorY);
+      ctx.lineTo(minX, floorY);
+      ctx.fill();
 
-      // Taskbar top rim
-      this.ctx.fillStyle = '#3f82fc';
-      this.ctx.fillRect(-1500, floorY, this.width + 3000, 3);
+      // Main Sunny Rolling Hill Crest (Classic Bliss Curve)
+      const hillGrad = ctx.createLinearGradient(0, floorY - 130, 0, floorY);
+      hillGrad.addColorStop(0, '#7cb342');
+      hillGrad.addColorStop(0.5, '#689f38');
+      hillGrad.addColorStop(1, '#33691e');
+      ctx.fillStyle = hillGrad;
+      ctx.beginPath();
+      ctx.moveTo(minX, floorY);
+      ctx.bezierCurveTo(-200, floorY - 90, 250, floorY - 45, 500, floorY - 95);
+      ctx.bezierCurveTo(750, floorY - 135, 1050, floorY - 60, maxX, floorY);
+      ctx.lineTo(maxX, floorY);
+      ctx.lineTo(minX, floorY);
+      ctx.fill();
+
+      // Windows XP Luna Blue Taskbar (Combat Floor)
+      const taskbarH = maxY - floorY;
+      ctx.fillStyle = '#245edc';
+      ctx.fillRect(minX, floorY, totalW, taskbarH);
+
+      // Taskbar top rim highlight
+      ctx.fillStyle = '#458bf8';
+      ctx.fillRect(minX, floorY, totalW, 3);
 
       // Green "start" Button
-      this.ctx.fillStyle = '#388e3c';
-      this.ctx.beginPath();
-      this.ctx.roundRect(-30, floorY + 6, 85, 32, [0, 8, 8, 0]);
-      this.ctx.fill();
-      this.ctx.fillStyle = '#fff';
-      this.ctx.font = 'italic bold 15px sans-serif';
-      this.ctx.fillText('start', 6, floorY + 28);
+      ctx.fillStyle = '#388e3c';
+      ctx.beginPath();
+      ctx.roundRect(-20, floorY + 4, 95, 34, [0, 8, 8, 0]);
+      ctx.fill();
+      ctx.strokeStyle = '#2e7d32';
+      ctx.lineWidth = 1;
+      ctx.stroke();
 
-      // Desktop Icons on the left
-      this.renderDesktopIcon(-150, 80, '🗑️', 'Recycle Bin');
-      this.renderDesktopIcon(-150, 160, '💻', 'My Computer');
-      this.renderDesktopIcon(-150, 240, '⚡', 'Flash_MX.exe');
-      this.renderDesktopIcon(-150, 320, '📁', 'Animations');
+      // Windows 4-color tile emblem
+      const wx = 8;
+      const wy = floorY + 14;
+      ctx.fillStyle = '#f44336'; ctx.fillRect(wx, wy, 5, 5);
+      ctx.fillStyle = '#4caf50'; ctx.fillRect(wx + 6, wy, 5, 5);
+      ctx.fillStyle = '#2196f3'; ctx.fillRect(wx, wy + 6, 5, 5);
+      ctx.fillStyle = '#ffeb3b'; ctx.fillRect(wx + 6, wy + 6, 5, 5);
 
-    } else if (this.stage === 'void') {
-      // 2021 Kill-Switch Void
-      const grad = this.ctx.createLinearGradient(0, 0, 0, this.height);
-      grad.addColorStop(0, '#0a0a14');
-      grad.addColorStop(0.7, '#141424');
-      grad.addColorStop(1, '#050508');
-      this.ctx.fillStyle = grad;
-      this.ctx.fillRect(-1500, -500, this.width + 3000, this.height + 1000);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'italic bold 16px "Segoe UI", Tahoma, sans-serif';
+      ctx.fillText('start', wx + 18, floorY + 27);
 
-      this.ctx.fillStyle = '#0f0f1c';
-      this.ctx.fillRect(-1500, floorY, this.width + 3000, this.height - floorY + 500);
+      // Active Window Taskbar Tab
+      const tabX = 90;
+      const tabY = floorY + 5;
+      ctx.fillStyle = '#1e4fb8';
+      ctx.fillRect(tabX, tabY, 190, 26);
+      ctx.strokeStyle = '#173c8d';
+      ctx.strokeRect(tabX, tabY, 190, 26);
+      ctx.fillStyle = '#fff';
+      ctx.font = '11px "Segoe UI", sans-serif';
+      ctx.fillText('⚡ KillSwitch.swf [Flash MX]', tabX + 12, tabY + 17);
 
-      this.ctx.beginPath();
-      this.ctx.moveTo(-1500, floorY);
-      this.ctx.lineTo(this.width + 1500, floorY);
-      this.ctx.strokeStyle = 'rgba(0, 255, 255, 0.4)';
-      this.ctx.lineWidth = 2.5;
-      this.ctx.stroke();
+      // System Tray (right)
+      const trayX = this.width - 90;
+      ctx.fillStyle = '#0f3a9e';
+      ctx.fillRect(trayX, floorY + 4, 85, 28);
+      ctx.strokeStyle = '#173c8d';
+      ctx.strokeRect(trayX, floorY + 4, 85, 28);
+      ctx.fillStyle = '#e3f2fd';
+      ctx.font = 'bold 11px Tahoma, sans-serif';
+      ctx.fillText('🔊 22:30 PM', trayX + 8, floorY + 22);
 
-      this.ctx.save();
-      this.ctx.font = 'italic bold 160px Arial Black';
-      this.ctx.fillStyle = 'rgba(255, 0, 100, 0.05)';
-      this.ctx.textAlign = 'center';
-      this.ctx.fillText('f', this.width / 2, floorY - 50);
-      this.ctx.restore();
-
-    } else if (this.stage === 'ofrenda') {
-      // Día de los Muertos Altar
-      const grad = this.ctx.createLinearGradient(0, 0, 0, this.height);
-      grad.addColorStop(0, '#15091c');
-      grad.addColorStop(0.7, '#2d1138');
-      grad.addColorStop(1, '#0c0512');
-      this.ctx.fillStyle = grad;
-      this.ctx.fillRect(-400, 0, this.width + 800, this.height);
-
-      this.ctx.fillStyle = '#190a21';
-      this.ctx.fillRect(-400, floorY, this.width + 800, this.height - floorY);
-
-      this.ctx.beginPath();
-      this.ctx.moveTo(-400, floorY);
-      this.ctx.lineTo(this.width + 400, floorY);
-      this.ctx.strokeStyle = 'rgba(255, 215, 0, 0.5)';
-      this.ctx.lineWidth = 2.5;
-      this.ctx.stroke();
-
-      this.ctx.save();
-      this.ctx.font = 'italic bold 100px "VT323"';
-      this.ctx.fillStyle = 'rgba(255, 215, 0, 0.08)';
-      this.ctx.textAlign = 'center';
-      this.ctx.fillText('💀 DÍA DE LOS MUERTOS 🕯️', this.width / 2, floorY - 70);
-      this.ctx.restore();
+      // Classic Desktop Icons
+      this.renderDesktopIconToCtx(ctx, -150, 70, '🗑️', 'Recycle Bin');
+      this.renderDesktopIconToCtx(ctx, -150, 150, '💻', 'My Computer');
+      this.renderDesktopIconToCtx(ctx, -150, 230, '📁', 'My Documents');
+      this.renderDesktopIconToCtx(ctx, -150, 310, '🌐', 'Internet Explorer');
+      this.renderDesktopIconToCtx(ctx, -150, 390, '⚡', 'Flash_MX.exe');
 
     } else if (this.stage === 'matrix') {
-      // ActionScript 2.0 Bytecode Matrix
-      this.ctx.fillStyle = '#020703';
-      this.ctx.fillRect(-400, 0, this.width + 800, this.height);
+      // 3. ACTIONSCRIPT CYBER MATRIX (Round 3)
+      ctx.fillStyle = '#010803';
+      ctx.fillRect(minX, minY, totalW, totalH);
 
-      this.ctx.fillStyle = '#031205';
-      this.ctx.fillRect(-400, floorY, this.width + 800, this.height - floorY);
+      // 3D Receding Horizon Perspective Wireframe Floor Grid
+      const horizonY = floorY - 70;
+      const vanishingX = this.width / 2;
 
-      this.ctx.beginPath();
-      this.ctx.moveTo(-400, floorY);
-      this.ctx.lineTo(this.width + 400, floorY);
-      this.ctx.strokeStyle = 'rgba(0, 255, 100, 0.5)';
-      this.ctx.lineWidth = 2.5;
-      this.ctx.stroke();
+      // Dark floor base
+      ctx.fillStyle = '#021406';
+      ctx.fillRect(minX, horizonY, totalW, maxY - horizonY);
+
+      // Perspective Ray Lines radiating from vanishing point
+      ctx.strokeStyle = 'rgba(0, 255, 100, 0.35)';
+      ctx.lineWidth = 1.5;
+      const rayCount = 18;
+      for (let i = 0; i <= rayCount; i++) {
+        const spreadX = minX + (totalW / rayCount) * i;
+        ctx.beginPath();
+        ctx.moveTo(vanishingX, horizonY);
+        ctx.lineTo(spreadX, maxY);
+        ctx.stroke();
+      }
+
+      // Horizontal lines with exponential distance compression
+      for (let d = 0; d < 12; d++) {
+        const hy = horizonY + Math.pow(d / 11, 2.2) * (maxY - horizonY);
+        const alpha = 0.15 + (d / 11) * 0.45;
+        ctx.strokeStyle = `rgba(0, 255, 120, ${alpha})`;
+        ctx.beginPath();
+        ctx.moveTo(minX, hy);
+        ctx.lineTo(maxX, hy);
+        ctx.stroke();
+      }
+
+      // Glowing Neon Floor Rim
+      ctx.strokeStyle = '#00ff66';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#00ff66';
+      ctx.shadowBlur = 14;
+      ctx.beginPath();
+      ctx.moveTo(minX, floorY);
+      ctx.lineTo(maxX, floorY);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Holographic ActionScript Code Blocks in the background
+      ctx.font = '13px "Share Tech Mono", monospace';
+      ctx.fillStyle = 'rgba(0, 255, 100, 0.22)';
+      ctx.fillText('_root.onEnterFrame = function() {', 40, 100);
+      ctx.fillText('  Ghost.anticipatePlayerHabits();', 60, 125);
+      ctx.fillText('  if (player.isJumping) Ghost.antiAirSweep();', 60, 150);
+      ctx.fillText('  0x7E5_STACK_OVERFLOW_VECTORS();', 60, 175);
+      ctx.fillText('};', 40, 200);
+
+    } else if (this.stage === 'void') {
+      // 4. 2021 KILL-SWITCH VOID (Round 4)
+      const grad = ctx.createLinearGradient(0, minY, 0, maxY);
+      grad.addColorStop(0, '#06060c');
+      grad.addColorStop(0.5, '#120d1c');
+      grad.addColorStop(1, '#040308');
+      ctx.fillStyle = grad;
+      ctx.fillRect(minX, minY, totalW, totalH);
+
+      // Dark floor
+      ctx.fillStyle = '#0d0b16';
+      ctx.fillRect(minX, floorY, totalW, maxY - floorY);
+
+      // Cyan Grid Floor
+      ctx.strokeStyle = 'rgba(0, 255, 255, 0.35)';
+      ctx.lineWidth = 1.5;
+      for (let x = minX; x <= maxX; x += 45) {
+        ctx.beginPath();
+        ctx.moveTo(x, floorY);
+        ctx.lineTo(x, maxY);
+        ctx.stroke();
+      }
+      for (let y = floorY; y <= maxY; y += 30) {
+        ctx.beginPath();
+        ctx.moveTo(minX, y);
+        ctx.lineTo(maxX, y);
+        ctx.stroke();
+      }
+
+      // Neon Cyan Floor Rim with Red Glitch Outline
+      ctx.strokeStyle = '#00ffff';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#00ffff';
+      ctx.shadowBlur = 14;
+      ctx.beginPath();
+      ctx.moveTo(minX, floorY);
+      ctx.lineTo(maxX, floorY);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Shattered Adobe Flash Puzzle Monolith
+      const cx = this.width / 2;
+      ctx.save();
+      ctx.font = 'italic bold 170px "Arial Black", sans-serif';
+      ctx.fillStyle = 'rgba(255, 0, 80, 0.07)';
+      ctx.textAlign = 'center';
+      ctx.fillText('f', cx, floorY - 50);
+
+      // Warning Prompt
+      ctx.font = 'bold 12px "Share Tech Mono", monospace';
+      ctx.fillStyle = 'rgba(255, 50, 80, 0.4)';
+      ctx.fillText('[CRITICAL EXECUTION ERROR 0x7E5 — JAN 12, 2021 TIME-BOMB ACTIVE]', cx, floorY - 180);
+      ctx.fillText('[MEMORY ADAPTATION: GOOGLE GEMMA 3:4B LOCAL ENGINE]', cx, floorY - 160);
+      ctx.restore();
+
+    } else if (this.stage === 'ofrenda') {
+      // 5. DÍA DE LOS MUERTOS ALTAR (Round 5)
+      // Twilight Night Sky
+      const nightGrad = ctx.createLinearGradient(0, minY, 0, floorY);
+      nightGrad.addColorStop(0, '#10061e');
+      nightGrad.addColorStop(0.6, '#280c38');
+      nightGrad.addColorStop(1, '#0e0417');
+      ctx.fillStyle = nightGrad;
+      ctx.fillRect(minX, minY, totalW, floorY - minY);
+
+      // Full Moon
+      ctx.save();
+      ctx.fillStyle = '#fff9d6';
+      ctx.shadowColor = '#ffeb3b';
+      ctx.shadowBlur = 28;
+      ctx.beginPath();
+      ctx.arc(this.width - 120, 90, 42, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.restore();
+
+      // Waving Papel Picado Banners across the top
+      this.drawPapelPicadoRow(ctx, minX, maxX, 18);
+
+      // Earthy altar floor
+      ctx.fillStyle = '#16081c';
+      ctx.fillRect(minX, floorY, totalW, maxY - floorY);
+
+      // Golden Marigold Floor Rim
+      ctx.strokeStyle = '#ff9800';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#ffa726';
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.moveTo(minX, floorY);
+      ctx.lineTo(maxX, floorY);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Memorial Gravestones with Candles
+      this.drawAltarCandle(ctx, 80, floorY);
+      this.drawAltarCandle(ctx, 220, floorY);
+      this.drawAltarCandle(ctx, this.width - 100, floorY);
+      this.drawAltarCandle(ctx, this.width - 240, floorY);
+
+      // Center Calavera Banner
+      ctx.save();
+      ctx.font = 'bold 36px "VT323", monospace';
+      ctx.fillStyle = 'rgba(255, 179, 0, 0.22)';
+      ctx.textAlign = 'center';
+      ctx.fillText('💀 DÍA DE LOS MUERTOS — FLASH OFRENDA 🕯️', this.width / 2, floorY - 90);
+      ctx.restore();
+    }
+
+    ctx.restore();
+
+    this.cachedStage = this.stage;
+    this.cachedWidth = this.width;
+    this.cachedHeight = this.height;
+  }
+
+  private drawPuffyCloud(ctx: CanvasRenderingContext2D, x: number, y: number, scale: number) {
+    ctx.save();
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+    ctx.beginPath();
+    ctx.arc(x, y, 22 * scale, 0, Math.PI * 2);
+    ctx.arc(x + 24 * scale, y - 10 * scale, 28 * scale, 0, Math.PI * 2);
+    ctx.arc(x + 55 * scale, y, 24 * scale, 0, Math.PI * 2);
+    ctx.arc(x + 36 * scale, y + 10 * scale, 20 * scale, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  private drawPapelPicadoRow(ctx: CanvasRenderingContext2D, minX: number, maxX: number, y: number) {
+    const colors = ['#e91e63', '#ff9800', '#9c27b0', '#ffeb3b', '#00e676', '#00bcd4'];
+    const flagW = 38;
+    const flagH = 46;
+
+    // String across the top
+    ctx.strokeStyle = '#ffeb3b';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(minX, y);
+    ctx.lineTo(maxX, y);
+    ctx.stroke();
+
+    let i = 0;
+    for (let x = minX + 20; x < maxX - 20; x += flagW + 8) {
+      ctx.fillStyle = colors[i % colors.length];
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + flagW, y);
+      ctx.lineTo(x + flagW, y + flagH);
+      ctx.lineTo(x + flagW / 2, y + flagH - 10);
+      ctx.lineTo(x, y + flagH);
+      ctx.closePath();
+      ctx.fill();
+
+      // Cutout details
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+      ctx.beginPath();
+      ctx.arc(x + flagW / 2, y + 20, 6, 0, Math.PI * 2);
+      ctx.fill();
+      i++;
     }
   }
 
-  private renderDesktopIcon(x: number, y: number, icon: string, name: string) {
-    this.ctx.save();
-    this.ctx.textAlign = 'center';
-    this.ctx.font = '28px sans-serif';
-    this.ctx.fillText(icon, x, y);
-    this.ctx.font = '11px sans-serif';
-    this.ctx.fillStyle = '#fff';
-    this.ctx.shadowColor = '#000';
-    this.ctx.shadowBlur = 4;
-    this.ctx.fillText(name, x, y + 16);
-    this.ctx.restore();
+  private drawAltarCandle(ctx: CanvasRenderingContext2D, x: number, floorY: number) {
+    ctx.save();
+    // Candle wax body
+    ctx.fillStyle = '#fff8e7';
+    ctx.fillRect(x - 6, floorY - 26, 12, 26);
+    // Wick
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x, floorY - 26);
+    ctx.lineTo(x, floorY - 32);
+    ctx.stroke();
+    // Glowing Flame Halo
+    ctx.fillStyle = 'rgba(255, 152, 0, 0.35)';
+    ctx.beginPath();
+    ctx.arc(x, floorY - 35, 14, 0, Math.PI * 2);
+    ctx.fill();
+    // Flame teardrop
+    ctx.fillStyle = '#ffd54f';
+    ctx.beginPath();
+    ctx.ellipse(x, floorY - 35, 4, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
   }
 
-  // --- Macromedia Flash Timeline Overlay for 'animator' Stage ---
-  private renderFlashTimeline() {
-    this.ctx.save();
-    // Timeline Bar Top Box
-    this.ctx.fillStyle = '#ece9d8';
-    this.ctx.fillRect(0, 0, this.width, 28);
-    this.ctx.strokeStyle = '#999';
-    this.ctx.lineWidth = 1;
-    this.ctx.strokeRect(0, 0, this.width, 28);
-
-    // Layer 1 Label
-    this.ctx.fillStyle = '#111';
-    this.ctx.font = 'bold 10px Tahoma, sans-serif';
-    this.ctx.fillText('📁 Layer 1', 10, 18);
-
-    // Keyframe ruler
-    const startX = 90;
-    this.ctx.font = '8px monospace';
-    this.ctx.fillStyle = '#666';
-    for (let f = 1; f <= 50; f += 5) {
-      const fx = startX + f * 12;
-      this.ctx.fillText(`${f}`, fx, 12);
-      this.ctx.beginPath();
-      this.ctx.moveTo(fx, 14);
-      this.ctx.lineTo(fx, 28);
-      this.ctx.strokeStyle = '#ccc';
-      this.ctx.stroke();
-    }
-
-    // Scrubbing Red Playhead
-    const currentFrame = (Math.floor(this.player.animFrame / 3) % 45) + 1;
-    const playheadX = startX + currentFrame * 12;
-    this.ctx.fillStyle = '#ff0000';
-    this.ctx.beginPath();
-    this.ctx.moveTo(playheadX - 4, 2);
-    this.ctx.lineTo(playheadX + 4, 2);
-    this.ctx.lineTo(playheadX + 4, 8);
-    this.ctx.lineTo(playheadX, 14);
-    this.ctx.lineTo(playheadX - 4, 8);
-    this.ctx.closePath();
-    this.ctx.fill();
-
-    this.ctx.strokeStyle = '#ff0000';
-    this.ctx.lineWidth = 1.5;
-    this.ctx.beginPath();
-    this.ctx.moveTo(playheadX, 14);
-    this.ctx.lineTo(playheadX, 28);
-    this.ctx.stroke();
-
-    this.ctx.restore();
+  private renderDesktopIconToCtx(ctx: CanvasRenderingContext2D, x: number, y: number, icon: string, name: string) {
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.font = '28px sans-serif';
+    ctx.fillText(icon, x, y);
+    ctx.font = '11px sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = '#000000';
+    ctx.shadowBlur = 4;
+    ctx.fillText(name, x, y + 16);
+    ctx.restore();
   }
 
   // --- Flash Tools Palette Overlay on Left Side ---

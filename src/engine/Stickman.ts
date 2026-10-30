@@ -3,6 +3,8 @@
 // Distinct body proportions, variable scales (Speedster to Titan), and unique props
 // ============================================================================
 
+import { getPoseForState } from './StickmanPoses';
+
 export type FighterState = 
   | 'IDLE' 
   | 'WALK_FORWARD' 
@@ -459,113 +461,28 @@ export class Stickman {
     }
 
     const f = this.facing;
-    const t = this.stateTime;
 
-    let headX = renderX;
-    let headY = renderY - 88 * s;
-    let neckX = renderX;
-    let neckY = renderY - 76 * s;
-    let pelvisX = renderX;
-    let pelvisY = renderY - 45 * s;
+    // Fast deterministic frame pose lookup (Zero trigonometry per frame, ultra-low RAM)
+    const pose = getPoseForState(this.state, this.stateTime, this.animFrame);
 
-    let leftHandX = renderX - 10 * f * s;
-    let leftHandY = renderY - 60 * s;
-    let rightHandX = renderX + 14 * f * s;
-    let rightHandY = renderY - 60 * s;
+    const headX = renderX + pose.headX * f * s;
+    const headY = renderY + pose.headY * s;
+    const neckX = renderX + pose.neckX * f * s;
+    const neckY = renderY + pose.neckY * s;
+    const pelvisX = renderX + pose.pelvisX * f * s;
+    const pelvisY = renderY + pose.pelvisY * s;
 
-    let leftFootX = renderX - 12 * f * s;
-    let leftFootY = renderY;
-    let rightFootX = renderX + 12 * f * s;
-    let rightFootY = renderY;
+    const leftHandX = renderX + pose.leftHandX * f * s;
+    const leftHandY = renderY + pose.leftHandY * s;
+    const rightHandX = renderX + pose.rightHandX * f * s;
+    const rightHandY = renderY + pose.rightHandY * s;
 
-    // Dynamic Kinematics
-    if (this.state === 'IDLE') {
-      const breath = Math.sin(this.animFrame * 0.09) * 2.5 * s;
-      headY += breath;
-      neckY += breath;
-      pelvisY += breath * 0.5;
-      rightHandX = renderX + 16 * f * s;
-      rightHandY = renderY - (62 * s) + breath;
-      leftHandX = renderX - 8 * f * s;
-      leftHandY = renderY - (58 * s) + breath;
-    } else if (this.state === 'WALK_FORWARD' || this.state === 'WALK_BACK') {
-      const stride = Math.sin(this.animFrame * 0.28) * 18 * s;
-      leftFootX = renderX - stride * f;
-      rightFootX = renderX + stride * f;
-      leftHandX = renderX + stride * 0.8 * f;
-      rightHandX = renderX - stride * 0.8 * f;
-      headY += Math.abs(Math.sin(this.animFrame * 0.28)) * 3 * s;
-    } else if (this.state === 'JUMP') {
-      headY = renderY - 92 * s;
-      neckY = renderY - 80 * s;
-      pelvisY = renderY - 50 * s;
-      leftFootX = renderX - 8 * f * s;
-      leftFootY = renderY - 18 * s;
-      rightFootX = renderX + 6 * f * s;
-      rightFootY = renderY - 14 * s;
-      leftHandX = renderX - 14 * f * s;
-      leftHandY = renderY - 85 * s;
-      rightHandX = renderX + 14 * f * s;
-      rightHandY = renderY - 85 * s;
-    } else if (this.state === 'CROUCH') {
-      headY = renderY - 60 * s;
-      neckY = renderY - 50 * s;
-      pelvisY = renderY - 26 * s;
-      leftFootX = renderX - 18 * f * s;
-      rightFootX = renderX + 16 * f * s;
-      leftHandX = renderX + 6 * f * s;
-      leftHandY = renderY - 45 * s;
-      rightHandX = renderX + 20 * f * s;
-      rightHandY = renderY - 45 * s;
-    } else if (this.state === 'JAB') {
-      pelvisX += 5 * f * s;
-      neckX += 8 * f * s;
-      headX += 10 * f * s;
-      if (t < 6) {
-        rightHandX = renderX + 42 * f * s;
-        rightHandY = renderY - 74 * s;
-      } else {
-        rightHandX = renderX + 20 * f * s;
-        rightHandY = renderY - 66 * s;
-      }
-      leftHandX = renderX - 4 * f * s;
-      leftHandY = renderY - 70 * s;
-    } else if (this.state === 'HEAVY_KICK') {
-      pelvisX -= 6 * f * s;
-      neckX -= 8 * f * s;
-      headX -= 12 * f * s;
-      if (t < 5) {
-        rightFootX = renderX - 12 * f * s;
-        rightFootY = renderY - 30 * s;
-      } else if (t < 13) {
-        rightFootX = renderX + 54 * f * s;
-        rightFootY = renderY - 76 * s;
-      } else {
-        rightFootX = renderX + 22 * f * s;
-        rightFootY = renderY - 22 * s;
-      }
-      leftFootX = renderX - 10 * f * s;
-      rightHandX = renderX - 14 * f * s;
-      rightHandY = renderY - 78 * s;
-    } else if (this.state === 'JUMP_KICK') {
-      headX = renderX + 16 * f * s;
-      headY = renderY - 72 * s;
-      neckX = renderX + 10 * f * s;
-      neckY = renderY - 64 * s;
-      pelvisX = renderX - 12 * f * s;
-      pelvisY = renderY - 46 * s;
-      rightFootX = renderX + 50 * f * s;
-      rightFootY = renderY - 62 * s;
-      leftFootX = renderX - 24 * f * s;
-      leftFootY = renderY - 36 * s;
-      rightHandX = renderX - 16 * f * s;
-      rightHandY = renderY - 66 * s;
-    } else if (this.state === 'BLOCK') {
-      rightHandX = renderX + 14 * f * s;
-      rightHandY = renderY - 78 * s;
-      leftHandX = renderX + 12 * f * s;
-      leftHandY = renderY - 70 * s;
+    const leftFootX = renderX + pose.leftFootX * f * s;
+    const leftFootY = renderY + pose.leftFootY * s;
+    const rightFootX = renderX + pose.rightFootX * f * s;
+    const rightFootY = renderY + pose.rightFootY * s;
 
+    if (this.state === 'BLOCK') {
       // Energy Shield Barrier
       ctx.beginPath();
       ctx.arc(renderX + 18 * f * s, renderY - 60 * s, 32 * s, -Math.PI / 2.3, Math.PI / 2.3, f < 0);
@@ -574,14 +491,6 @@ export class Stickman {
       ctx.stroke();
       ctx.lineWidth = this.thickness;
       ctx.strokeStyle = this.color;
-    } else if (this.state === 'HIT_STUN') {
-      headX = renderX - 16 * f * s;
-      neckX = renderX - 10 * f * s;
-      headY = renderY - 84 * s;
-      leftHandX = renderX - 22 * f * s;
-      leftHandY = renderY - 72 * s;
-      rightHandX = renderX - 12 * f * s;
-      rightHandY = renderY - 82 * s;
     }
 
     // 1. Spine
