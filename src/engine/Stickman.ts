@@ -1,9 +1,18 @@
 // ============================================================================
-// KillSwitch.swf — Dynamic Skeletal Stickman Martial Arts Fighter
-// Distinct body proportions, variable scales (Speedster to Titan), and unique props
+// KillSwitch.swf — Stickman.ts
+// Dynamic Skeletal Stickman Martial Arts Fighter
+// Features:
+// - Anatomical Articulation via StickmanAnatomy
+// - Pure Hand-to-Hand Martial Arts (Zero Weapons)
+// - Rebalanced Health (180 HP) & Combo Damage (5 to 16 HP)
+// - Expanded Combo States: Jab -> Cross -> Palm, Kick -> Axe, Uppercut, Knee, Sweep, Roll
+// - Konami Code 60s Overclock Boost
+// - Platform Landing & Drop-Through Physics
 // ============================================================================
 
 import { getPoseForState } from './StickmanPoses';
+import { StickmanAnatomy, FighterArchetype } from './StickmanAnatomy';
+import { ArenaObstacle } from './Obstacle';
 
 export type FighterState = 
   | 'IDLE' 
@@ -12,7 +21,14 @@ export type FighterState =
   | 'JUMP' 
   | 'CROUCH' 
   | 'JAB' 
+  | 'CROSS_PUNCH'
+  | 'PALM_BURST'
   | 'HEAVY_KICK' 
+  | 'AXE_KICK'
+  | 'UPPERCUT'
+  | 'FLYING_KNEE'
+  | 'LOW_SWEEP'
+  | 'DODGE_ROLL'
   | 'JUMP_KICK' 
   | 'BLOCK' 
   | 'HIT_STUN' 
@@ -21,15 +37,18 @@ export type FighterState =
   | 'VICTORY';
 
 export type CharacterSkin = 
-  | 'orange'    // Apex Striker (Orange Ink + Stylus)
-  | 'chosen'    // Plasma Ascetic (Hollow Head, Cyan Aura)
-  | 'darklord'  // Crimson Titan (Heavyweight Titan, Dual Energy Blades)
-  | 'green'     // Jade Acrobat (Nimble Martial Artist)
-  | 'blue'      // Azure Speedster (Compact Rush Fighter)
-  | 'yellow'    // Volt Striker (Spark Rush)
-  | 'classic'   // Xiao Xiao Grandmaster (White Ink + Red Headband)
-  | 'calavera'  // Calavera Phantom (Día de los Muertos Resurrected Warrior)
-  | 'ghost';    // The Flash Ghost (Corrupted Bytecode Boss)
+  | 'black'       // Player: 100% Pure Pitch Black Hero (#000000)
+  | 'ghost_white' // Round 1 AI: Pure White Ghost (#ffffff)
+  | 'orange'      // Cobalt / Apex Striker
+  | 'chosen'      // Plasma Ascetic (Hollow Head, Cyan Aura)
+  | 'darklord'    // Crimson Titan (Heavyweight Berserker, Bare Fists)
+  | 'green'       // Jade Grandmaster (Emerald Acrobat)
+  | 'blue'        // Azure Speedster (Compact Rusher)
+  | 'yellow'      // Volt Archon (High-Voltage Rusher)
+  | 'classic'     // Xiao Xiao Grandmaster (Headband Ribbons)
+  | 'calavera'    // Calavera Phantom (Day of the Dead Sugar Skull)
+  | 'ghost'       // Flash Ghost Prime (Bytecode Overlord)
+  | 'steve';      // Wildcard Easter Egg: Minecraft Voxel Steve
 
 export interface Hitbox {
   x: number;
@@ -40,6 +59,8 @@ export interface Hitbox {
   knockbackX: number;
   knockbackY: number;
   isHeavy: boolean;
+  isLauncher?: boolean;
+  isSweep?: boolean;
 }
 
 export interface Hurtbox {
@@ -55,20 +76,21 @@ export class Stickman {
   public vx: number = 0;
   public vy: number = 0;
   public groundY: number = 410;
+  public currentSurfaceY: number = 410;
   public facing: number = 1;
   public isAI: boolean;
   public name: string;
-  public skin: CharacterSkin = 'orange';
-  public color: string = '#ff8c00';
+  public skin: CharacterSkin = 'black';
+  public color: string = '#000000';
   public auraColor: string | null = null;
   public isHollowHead: boolean = false;
-  public health: number = 100;
-  public maxHealth: number = 100;
+  public health: number = 180;
+  public maxHealth: number = 180;
   public damageMultiplier: number = 1.0;
 
   // --- Dynamic Physical Stature & Scale Variation ---
   public scale: number = 1.0;
-  public thickness: number = 4.2;
+  public thickness: number = 4.4;
   public headScale: number = 1.0;
   public sizeMultiplier: number = 1.0;
 
@@ -79,12 +101,24 @@ export class Stickman {
   public hitStunFrames: number = 0;
   public blockStunFrames: number = 0;
 
+  // Combo cancel buffer
+  public comboStep: number = 0;
+  public cancelWindowOpen: boolean = false;
+
+  // Platform drop-through
+  public dropThroughTimer: number = 0;
+
+  // Konami Code Overclock
+  public isOverclocked: boolean = false;
+  public overclockTimeRemaining: number = 0;
+
   public flashFrames: number = 0;
   public glitchOffset: number = 0;
 
-  constructor(x: number, isAI: boolean = false, name: string = 'Stickman', skin: CharacterSkin = 'orange') {
+  constructor(x: number, isAI: boolean = false, name: string = 'Stickman', skin: CharacterSkin = 'black') {
     this.x = x;
     this.y = this.groundY;
+    this.currentSurfaceY = this.groundY;
     this.isAI = isAI;
     this.name = name;
     this.applySkin(skin);
@@ -99,130 +133,257 @@ export class Stickman {
     this.auraColor = null;
 
     let baseScale = 1.00;
-    let baseThickness = 4.2;
+    let baseThickness = 4.4;
     let baseHeadScale = 1.00;
 
-    if (skin === 'orange') {
-      // Apex Striker: Balanced athletic physique with artist stylus
-      this.color = '#ff8800';
-      this.auraColor = '#ffbb44';
+    if (skin === 'black') {
+      // Player: 100% Pure Pitch Black Hero
+      this.color = '#000000';
+      this.auraColor = null;
+      baseScale = 1.00;
+      baseThickness = 4.5;
+      baseHeadScale = 1.00;
+    } else if (skin === 'ghost_white') {
+      // Round 1 AI: Pure White Minimalist Ghost Stickman
+      this.color = '#ffffff';
+      this.auraColor = 'rgba(255, 255, 255, 0.4)';
       baseScale = 1.00;
       baseThickness = 4.2;
       baseHeadScale = 1.00;
-    } else if (skin === 'chosen') {
-      // Plasma Ascetic: Tall, lithe martial artist with Cyan Ring
-      this.color = '#111111';
-      this.isHollowHead = true;
-      this.auraColor = '#00ffff';
-      baseScale = 1.10;
+    } else if (skin === 'orange') {
+      // Cobalt / Apex Duelist
+      this.color = '#00e5ff';
+      this.auraColor = '#80d8ff';
+      baseScale = 1.04;
+      baseThickness = 4.2;
+      baseHeadScale = 1.00;
+    } else if (skin === 'green') {
+      // Jade Grandmaster: Emerald Acrobat
+      this.color = '#00e676';
+      this.auraColor = '#69f0ae';
+      baseScale = 0.96;
       baseThickness = 4.0;
-      baseHeadScale = 0.95;
+      baseHeadScale = 1.00;
     } else if (skin === 'darklord') {
-      // Crimson Titan: Towering heavyweight brawler with dual energy blades
+      // Crimson Titan: Heavyweight Colossus (Bare Fists)
       this.color = '#ee1133';
       this.isHollowHead = true;
       this.auraColor = '#ff0044';
-      baseScale = 1.28;
-      baseThickness = 5.8;
+      baseScale = 1.25;
+      baseThickness = 5.6;
       baseHeadScale = 0.90;
-    } else if (skin === 'green') {
-      // Jade Acrobat: Flexible, nimble martial artist
-      this.color = '#00e676';
-      this.auraColor = '#69f0ae';
-      baseScale = 0.94;
-      baseThickness = 3.8;
-      baseHeadScale = 1.00;
-    } else if (skin === 'blue') {
-      // Azure Speedster: Compact, rapid low-profile rusher
-      this.color = '#2979ff';
-      this.auraColor = '#82b1ff';
-      baseScale = 0.85;
-      baseThickness = 3.5;
-      baseHeadScale = 1.05;
-    } else if (skin === 'yellow') {
-      // Volt Striker: Quick, energetic spark brawler
-      this.color = '#ffea00';
-      this.auraColor = '#fff59d';
-      baseScale = 0.90;
-      baseThickness = 3.8;
-      baseHeadScale = 1.02;
-    } else if (skin === 'classic') {
-      // Xiao Xiao Grandmaster: Traditional martial artist with red headband
-      this.color = '#ffffff';
-      this.auraColor = null;
-      baseScale = 1.02;
-      baseThickness = 4.4;
-      baseHeadScale = 1.00;
+    } else if (skin === 'chosen') {
+      // Plasma Ascetic: Void Monk
+      this.color = '#111111';
+      this.isHollowHead = true;
+      this.auraColor = '#00ffff';
+      baseScale = 1.14;
+      baseThickness = 4.2;
+      baseHeadScale = 0.95;
     } else if (skin === 'calavera') {
-      // Calavera Phantom: Day of the Dead Resurrected Warrior
+      // Calavera Phantom: Day of the Dead Sugar Skull
       this.color = '#f5f5f5';
       this.auraColor = '#ffaa00';
       baseScale = 1.18;
       baseThickness = 4.8;
-      baseHeadScale = 1.05;
+      baseHeadScale = 1.00;
+    } else if (skin === 'yellow') {
+      // Volt Archon: High-Voltage Spark Rusher
+      this.color = '#ffea00';
+      this.auraColor = '#fff59d';
+      baseScale = 1.08;
+      baseThickness = 4.2;
+      baseHeadScale = 1.00;
     } else if (skin === 'ghost') {
-      // Flash Ghost Boss: Imposing cyber-phantom
+      // Flash Ghost Prime: Corrupted Bytecode Overlord
       this.color = '#ff00aa';
       this.auraColor = '#d175ff';
-      baseScale = 1.16;
-      baseThickness = 4.8;
-      baseHeadScale = 0.96;
+      baseScale = 1.22;
+      baseThickness = 5.0;
+      baseHeadScale = 1.05;
+    } else if (skin === 'steve') {
+      // Minecraft Steve Voxel Easter Egg
+      this.color = '#00a8a8';
+      this.auraColor = '#ffd700';
+      baseScale = 1.15;
+      baseThickness = 4.5;
+      baseHeadScale = 1.10;
+    } else {
+      this.color = '#ffffff';
+      baseScale = 1.00;
+      baseThickness = 4.4;
     }
 
     this.scale = baseScale * customSizeMultiplier;
-    this.thickness = baseThickness * customSizeMultiplier;
+    this.thickness = baseThickness;
     this.headScale = baseHeadScale;
+  }
+
+  // --- Konami Code Overclock Activation ---
+  public activateOverclock(seconds: number = 60) {
+    this.isOverclocked = true;
+    this.overclockTimeRemaining = seconds;
+    this.damageMultiplier = 1.25;
+  }
+
+  public canAct(): boolean {
+    return this.state !== 'HIT_STUN' && 
+           this.state !== 'KNOCKDOWN' && 
+           this.state !== 'DEFEAT' && 
+           this.state !== 'VICTORY';
   }
 
   public reset(x: number) {
     this.x = x;
     this.y = this.groundY;
+    this.currentSurfaceY = this.groundY;
     this.vx = 0;
     this.vy = 0;
     this.health = this.maxHealth;
-    this.state = 'IDLE';
-    this.stateTime = 0;
-    this.animFrame = 0;
-    this.hitStunFrames = 0;
-    this.blockStunFrames = 0;
+    this.setState('IDLE');
+    this.isGrounded = true;
     this.facing = this.isAI ? -1 : 1;
+    this.flashFrames = 0;
+    this.glitchOffset = 0;
+    this.dropThroughTimer = 0;
   }
 
-  // --- Snappy Responsive Movement & Martial Arts Attacks ---
-  public move(dir: number) {
-    if (this.canAct()) {
-      const speed = 5.2;
-      this.vx = dir * speed;
-      if (this.isGrounded) {
-        if ((dir > 0 && this.facing > 0) || (dir < 0 && this.facing < 0)) {
-          this.setState('WALK_FORWARD');
-        } else {
-          this.setState('WALK_BACK');
-        }
-      }
+  // --- State Transitions ---
+  public setState(newState: FighterState) {
+    if (this.state === 'DEFEAT') return;
+    this.state = newState;
+    this.stateTime = 0;
+    this.cancelWindowOpen = false;
+
+    if (newState === 'JAB') this.comboStep = 1;
+    else if (newState === 'CROSS_PUNCH') this.comboStep = 2;
+    else if (newState === 'PALM_BURST') this.comboStep = 3;
+    else if (newState === 'HEAVY_KICK') this.comboStep = 1;
+    else if (newState === 'AXE_KICK') this.comboStep = 2;
+    else this.comboStep = 0;
+  }
+
+  // --- Combat Moves & Combo Chaining ---
+
+  // 1. Light Punch Combo (Jab -> Cross -> Palm Burst)
+  public jab() {
+    if (this.state === 'HIT_STUN' || this.state === 'KNOCKDOWN' || this.state === 'DEFEAT') return;
+
+    if (this.state === 'JAB' && this.stateTime >= 3 && this.stateTime <= 10) {
+      // Cancel Jab into Straight Right Cross!
+      this.crossPunch();
+      return;
+    }
+
+    if (this.state === 'CROSS_PUNCH' && this.stateTime >= 3 && this.stateTime <= 10) {
+      // Cancel Cross into Wing Chun Two-Handed Palm Burst!
+      this.palmBurst();
+      return;
+    }
+
+    if (this.state === 'IDLE' || this.state === 'WALK_FORWARD' || this.state === 'WALK_BACK') {
+      this.setState('JAB');
+      this.vx = this.facing * 1.5;
     }
   }
 
-  public stopMoving() {
-    if (this.state === 'WALK_FORWARD' || this.state === 'WALK_BACK') {
-      this.setState('IDLE');
-    }
-    this.vx *= 0.5;
+  public crossPunch() {
+    this.setState('CROSS_PUNCH');
+    this.vx = this.facing * 3.5;
   }
 
-  // Snappy, weighted martial arts hop (Xiao Xiao / Stick Fight style)
+  public palmBurst() {
+    this.setState('PALM_BURST');
+    this.vx = this.facing * 5.0;
+  }
+
+  // 2. Heavy Kick Combo (Roundhouse -> Axe Kick)
+  public heavyKick() {
+    if (this.state === 'HIT_STUN' || this.state === 'KNOCKDOWN' || this.state === 'DEFEAT') return;
+
+    if (this.state === 'HEAVY_KICK' && this.stateTime >= 5 && this.stateTime <= 14) {
+      // Cancel into Overhead Axe Kick!
+      this.axeKick();
+      return;
+    }
+
+    if (this.state === 'IDLE' || this.state === 'WALK_FORWARD' || this.state === 'WALK_BACK') {
+      this.setState('HEAVY_KICK');
+      this.vx = this.facing * 2.0;
+    }
+  }
+
+  public axeKick() {
+    this.setState('AXE_KICK');
+    this.vx = this.facing * 3.0;
+  }
+
+  // 3. Rising Uppercut Launcher
+  public uppercut() {
+    if (this.state === 'HIT_STUN' || this.state === 'KNOCKDOWN' || this.state === 'DEFEAT') return;
+    if (this.isGrounded) {
+      this.setState('UPPERCUT');
+      this.vy = -7.5;
+      this.vx = this.facing * 2.0;
+      this.isGrounded = false;
+    }
+  }
+
+  // 4. Flying Clinch Knee
+  public flyingKnee() {
+    if (this.state === 'HIT_STUN' || this.state === 'KNOCKDOWN' || this.state === 'DEFEAT') return;
+    this.setState('FLYING_KNEE');
+    this.vy = -4.5;
+    this.vx = this.facing * (this.isOverclocked ? 9.5 : 7.5);
+    this.isGrounded = false;
+  }
+
+  // 5. Low Shin Sweep (Trip Knockdown)
+  public lowSweep() {
+    if (this.state === 'HIT_STUN' || this.state === 'KNOCKDOWN' || this.state === 'DEFEAT') return;
+    this.setState('LOW_SWEEP');
+    this.vx = this.facing * 3.0;
+  }
+
+  // 6. Evasive Dodge Roll
+  public dodgeRoll() {
+    if (this.state === 'HIT_STUN' || this.state === 'KNOCKDOWN' || this.state === 'DEFEAT') return;
+    if (this.isGrounded && this.state !== 'DODGE_ROLL') {
+      this.setState('DODGE_ROLL');
+      this.vx = this.facing * (this.isOverclocked ? 10.5 : 8.5);
+    }
+  }
+
+  // 7. Jump Kick (Aerial Dive)
+  public jumpKick() {
+    if (!this.isGrounded && this.state !== 'JUMP_KICK' && this.state !== 'HIT_STUN' && this.state !== 'DEFEAT') {
+      this.setState('JUMP_KICK');
+      this.vx = this.facing * (this.isOverclocked ? 8.5 : 6.8);
+      this.vy = 4.2;
+    }
+  }
+
   public jump() {
-    if (this.canAct() && this.isGrounded) {
+    if (this.isGrounded && this.state !== 'HIT_STUN' && this.state !== 'DEFEAT') {
+      this.setState('JUMP');
       this.vy = -9.6;
       this.isGrounded = false;
-      this.setState('JUMP');
+    }
+  }
+
+  public dropThroughPlatform() {
+    if (this.currentSurfaceY < this.groundY) {
+      this.dropThroughTimer = 18;
+      this.isGrounded = false;
+      this.vy = 2.0;
+      this.currentSurfaceY = this.groundY;
     }
   }
 
   public crouch() {
-    if (this.canAct() && this.isGrounded) {
-      this.vx = 0;
+    if (this.isGrounded && this.state !== 'HIT_STUN' && this.state !== 'DEFEAT') {
       this.setState('CROUCH');
+      this.vx = 0;
     }
   }
 
@@ -232,34 +393,12 @@ export class Stickman {
     }
   }
 
-  public jab() {
-    if (this.canAct() && this.isGrounded) {
-      this.vx = this.facing * 2.5;
-      this.setState('JAB');
-    }
-  }
-
-  public heavyKick() {
-    const canCancel = this.state === 'JAB' && this.stateTime >= 5;
-    if ((this.canAct() || canCancel) && this.isGrounded) {
-      this.vx = this.facing * 4.0;
-      this.setState('HEAVY_KICK');
-    }
-  }
-
-  public jumpKick() {
-    if (this.canAct() && !this.isGrounded) {
-      this.vx = this.facing * 8.5;
-      this.vy = 5.0;
-      this.setState('JUMP_KICK');
-    }
-  }
-
-  public block(holding: boolean) {
-    if (holding) {
-      if (this.canAct() && this.isGrounded) {
-        this.vx = 0;
+  public block(isBlocking: boolean) {
+    if (this.state === 'HIT_STUN' || this.state === 'KNOCKDOWN' || this.state === 'DEFEAT') return;
+    if (isBlocking) {
+      if (this.state !== 'BLOCK') {
         this.setState('BLOCK');
+        this.vx = 0;
       }
     } else {
       if (this.state === 'BLOCK') {
@@ -268,38 +407,77 @@ export class Stickman {
     }
   }
 
-  public canAct(): boolean {
-    return (
-      this.health > 0 &&
-      this.state !== 'DEFEAT' &&
-      this.state !== 'VICTORY' &&
-      this.state !== 'HIT_STUN' &&
-      this.state !== 'KNOCKDOWN' &&
-      this.state !== 'JAB' &&
-      this.state !== 'HEAVY_KICK' &&
-      this.state !== 'JUMP_KICK'
-    );
+  public move(dir: number) {
+    if (this.state === 'HIT_STUN' || this.state === 'KNOCKDOWN' || this.state === 'BLOCK' || this.state === 'DEFEAT' || this.state === 'DODGE_ROLL') {
+      return;
+    }
+
+    const speedBoost = this.isOverclocked ? 1.35 : 1.0;
+    const speed = 4.2 * speedBoost * Math.max(0.7, 1.3 - (this.scale - 1.0) * 0.5);
+
+    if (this.isGrounded) {
+      if (dir === this.facing) {
+        if (this.state !== 'WALK_FORWARD') this.setState('WALK_FORWARD');
+        this.vx = dir * speed;
+      } else {
+        if (this.state !== 'WALK_BACK') this.setState('WALK_BACK');
+        this.vx = dir * (speed * 0.75);
+      }
+    } else {
+      this.vx = dir * (speed * 0.85);
+    }
   }
 
-  public setState(newState: FighterState) {
-    if (this.state === newState) return;
-    this.state = newState;
-    this.stateTime = 0;
+  public stopMoving() {
+    if (this.state === 'WALK_FORWARD' || this.state === 'WALK_BACK') {
+      this.setState('IDLE');
+      this.vx = 0;
+    }
   }
 
-  public update(arenaWidth: number) {
+  // --- Physics & Platform Collision Update ---
+  public update(arenaWidth: number, obstacles: ArenaObstacle[] = []) {
     this.stateTime++;
     this.animFrame++;
 
     if (this.flashFrames > 0) this.flashFrames--;
+    if (this.dropThroughTimer > 0) this.dropThroughTimer--;
 
-    if (this.skin === 'ghost' && Math.random() < 0.22) {
-      this.glitchOffset = (Math.random() - 0.5) * 8;
-    } else {
-      this.glitchOffset = 0;
+    // Overclock Timer
+    if (this.isOverclocked) {
+      this.overclockTimeRemaining -= (1 / 60);
+      if (this.overclockTimeRemaining <= 0) {
+        this.isOverclocked = false;
+        this.damageMultiplier = 1.0;
+      }
     }
 
-    // --- Defeat State Physics (Airborne Arc, Floor Bounce, Flat Rest) ---
+    // Hit Stun / Recovery
+    if (this.state === 'HIT_STUN') {
+      this.hitStunFrames--;
+      if (this.hitStunFrames <= 0) {
+        this.setState(this.isGrounded ? 'IDLE' : 'JUMP');
+      }
+    }
+
+    if (this.state === 'KNOCKDOWN') {
+      if (this.stateTime > 32) {
+        this.setState('IDLE');
+      }
+    }
+
+    // Attack State Recoveries
+    if (this.state === 'JAB' && this.stateTime > 12) this.setState('IDLE');
+    if (this.state === 'CROSS_PUNCH' && this.stateTime > 14) this.setState('IDLE');
+    if (this.state === 'PALM_BURST' && this.stateTime > 18) this.setState('IDLE');
+    if (this.state === 'HEAVY_KICK' && this.stateTime > 16) this.setState('IDLE');
+    if (this.state === 'AXE_KICK' && this.stateTime > 18) this.setState('IDLE');
+    if (this.state === 'UPPERCUT' && this.stateTime > 18 && this.isGrounded) this.setState('IDLE');
+    if (this.state === 'FLYING_KNEE' && this.stateTime > 16 && this.isGrounded) this.setState('IDLE');
+    if (this.state === 'LOW_SWEEP' && this.stateTime > 16) this.setState('IDLE');
+    if (this.state === 'DODGE_ROLL' && this.stateTime > 16) this.setState('IDLE');
+
+    // Defeat State (Permanent Grounded Lock)
     if (this.state === 'DEFEAT') {
       if (!this.isGrounded) {
         this.vy += 0.88;
@@ -319,11 +497,10 @@ export class Stickman {
         }
       }
 
-      // Clamp within arena boundaries
-      const padding = 40;
+      const padding = 70;
       if (this.x < padding) this.x = padding;
       else if (this.x > arenaWidth - padding) this.x = arenaWidth - padding;
-      return; // Stay down permanently in DEFEAT pose!
+      return;
     }
 
     // Snappy grounded gravity
@@ -334,101 +511,213 @@ export class Stickman {
     this.x += this.vx;
     this.y += this.vy;
 
-    // Floor collision
-    if (this.y >= this.groundY) {
-      this.y = this.groundY;
-      this.vy = 0;
-      if (!this.isGrounded) {
-        this.isGrounded = true;
-        if (this.state === 'JUMP' || this.state === 'JUMP_KICK') {
-          this.setState('IDLE');
+    // Platform & Floor Landing Detection
+    let targetSurfaceY = this.groundY;
+
+    if (this.dropThroughTimer <= 0) {
+      for (const obs of obstacles) {
+        if (obs.hp <= 0 && obs.isDestructible) continue;
+        const leftEdge = obs.x - 15;
+        const rightEdge = obs.x + obs.w + 15;
+        if (this.x >= leftEdge && this.x <= rightEdge) {
+          // Check if fighter is falling onto platform top
+          if (this.y >= obs.y && (this.y - this.vy) <= obs.y + 12) {
+            targetSurfaceY = obs.y;
+            break;
+          }
         }
       }
     }
 
+    this.currentSurfaceY = targetSurfaceY;
+
+    // Surface collision
+    if (this.y >= this.currentSurfaceY) {
+      this.y = this.currentSurfaceY;
+      this.vy = 0;
+      if (!this.isGrounded) {
+        this.isGrounded = true;
+        if (this.state === 'JUMP' || this.state === 'JUMP_KICK' || this.state === 'FLYING_KNEE' || this.state === 'UPPERCUT') {
+          this.setState('IDLE');
+        }
+      }
+    } else {
+      // Walking off a platform edge
+      if (this.isGrounded && this.currentSurfaceY < this.groundY && this.y < this.currentSurfaceY - 4) {
+        this.isGrounded = false;
+      }
+    }
+
+    // Ground friction
     if (this.isGrounded) {
       if (this.state === 'IDLE' || this.state === 'BLOCK' || this.state === 'CROUCH') {
         this.vx *= 0.72;
       }
     }
 
-    const padding = 40;
+    // Clamp within visible arena boundaries
+    const padding = 70;
     if (this.x < padding) {
       this.x = padding;
       if (this.state === 'HIT_STUN' && Math.abs(this.vx) > 3) {
-        this.vx = -this.vx * 0.6;
+        this.vx = -this.vx * 0.6; // Wall bounce stagger
       } else {
         this.vx = 0;
       }
     } else if (this.x > arenaWidth - padding) {
       this.x = arenaWidth - padding;
       if (this.state === 'HIT_STUN' && Math.abs(this.vx) > 3) {
-        this.vx = -this.vx * 0.6;
+        this.vx = -this.vx * 0.6; // Wall bounce stagger
       } else {
         this.vx = 0;
       }
     }
-
-    if (this.state === 'JAB' && this.stateTime > 12) {
-      this.setState('IDLE');
-    } else if (this.state === 'HEAVY_KICK' && this.stateTime > 20) {
-      this.setState('IDLE');
-    } else if (this.state === 'HIT_STUN') {
-      this.hitStunFrames--;
-      if (this.hitStunFrames <= 0) {
-        this.setState('IDLE');
-      }
-    } else if (this.state === 'KNOCKDOWN' && this.stateTime > 45) {
-      this.setState('IDLE');
-    }
   }
 
+  // --- Hurtbox (Body target area) ---
   public getHurtbox(): Hurtbox {
-    const isCrouching = this.state === 'CROUCH';
     const s = this.scale;
-    const h = (isCrouching ? 55 : 95) * s;
-    const w = 38 * s;
-    return { x: this.x - w / 2, y: this.y - h, w, h };
+    const isCrouched = this.state === 'CROUCH' || this.state === 'LOW_SWEEP' || this.state === 'DODGE_ROLL';
+    const h = isCrouched ? 52 * s : 94 * s;
+    const w = 32 * s;
+
+    return {
+      x: this.x - w / 2,
+      y: this.y - h,
+      w,
+      h
+    };
   }
 
+  // --- Rebalanced Combat Hitboxes (Pure Martial Arts) ---
   public getHitbox(): Hitbox | null {
     const s = this.scale;
-    const dmgMult = this.damageMultiplier;
+    const dmgMult = this.damageMultiplier * (this.isOverclocked ? 1.25 : 1.0);
+
+    // 1. Light Jab (5 damage)
     if (this.state === 'JAB' && this.stateTime >= 3 && this.stateTime <= 7) {
       return {
-        x: this.facing > 0 ? this.x + 12 * s : this.x - 52 * s,
-        y: this.y - 78 * s,
-        w: 42 * s,
-        h: 26 * s,
-        damage: Math.round(10 * Math.max(0.8, s) * dmgMult),
-        knockbackX: this.facing * (4.0 * s),
-        knockbackY: -2.5 * s,
+        x: this.facing > 0 ? this.x + 8 * s : this.x - 48 * s,
+        y: this.y - 74 * s,
+        w: 40 * s,
+        h: 22 * s,
+        damage: Math.round(5 * dmgMult),
+        knockbackX: this.facing * (3.5 * s),
+        knockbackY: -1.5 * s,
         isHeavy: false
       };
     }
 
-    if (this.state === 'HEAVY_KICK' && this.stateTime >= 5 && this.stateTime <= 13) {
+    // 2. Straight Cross (8 damage)
+    if (this.state === 'CROSS_PUNCH' && this.stateTime >= 3 && this.stateTime <= 8) {
       return {
-        x: this.facing > 0 ? this.x + 14 * s : this.x - 64 * s,
-        y: this.y - 84 * s,
-        w: 52 * s,
-        h: 36 * s,
-        damage: Math.round(20 * Math.max(0.8, s) * dmgMult),
+        x: this.facing > 0 ? this.x + 10 * s : this.x - 56 * s,
+        y: this.y - 74 * s,
+        w: 46 * s,
+        h: 24 * s,
+        damage: Math.round(8 * dmgMult),
+        knockbackX: this.facing * (5.5 * s),
+        knockbackY: -2.0 * s,
+        isHeavy: false
+      };
+    }
+
+    // 3. Palm Burst Combo Finisher (14 damage)
+    if (this.state === 'PALM_BURST' && this.stateTime >= 3 && this.stateTime <= 10) {
+      return {
+        x: this.facing > 0 ? this.x + 12 * s : this.x - 62 * s,
+        y: this.y - 72 * s,
+        w: 50 * s,
+        h: 30 * s,
+        damage: Math.round(14 * dmgMult),
         knockbackX: this.facing * (8.5 * s),
-        knockbackY: -5.5 * s,
+        knockbackY: -4.0 * s,
         isHeavy: true
       };
     }
 
-    if (this.state === 'JUMP_KICK' && this.stateTime >= 2) {
+    // 4. Heavy Roundhouse Kick (13 damage)
+    if (this.state === 'HEAVY_KICK' && this.stateTime >= 5 && this.stateTime <= 12) {
       return {
         x: this.facing > 0 ? this.x + 12 * s : this.x - 60 * s,
-        y: this.y - 68 * s,
+        y: this.y - 80 * s,
+        w: 48 * s,
+        h: 32 * s,
+        damage: Math.round(13 * dmgMult),
+        knockbackX: this.facing * (7.5 * s),
+        knockbackY: -4.5 * s,
+        isHeavy: true
+      };
+    }
+
+    // 5. Overhead Axe Kick (15 damage)
+    if (this.state === 'AXE_KICK' && this.stateTime >= 5 && this.stateTime <= 12) {
+      return {
+        x: this.facing > 0 ? this.x + 14 * s : this.x - 64 * s,
+        y: this.y - 60 * s,
         w: 50 * s,
         h: 40 * s,
-        damage: Math.round(26 * Math.max(0.8, s) * dmgMult),
-        knockbackX: this.facing * (10.0 * s),
-        knockbackY: -6.5 * s,
+        damage: Math.round(15 * dmgMult),
+        knockbackX: this.facing * (6.0 * s),
+        knockbackY: -6.0 * s,
+        isHeavy: true
+      };
+    }
+
+    // 6. Rising Uppercut Launcher (10 damage, launches opponent upward!)
+    if (this.state === 'UPPERCUT' && this.stateTime >= 4 && this.stateTime <= 11) {
+      return {
+        x: this.facing > 0 ? this.x + 6 * s : this.x - 46 * s,
+        y: this.y - 100 * s,
+        w: 40 * s,
+        h: 44 * s,
+        damage: Math.round(10 * dmgMult),
+        knockbackX: this.facing * (3.0 * s),
+        knockbackY: -10.5 * s, // Skyward Launch!
+        isHeavy: true,
+        isLauncher: true
+      };
+    }
+
+    // 7. Flying Clinch Knee (16 damage)
+    if (this.state === 'FLYING_KNEE' && this.stateTime >= 3 && this.stateTime <= 11) {
+      return {
+        x: this.facing > 0 ? this.x + 12 * s : this.x - 58 * s,
+        y: this.y - 74 * s,
+        w: 46 * s,
+        h: 34 * s,
+        damage: Math.round(16 * dmgMult),
+        knockbackX: this.facing * (9.0 * s),
+        knockbackY: -5.0 * s,
+        isHeavy: true
+      };
+    }
+
+    // 8. Low Shin Sweep (7 damage, trips opponent)
+    if (this.state === 'LOW_SWEEP' && this.stateTime >= 3 && this.stateTime <= 10) {
+      return {
+        x: this.facing > 0 ? this.x + 10 * s : this.x - 55 * s,
+        y: this.y - 18 * s,
+        w: 45 * s,
+        h: 20 * s,
+        damage: Math.round(7 * dmgMult),
+        knockbackX: this.facing * (5.5 * s),
+        knockbackY: -3.5 * s,
+        isHeavy: false,
+        isSweep: true
+      };
+    }
+
+    // 9. Jump Kick (12 damage)
+    if (this.state === 'JUMP_KICK' && this.stateTime >= 2) {
+      return {
+        x: this.facing > 0 ? this.x + 12 * s : this.x - 58 * s,
+        y: this.y - 68 * s,
+        w: 46 * s,
+        h: 36 * s,
+        damage: Math.round(12 * dmgMult),
+        knockbackX: this.facing * (8.5 * s),
+        knockbackY: -5.5 * s,
         isHeavy: true
       };
     }
@@ -436,453 +725,96 @@ export class Stickman {
     return null;
   }
 
-  public takeHit(hitbox: Hitbox): { damageDealt: number; blocked: boolean } {
+  // --- Take Hit (Invulnerability during Dodge Roll) ---
+  public takeHit(hitbox: Hitbox): { damageDealt: number; blocked: boolean; isInvulnerable?: boolean } {
+    // Evasive Dodge Roll invulnerability frames
+    if (this.state === 'DODGE_ROLL' && this.stateTime >= 2 && this.stateTime <= 13) {
+      return { damageDealt: 0, blocked: false, isInvulnerable: true };
+    }
+
     const isGuarding = this.state === 'BLOCK';
 
     if (isGuarding) {
       const blockedDamage = Math.max(1, Math.round(hitbox.damage * 0.15));
       this.health = Math.max(0, this.health - blockedDamage);
       this.vx = hitbox.knockbackX * 0.35;
-      this.flashFrames = 1; // Subtle 1-frame guard highlight
+      this.flashFrames = 1;
       return { damageDealt: blockedDamage, blocked: true };
     }
 
     this.health = Math.max(0, this.health - hitbox.damage);
 
-    // If health drops to 0: Trigger Cinematic Defeat Animation!
+    // Cinematic Defeat on K.O.
     if (this.health <= 0) {
       this.setState('DEFEAT');
       this.vx = -this.facing * 7.5;
       this.vy = -7.5;
       this.isGrounded = false;
-      this.flashFrames = 2; // Subtle 2-frame hit accent, no blinding flash
+      this.flashFrames = 2;
       return { damageDealt: hitbox.damage, blocked: false };
     }
 
     this.vx = hitbox.knockbackX;
     this.vy = hitbox.knockbackY;
-    this.flashFrames = hitbox.isHeavy ? 2 : 1; // Greatly reduced flash duration
+    this.flashFrames = hitbox.isHeavy ? 2 : 1;
 
-    if (hitbox.isHeavy) {
-      this.hitStunFrames = 22;
+    if (hitbox.isLauncher) {
+      this.hitStunFrames = 26;
+      this.setState('HIT_STUN');
+      this.isGrounded = false;
+    } else if (hitbox.isSweep) {
+      this.setState('KNOCKDOWN');
+      this.isGrounded = true;
+    } else if (hitbox.isHeavy) {
+      this.hitStunFrames = 18;
       this.setState('HIT_STUN');
       this.isGrounded = false;
     } else {
-      this.hitStunFrames = 11;
+      this.hitStunFrames = 10;
       this.setState('HIT_STUN');
     }
 
     return { damageDealt: hitbox.damage, blocked: false };
   }
 
-  // --- Dynamic Procedural Skeletal Render Engine ---
+  // --- Anatomical Skeletal Rendering ---
   public render(ctx: CanvasRenderingContext2D) {
-    ctx.save();
-
-    const s = this.scale;
-    const renderX = this.x + this.glitchOffset;
-    const renderY = this.y;
-
-    // Floor Shadow
-    const elevation = Math.max(0, this.groundY - this.y);
-    const shadowWidth = Math.max(10 * s, (24 * s) - elevation * 0.15);
-    const shadowAlpha = Math.max(0.1, 0.45 - elevation * 0.003);
-
-    ctx.beginPath();
-    ctx.ellipse(renderX, this.groundY, shadowWidth, 6 * s, 0, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(0, 0, 0, ${shadowAlpha})`;
-    ctx.fill();
-
-    // Line Styles
-    ctx.lineWidth = this.thickness;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-
-    // Toned-Down Flash: Maintains stickman body color with a crisp, subtle glow
-    ctx.strokeStyle = this.color;
-    if (this.flashFrames > 0) {
-      ctx.shadowColor = '#ffffff';
-      ctx.shadowBlur = 4 * s;
-    } else if (this.auraColor && this.state !== 'DEFEAT') {
-      ctx.shadowColor = this.auraColor;
-      ctx.shadowBlur = 10 * s;
-    } else {
-      ctx.shadowBlur = 0;
-    }
-
-    const f = this.facing;
-
-    // Fast deterministic frame pose lookup (Zero trigonometry per frame, ultra-low RAM)
     const pose = getPoseForState(this.state, this.stateTime, this.animFrame);
 
-    const headX = renderX + pose.headX * f * s;
-    const headY = renderY + pose.headY * s;
-    const neckX = renderX + pose.neckX * f * s;
-    const neckY = renderY + pose.neckY * s;
-    const pelvisX = renderX + pose.pelvisX * f * s;
-    const pelvisY = renderY + pose.pelvisY * s;
+    let archetype: FighterArchetype = 'player_black';
+    if (this.skin === 'black') archetype = 'player_black';
+    else if (this.skin === 'ghost_white') archetype = 'ghost_white';
+    else if (this.skin === 'steve') archetype = 'steve_easter_egg';
+    else if (this.skin === 'chosen') archetype = 'plasma_ascetic';
+    else if (this.skin === 'darklord') archetype = 'crimson_titan';
+    else if (this.skin === 'calavera') archetype = 'calavera_phantom';
+    else if (this.skin === 'green') archetype = 'jade_grandmaster';
+    else if (this.skin === 'orange') archetype = 'cobalt_striker';
+    else if (this.skin === 'ghost') archetype = 'flash_ghost_prime';
+    else archetype = 'procedural';
 
-    const leftHandX = renderX + pose.leftHandX * f * s;
-    const leftHandY = renderY + pose.leftHandY * s;
-    const rightHandX = renderX + pose.rightHandX * f * s;
-    const rightHandY = renderY + pose.rightHandY * s;
-
-    const leftFootX = renderX + pose.leftFootX * f * s;
-    const leftFootY = renderY + pose.leftFootY * s;
-    const rightFootX = renderX + pose.rightFootX * f * s;
-    const rightFootY = renderY + pose.rightFootY * s;
-
-    if (this.state === 'BLOCK') {
-      // Energy Shield Barrier
-      ctx.beginPath();
-      ctx.arc(renderX + 18 * f * s, renderY - 60 * s, 32 * s, -Math.PI / 2.3, Math.PI / 2.3, f < 0);
-      ctx.lineWidth = 4.5 * s;
-      ctx.strokeStyle = this.auraColor || this.color;
-      ctx.stroke();
-      ctx.lineWidth = this.thickness;
-      ctx.strokeStyle = this.color;
-    }
-
-    // 1. Spine
-    ctx.beginPath();
-    ctx.moveTo(neckX, neckY);
-    ctx.lineTo(pelvisX, pelvisY);
-    ctx.stroke();
-
-    // --- Martial Arts Belt & Fluttering Sash Ribbons ---
-    ctx.save();
-    ctx.strokeStyle = this.skin === 'classic' ? '#ff2200' : (this.skin === 'ghost' ? '#d175ff' : '#222222');
-    ctx.lineWidth = 3.2 * s;
-    // Belt knot at pelvis
-    ctx.beginPath();
-    ctx.arc(pelvisX, pelvisY, 3.5 * s, 0, Math.PI * 2);
-    ctx.fillStyle = ctx.strokeStyle;
-    ctx.fill();
-    // Two trailing ribbons fluttering with motion
-    const sashWave1 = Math.sin(this.animFrame * 0.22) * 5 * s;
-    const sashWave2 = Math.cos(this.animFrame * 0.18) * 6 * s;
-    ctx.beginPath();
-    ctx.moveTo(pelvisX, pelvisY);
-    ctx.quadraticCurveTo(pelvisX - 10 * f * s, pelvisY + 12 * s + sashWave1, pelvisX - 18 * f * s, pelvisY + 22 * s + sashWave1);
-    ctx.moveTo(pelvisX, pelvisY);
-    ctx.quadraticCurveTo(pelvisX - 8 * f * s, pelvisY + 14 * s + sashWave2, pelvisX - 14 * f * s, pelvisY + 26 * s + sashWave2);
-    ctx.stroke();
-    ctx.restore();
-
-    // 2. Head (Hollow Ring Head or Solid Minimalist Circle)
-    const headRadius = 13 * s * this.headScale;
-    if (this.isHollowHead) {
-      ctx.beginPath();
-      ctx.arc(headX, headY, headRadius, 0, Math.PI * 2);
-      ctx.lineWidth = 4.5 * s;
-      ctx.strokeStyle = this.color;
-      ctx.stroke();
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
-      ctx.fill();
-
-      // Hollow Head Glowing Eyes
-      if (this.skin === 'chosen') {
-        // Cyan Flame Pupils
-        ctx.save();
-        ctx.fillStyle = '#00ffff';
-        ctx.shadowColor = '#00ffff';
-        ctx.shadowBlur = 10 * s;
-        ctx.beginPath();
-        ctx.arc(headX + 4 * f * s, headY - 1 * s, 2.5 * s, 0, Math.PI * 2);
-        ctx.arc(headX - 1 * f * s, headY - 1 * s, 2.5 * s, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      } else if (this.skin === 'darklord') {
-        // Piercing Crimson Demon Eyes
-        ctx.save();
-        ctx.fillStyle = '#ff0033';
-        ctx.shadowColor = '#ff0000';
-        ctx.shadowBlur = 12 * s;
-        ctx.beginPath();
-        ctx.arc(headX + 4 * f * s, headY - 1 * s, 2.5 * s, 0, Math.PI * 2);
-        ctx.arc(headX - 1 * f * s, headY - 1 * s, 2.5 * s, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      }
-    } else {
-      // Solid Minimalist Circle
-      ctx.beginPath();
-      ctx.arc(headX, headY, 12 * s * this.headScale, 0, Math.PI * 2);
-      ctx.fillStyle = this.color;
-      ctx.fill();
-      ctx.strokeStyle = this.color;
-      ctx.stroke();
-
-      // Expressive Anime Battle Eyes
-      ctx.save();
-      const eyeColor = (this.color === '#ffffff' || this.color === '#ffea00') ? '#111111' : '#ffffff';
-      ctx.strokeStyle = eyeColor;
-      ctx.fillStyle = eyeColor;
-      ctx.lineWidth = 2.0 * s;
-
-      if (this.state === 'HIT_STUN' || this.state === 'KNOCKDOWN' || this.state === 'DEFEAT') {
-        // Shock / Knockout Eyes (X X)
-        ctx.beginPath();
-        // Eye 1
-        ctx.moveTo(headX + (2 * f - 3) * s, headY - 4 * s);
-        ctx.lineTo(headX + (2 * f + 3) * s, headY + 2 * s);
-        ctx.moveTo(headX + (2 * f + 3) * s, headY - 4 * s);
-        ctx.lineTo(headX + (2 * f - 3) * s, headY + 2 * s);
-        // Eye 2
-        ctx.moveTo(headX + (-4 * f - 3) * s, headY - 4 * s);
-        ctx.lineTo(headX + (-4 * f + 3) * s, headY + 2 * s);
-        ctx.moveTo(headX + (-4 * f + 3) * s, headY - 4 * s);
-        ctx.lineTo(headX + (-4 * f - 3) * s, headY + 2 * s);
-        ctx.stroke();
-      } else if (this.state === 'JAB' || this.state === 'HEAVY_KICK' || this.state === 'JUMP_KICK') {
-        // Fierce Determined Battle Slants
-        ctx.beginPath();
-        ctx.moveTo(headX + 1 * f * s, headY - 3 * s);
-        ctx.lineTo(headX + 6 * f * s, headY - 1 * s);
-        ctx.moveTo(headX - 5 * f * s, headY - 3 * s);
-        ctx.lineTo(headX - 1 * f * s, headY - 1 * s);
-        ctx.stroke();
-      } else {
-        // Calm Focused Battle Slits
-        ctx.beginPath();
-        ctx.arc(headX + 4 * f * s, headY - 1 * s, 1.8 * s, 0, Math.PI * 2);
-        ctx.arc(headX - 2 * f * s, headY - 1 * s, 1.8 * s, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.restore();
-    }
-
-    // Flash Ghost Ethereal Glitch Face
-    if (this.skin === 'ghost') {
-      ctx.save();
-      ctx.fillStyle = '#00ffff';
-      ctx.shadowColor = '#ff00aa';
-      ctx.shadowBlur = 14 * s;
-      ctx.fillRect(headX + (2 * f - 2) * s, headY - 2 * s, 4 * s, 3 * s);
-      ctx.fillRect(headX - (4 * f + 2) * s, headY - 2 * s, 4 * s, 3 * s);
-      ctx.restore();
-    }
-
-    // Calavera Phantom Day of the Dead Sugar Skull Ornaments
-    if (this.skin === 'calavera') {
-      ctx.save();
-      // Marigold flower petals surrounding eye sockets
-      ctx.fillStyle = '#ffaa00';
-      for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
-        const petX = headX + 3 * f * s + Math.cos(a) * 5 * s;
-        const petY = headY - 1 * s + Math.sin(a) * 5 * s;
-        ctx.beginPath();
-        ctx.arc(petX, petY, 1.8 * s, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      // Skull mouth stitches
-      ctx.strokeStyle = '#111111';
-      ctx.lineWidth = 1.6 * s;
-      ctx.beginPath();
-      ctx.moveTo(headX + (f * s - 4 * s), headY + 7 * s);
-      ctx.lineTo(headX + (f * s + 6 * s), headY + 7 * s);
-      ctx.stroke();
-      for (let st = -3; st <= 5; st += 2.5) {
-        ctx.beginPath();
-        ctx.moveTo(headX + (f * s + st * s), headY + 5 * s);
-        ctx.lineTo(headX + (f * s + st * s), headY + 9 * s);
-        ctx.stroke();
-      }
-      ctx.restore();
-    }
-
-    // Xiao Xiao Legendary Red Headband (Dual Long Billowing Ribbons)
-    if (this.skin === 'classic') {
-      ctx.save();
-      ctx.strokeStyle = '#ff1100';
-      ctx.lineWidth = 3.5 * s;
-      ctx.beginPath();
-      ctx.arc(headX, headY - 4 * s, 13 * s, Math.PI * 0.75, Math.PI * 1.85, false);
-      ctx.stroke();
-
-      const wave1 = Math.sin(this.animFrame * 0.22) * 7 * s;
-      const wave2 = Math.cos(this.animFrame * 0.26) * 8 * s;
-      // Ribbon 1
-      ctx.beginPath();
-      ctx.moveTo(headX - 12 * f * s, headY - 4 * s);
-      ctx.bezierCurveTo(headX - 24 * f * s, headY - 2 * s + wave1, headX - 36 * f * s, headY + 4 * s + wave2, headX - 46 * f * s, headY + 2 * s + wave1);
-      ctx.stroke();
-      // Ribbon 2 (Lower tail)
-      ctx.lineWidth = 2.5 * s;
-      ctx.beginPath();
-      ctx.moveTo(headX - 12 * f * s, headY - 2 * s);
-      ctx.bezierCurveTo(headX - 22 * f * s, headY + 4 * s + wave2, headX - 32 * f * s, headY + 12 * s + wave1, headX - 42 * f * s, headY + 14 * s + wave2);
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    // Apex Striker Artist Stylus Prop + Ink Slash
-    if (this.skin === 'orange') {
-      ctx.save();
-      ctx.lineWidth = 3.8 * s;
-      ctx.strokeStyle = '#663a15';
-      ctx.beginPath();
-      ctx.moveTo(rightHandX, rightHandY);
-      ctx.lineTo(rightHandX + 18 * f * s, rightHandY - 16 * s);
-      ctx.stroke();
-      // Golden Ferrule
-      ctx.strokeStyle = '#ffd700';
-      ctx.lineWidth = 4.2 * s;
-      ctx.beginPath();
-      ctx.moveTo(rightHandX + 14 * f * s, rightHandY - 12 * s);
-      ctx.lineTo(rightHandX + 17 * f * s, rightHandY - 15 * s);
-      ctx.stroke();
-      // Glowing Orange Ink Tip
-      ctx.fillStyle = '#ff5500';
-      ctx.shadowColor = '#ff7700';
-      ctx.shadowBlur = 10 * s;
-      ctx.beginPath();
-      ctx.arc(rightHandX + 20 * f * s, rightHandY - 18 * s, 4.5 * s, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Dynamic Calligraphy Slash Trail during attacks
-      if (this.state === 'JAB' || this.state === 'HEAVY_KICK') {
-        ctx.strokeStyle = 'rgba(255, 120, 0, 0.7)';
-        ctx.lineWidth = 6 * s;
-        ctx.beginPath();
-        ctx.arc(renderX + 24 * f * s, renderY - 60 * s, 48 * s, -Math.PI / 3, Math.PI / 3, f < 0);
-        ctx.stroke();
-      }
-      ctx.restore();
-    }
-
-    // Crimson Titan Dual Energy Laser Blades
-    if (this.skin === 'darklord') {
-      ctx.save();
-      ctx.strokeStyle = '#ff0044';
-      ctx.lineWidth = 4.8 * s;
-      ctx.shadowColor = '#ff0000';
-      ctx.shadowBlur = 18 * s;
-      // Right Hand Blade
-      ctx.beginPath();
-      ctx.moveTo(rightHandX, rightHandY);
-      ctx.lineTo(rightHandX + 30 * f * s, rightHandY - 8 * s);
-      ctx.stroke();
-      // Left Hand Blade
-      ctx.beginPath();
-      ctx.moveTo(leftHandX, leftHandY);
-      ctx.lineTo(leftHandX + 26 * f * s, leftHandY - 12 * s);
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    // Plasma Ascetic Divine Plasma Aura on Fists
-    if (this.skin === 'chosen' && (this.state === 'JAB' || this.state === 'HEAVY_KICK' || this.state === 'JUMP_KICK')) {
-      ctx.save();
-      ctx.strokeStyle = '#00ffff';
-      ctx.shadowColor = '#00ffff';
-      ctx.shadowBlur = 16 * s;
-      ctx.lineWidth = 4 * s;
-      ctx.beginPath();
-      ctx.arc(rightHandX, rightHandY, 8 * s, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    // Flash Ghost Spectral Claws
-    if (this.skin === 'ghost') {
-      ctx.save();
-      ctx.strokeStyle = '#ff00aa';
-      ctx.shadowColor = '#ff75df';
-      ctx.shadowBlur = 14 * s;
-      ctx.lineWidth = 2.5 * s;
-      for (let c = -1; c <= 1; c++) {
-        ctx.beginPath();
-        ctx.moveTo(rightHandX, rightHandY);
-        ctx.lineTo(rightHandX + (12 + Math.abs(c) * 4) * f * s, rightHandY + c * 5 * s);
-        ctx.stroke();
-      }
-      ctx.restore();
-    }
-
-    // 3. Left Arm
-    const leftElbowX = (neckX + leftHandX) / 2 - 4 * f * s;
-    const leftElbowY = (neckY + leftHandY) / 2 + 5 * s;
-    ctx.beginPath();
-    ctx.moveTo(neckX, neckY);
-    ctx.lineTo(leftElbowX, leftElbowY);
-    ctx.lineTo(leftHandX, leftHandY);
-    ctx.stroke();
-
-    // 4. Right Arm
-    const rightElbowX = (neckX + rightHandX) / 2 + 4 * f * s;
-    const rightElbowY = (neckY + rightHandY) / 2 + 5 * s;
-    ctx.beginPath();
-    ctx.moveTo(neckX, neckY);
-    ctx.lineTo(rightElbowX, rightElbowY);
-    ctx.lineTo(rightHandX, rightHandY);
-    ctx.stroke();
-
-    // --- Martial Arts Clenched Fists ---
-    ctx.save();
-    ctx.fillStyle = this.color;
-    ctx.strokeStyle = this.color;
-    ctx.beginPath();
-    ctx.arc(leftHandX, leftHandY, 4.5 * s, 0, Math.PI * 2);
-    ctx.arc(rightHandX, rightHandY, 4.5 * s, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    ctx.restore();
-
-    // 5. Left Leg
-    const leftKneeX = (pelvisX + leftFootX) / 2 - 6 * f * s;
-    const leftKneeY = (pelvisY + leftFootY) / 2;
-    ctx.beginPath();
-    ctx.moveTo(pelvisX, pelvisY);
-    ctx.lineTo(leftKneeX, leftKneeY);
-    ctx.lineTo(leftFootX, leftFootY);
-    ctx.stroke();
-
-    // 6. Right Leg
-    const rightKneeX = (pelvisX + rightFootX) / 2 + 5 * f * s;
-    const rightKneeY = (pelvisY + rightFootY) / 2;
-    ctx.beginPath();
-    ctx.moveTo(pelvisX, pelvisY);
-    ctx.lineTo(rightKneeX, rightKneeY);
-    ctx.lineTo(rightFootX, rightFootY);
-    ctx.stroke();
-
-    // --- Planted Martial Arts Feet (Stylized Soles) ---
-    ctx.save();
-    ctx.lineWidth = 3.8 * s;
-    ctx.strokeStyle = this.color;
-    ctx.beginPath();
-    ctx.moveTo(leftFootX - 4 * f * s, leftFootY);
-    ctx.lineTo(leftFootX + 8 * f * s, leftFootY);
-    ctx.moveTo(rightFootX - 4 * f * s, rightFootY);
-    ctx.lineTo(rightFootX + 8 * f * s, rightFootY);
-    ctx.stroke();
-    ctx.restore();
-
-    // Dynamic Crescent Slash Arcs on Kicks
-    if (this.state === 'HEAVY_KICK' && this.stateTime >= 5 && this.stateTime <= 12) {
-      ctx.save();
-      ctx.strokeStyle = this.auraColor || this.color;
-      ctx.lineWidth = 5 * s;
-      ctx.shadowColor = this.auraColor || this.color;
-      ctx.shadowBlur = 12 * s;
-      ctx.beginPath();
-      ctx.arc(renderX + 15 * f * s, renderY - 45 * s, 52 * s, -Math.PI / 4, Math.PI / 4, f < 0);
-      ctx.stroke();
-      ctx.restore();
-    } else if (this.state === 'JUMP_KICK' && this.stateTime >= 3) {
-      ctx.save();
-      ctx.strokeStyle = this.auraColor || this.color;
-      ctx.lineWidth = 4 * s;
-      ctx.shadowColor = this.auraColor || this.color;
-      ctx.shadowBlur = 10 * s;
-      ctx.beginPath();
-      ctx.moveTo(renderX - 25 * f * s, renderY - 80 * s);
-      ctx.lineTo(renderX + 45 * f * s, renderY - 40 * s);
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    ctx.restore();
+    StickmanAnatomy.renderFighter(
+      ctx,
+      pose,
+      this.x + this.glitchOffset,
+      this.y,
+      this.groundY,
+      this.facing,
+      this.state,
+      this.stateTime,
+      this.animFrame,
+      {
+        archetype,
+        color: this.color,
+        auraColor: this.auraColor || undefined,
+        scale: this.scale,
+        thickness: this.thickness,
+        isHollowHead: this.isHollowHead,
+        headScale: this.headScale,
+        isOverclocked: this.isOverclocked,
+        knuckleTapeColor: this.skin === 'black' ? '#ffffff' : undefined
+      },
+      this.flashFrames
+    );
   }
 }

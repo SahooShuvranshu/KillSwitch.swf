@@ -26,6 +26,16 @@ class KillSwitchGame {
   // Key tracking
   private keysHeld: Record<string, boolean> = {};
 
+  // Konami Code Sequence: Up Up Down Down Left Right Left Right B A
+  private konamiSequence: string[] = [
+    'ArrowUp', 'ArrowUp',
+    'ArrowDown', 'ArrowDown',
+    'ArrowLeft', 'ArrowRight',
+    'ArrowLeft', 'ArrowRight',
+    'KeyB', 'KeyA'
+  ];
+  private konamiIndex: number = 0;
+
   // FPS calculation
   private lastFrameTime: number = performance.now();
   private frameCount: number = 0;
@@ -36,7 +46,7 @@ class KillSwitchGame {
     if (!this.canvas) throw new Error('Game canvas element not found');
 
     const defaultName = (document.getElementById('player-name-input') as HTMLInputElement)?.value || 'Challenger_04';
-    this.arena = new Arena(this.canvas, defaultName, 'orange');
+    this.arena = new Arena(this.canvas, defaultName, 'black');
     this.telemetry = new TelemetryTracker(defaultName);
     this.aiController = new AIController(this.arena.ghost, this.arena.player, this.telemetry);
     this.aiController.onTacticalRead = (text) => this.arena.showTacticalBanner(text);
@@ -115,7 +125,7 @@ class KillSwitchGame {
     const startMatch = () => {
       const name = nameInput.value.trim() || 'Challenger_04';
       this.arena.player.name = name;
-      this.arena.player.applySkin('orange', 1.0); // Iconic human stickman
+      this.arena.player.applySkin('black', 1.0); // 100% Pure Pitch-Black Stickman Hero!
       this.telemetry.setPlayerName(name);
       gemmaGhost.resetMemory();
 
@@ -297,42 +307,80 @@ class KillSwitchGame {
         return;
       }
 
+      // Konami Code Sequence: Up Up Down Down Left Right Left Right B A
+      if (e.code === this.konamiSequence[this.konamiIndex]) {
+        this.konamiIndex++;
+        if (this.konamiIndex >= this.konamiSequence.length) {
+          this.konamiIndex = 0;
+          this.arena.player.activateOverclock(60);
+          sound.playKO();
+          this.arena.showTacticalBanner('⚡ KONAMI CODE UNLOCKED: 60s OVERCLOCK BOOST!');
+        }
+      } else {
+        this.konamiIndex = e.code === this.konamiSequence[0] ? 1 : 0;
+      }
+
       if (!this.isRunning || this.arena.isRoundOver) return;
 
       const p = this.arena.player;
 
-      // 1. Light Jab (J or Z)
+      // 1. Light Punch Combo (J or Z): Jab -> Cross -> Palm Burst
       if (e.code === 'KeyJ' || e.code === 'KeyZ') {
         p.jab();
         this.telemetry.recordPunch();
       }
 
-      // 2. Heavy Kick / Flying Jump-Kick (K or X)
+      // 2. Heavy Kick / Low Sweep / Flying Jump-Kick (K or X)
       if (e.code === 'KeyK' || e.code === 'KeyX') {
         if (!p.isGrounded) {
           p.jumpKick();
           this.telemetry.recordJumpKick();
+        } else if (this.keysHeld['KeyS'] || this.keysHeld['ArrowDown']) {
+          p.lowSweep(); // Crouching leg trip sweep
+          this.telemetry.recordHeavyKick();
         } else {
-          p.heavyKick();
+          p.heavyKick(); // Roundhouse -> Axe Kick
           this.telemetry.recordHeavyKick();
         }
       }
 
-      // 3. Jump (W or ArrowUp)
+      // 3. Rising Uppercut Launcher (U)
+      if (e.code === 'KeyU') {
+        p.uppercut();
+        sound.playHeavyHit();
+        this.telemetry.recordPunch();
+      }
+
+      // 4. Martial Special: Flying Clinch Knee (I)
+      if (e.code === 'KeyI') {
+        p.flyingKnee();
+        sound.playHeavyHit();
+        this.telemetry.recordHeavyKick();
+      }
+
+      // 5. Evasive Dodge Roll (Space)
+      if (e.code === 'Space') {
+        p.dodgeRoll();
+        sound.playJump();
+      }
+
+      // 6. Jump & Platform Drop-Through (W or ArrowUp)
       if (e.code === 'KeyW' || e.code === 'ArrowUp') {
-        if (p.isGrounded) {
+        if (this.keysHeld['KeyS'] || this.keysHeld['ArrowDown']) {
+          p.dropThroughPlatform(); // S + W = Drop through platform!
+        } else if (p.isGrounded) {
           p.jump();
           this.telemetry.recordJump();
           sound.playJump();
         }
       }
 
-      // 4. Crouch (S or ArrowDown)
+      // 7. Crouch (S or ArrowDown)
       if (e.code === 'KeyS' || e.code === 'ArrowDown') {
         p.crouch();
       }
 
-      // 5. Block Shield (L or C)
+      // 8. Block & Parry (L or C)
       if (e.code === 'KeyL' || e.code === 'KeyC') {
         p.block(true);
         this.telemetry.recordBlock();
@@ -390,6 +438,7 @@ class KillSwitchGame {
   public startCombat(roundNum: number) {
     this.currentRound = roundNum;
     this.isRunning = true;
+    this.hideAllScreens();
     this.arena.startRound(roundNum);
     this.aiController.setRound(roundNum);
     this.telemetry.startRound(roundNum);

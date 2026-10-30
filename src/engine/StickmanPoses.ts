@@ -318,6 +318,174 @@ export const POSE_VICTORY: KeyframePose[] = [
   }
 ];
 
+// 14. CROSS_PUNCH: 4-Frame Heavy Straight Right Cross (Punch Combo Step 2)
+export const POSE_CROSS_PUNCH: KeyframePose[] = [
+  { // Windup
+    headX: -2, headY: -87, neckX: -1, neckY: -75, pelvisX: -2, pelvisY: -45,
+    leftHandX: -8, leftHandY: -65, rightHandX: 2, rightHandY: -66,
+    leftFootX: -14, leftFootY: 0, rightFootX: 10, rightFootY: 0
+  },
+  { // Thrust Strike
+    headX: 8, headY: -86, neckX: 6, neckY: -74, pelvisX: 2, pelvisY: -44,
+    leftHandX: -4, leftHandY: -62, rightHandX: 38, rightHandY: -72,
+    leftFootX: -16, leftFootY: 0, rightFootX: 14, rightFootY: 0
+  },
+  { // Hold / Impact Extension
+    headX: 6, headY: -86, neckX: 5, neckY: -74, pelvisX: 2, pelvisY: -44,
+    leftHandX: -5, leftHandY: -62, rightHandX: 36, rightHandY: -72,
+    leftFootX: -16, leftFootY: 0, rightFootX: 14, rightFootY: 0
+  },
+  { // Recovery
+    headX: 2, headY: -88, neckX: 1, neckY: -76, pelvisX: 0, pelvisY: -45,
+    leftHandX: -6, leftHandY: -60, rightHandX: 20, rightHandY: -65,
+    leftFootX: -14, leftFootY: 0, rightFootX: 12, rightFootY: 0
+  }
+];
+
+// 15. PALM_BURST: 4-Frame Wing Chun Two-Handed Palm Burst (Punch Combo Finisher)
+export const POSE_PALM_BURST: KeyframePose[] = [
+  { // Crouch Chamber
+    headX: -4, headY: -82, neckX: -3, neckY: -70, pelvisX: -4, pelvisY: -40,
+    leftHandX: -6, leftHandY: -58, rightHandX: -2, rightHandY: -58,
+    leftFootX: -16, leftFootY: 0, rightFootX: 12, rightFootY: 0
+  },
+  { // Explosive Dual Palm Forward Release
+    headX: 10, headY: -84, neckX: 8, neckY: -72, pelvisX: 4, pelvisY: -43,
+    leftHandX: 36, leftHandY: -68, rightHandX: 38, rightHandY: -60,
+    leftFootX: -18, leftFootY: 0, rightFootX: 18, rightFootY: 0
+  },
+  { // Extension Hold
+    headX: 8, headY: -85, neckX: 7, neckY: -73, pelvisX: 3, pelvisY: -44,
+    leftHandX: 34, leftHandY: -68, rightHandX: 36, rightHandY: -60,
+    leftFootX: -18, leftFootY: 0, rightFootX: 18, rightFootY: 0
+  },
+  { // Reset
+    headX: 2, headY: -88, neckX: 1, neckY: -76, pelvisX: 0, pelvisY: -45,
+    leftHandX: 4, leftHandY: -60, rightHandX: 14, rightHandY: -62,
+    leftFootX: -14, leftFootY: 0, rightFootX: 12, rightFootY: 0
+  }
+];
+
+// 16. AXE_KICK: 4-Frame Overhead Vertical Heel Drop (Heavy Kick Step 2)
+export const POSE_AXE_KICK: KeyframePose[] = [
+  { // High Leg Lift
+    headX: -6, headY: -85, neckX: -4, neckY: -73, pelvisX: -4, pelvisY: -44,
+    leftHandX: -12, leftHandY: -60, rightHandX: 10, rightHandY: -62,
+    leftFootX: -10, leftFootY: 0, rightFootX: 18, rightFootY: -92
+  },
+  { // Overhead Axe Drop Strike
+    headX: 4, headY: -84, neckX: 3, neckY: -72, pelvisX: 0, pelvisY: -43,
+    leftHandX: -10, leftHandY: -58, rightHandX: 8, rightHandY: -58,
+    leftFootX: -12, leftFootY: 0, rightFootX: 32, rightFootY: -15
+  },
+  { // Impact Follow-through
+    headX: 6, headY: -82, neckX: 4, neckY: -70, pelvisX: 0, pelvisY: -42,
+    leftHandX: -8, leftHandY: -56, rightHandX: 6, rightHandY: -56,
+    leftFootX: -12, leftFootY: 0, rightFootX: 28, rightFootY: 0
+  },
+  { // Stance Recovery
+    headX: 0, headY: -88, neckX: 0, neckY: -76, pelvisX: 0, pelvisY: -45,
+    leftHandX: -8, leftHandY: -60, rightHandX: 14, rightHandY: -62,
+    leftFootX: -12, leftFootY: 0, rightFootX: 12, rightFootY: 0
+  }
+];
+
+// 17. UPPERCUT: 4-Frame Explosive Rising Launcher Strike
+export const POSE_UPPERCUT: KeyframePose[] = [
+  { // Deep Crouch Coil
+    headX: 2, headY: -70, neckX: 2, neckY: -58, pelvisX: 0, pelvisY: -32,
+    leftHandX: -8, leftHandY: -48, rightHandX: 10, rightHandY: -38,
+    leftFootX: -14, leftFootY: 0, rightFootX: 14, rightFootY: 0
+  },
+  { // Skyward Eruption
+    headX: 8, headY: -108, neckX: 6, neckY: -96, pelvisX: 2, pelvisY: -65,
+    leftHandX: -4, leftHandY: -75, rightHandX: 20, rightHandY: -126,
+    leftFootX: -8, leftFootY: -15, rightFootX: 12, rightFootY: -18
+  },
+  { // Apex Float
+    headX: 6, headY: -104, neckX: 5, neckY: -92, pelvisX: 2, pelvisY: -62,
+    leftHandX: -6, leftHandY: -72, rightHandX: 18, rightHandY: -120,
+    leftFootX: -6, leftFootY: -10, rightFootX: 10, rightFootY: -12
+  },
+  { // Ground Landing
+    headX: 2, headY: -88, neckX: 1, neckY: -76, pelvisX: 0, pelvisY: -45,
+    leftHandX: -8, leftHandY: -60, rightHandX: 12, rightHandY: -62,
+    leftFootX: -12, leftFootY: 0, rightFootX: 12, rightFootY: 0
+  }
+];
+
+// 18. FLYING_KNEE: 4-Frame Airborne Clinch Lunging Knee Strike
+export const POSE_FLYING_KNEE: KeyframePose[] = [
+  { // Launch Step
+    headX: 4, headY: -84, neckX: 3, neckY: -72, pelvisX: 2, pelvisY: -44,
+    leftHandX: 6, leftHandY: -60, rightHandX: 16, rightHandY: -62,
+    leftFootX: -14, leftFootY: 0, rightFootX: 14, rightFootY: -10
+  },
+  { // Airborne Clinch Knee Impact
+    headX: 10, headY: -94, neckX: 8, neckY: -82, pelvisX: 4, pelvisY: -56,
+    leftHandX: 20, leftHandY: -78, rightHandX: 24, rightHandY: -78,
+    leftFootX: -14, leftFootY: -22, rightFootX: 34, rightFootY: -68
+  },
+  { // Follow-through
+    headX: 8, headY: -90, neckX: 6, neckY: -78, pelvisX: 3, pelvisY: -52,
+    leftHandX: 18, leftHandY: -74, rightHandX: 20, rightHandY: -74,
+    leftFootX: -12, leftFootY: -16, rightFootX: 30, rightFootY: -60
+  },
+  { // Land
+    headX: 2, headY: -88, neckX: 1, neckY: -76, pelvisX: 0, pelvisY: -45,
+    leftHandX: -8, leftHandY: -60, rightHandX: 12, rightHandY: -62,
+    leftFootX: -12, leftFootY: 0, rightFootX: 12, rightFootY: 0
+  }
+];
+
+// 19. LOW_SWEEP: 4-Frame Crouching 360-Degree Leg Trip Sweep
+export const POSE_LOW_SWEEP: KeyframePose[] = [
+  { // Floor Hand Plant
+    headX: 2, headY: -46, neckX: 2, neckY: -36, pelvisX: 0, pelvisY: -22,
+    leftHandX: -10, leftHandY: -5, rightHandX: 8, rightHandY: -5,
+    leftFootX: -8, leftFootY: 0, rightFootX: 4, rightFootY: 0
+  },
+  { // Extended Floor Sweep
+    headX: 4, headY: -44, neckX: 3, neckY: -34, pelvisX: 0, pelvisY: -20,
+    leftHandX: -12, leftHandY: -4, rightHandX: 6, rightHandY: -4,
+    leftFootX: -10, leftFootY: 0, rightFootX: 36, rightFootY: -3
+  },
+  { // Arc Follow
+    headX: 2, headY: -45, neckX: 2, neckY: -35, pelvisX: 0, pelvisY: -21,
+    leftHandX: -10, leftHandY: -5, rightHandX: 8, rightHandY: -5,
+    leftFootX: -10, leftFootY: 0, rightFootX: 30, rightFootY: -2
+  },
+  { // Return Stance
+    headX: 0, headY: -70, neckX: 0, neckY: -58, pelvisX: 0, pelvisY: -35,
+    leftHandX: -8, leftHandY: -52, rightHandX: 12, rightHandY: -52,
+    leftFootX: -14, leftFootY: 0, rightFootX: 14, rightFootY: 0
+  }
+];
+
+// 20. DODGE_ROLL: 4-Frame Evasive Floor Tumble Roll
+export const POSE_DODGE_ROLL: KeyframePose[] = [
+  { // Tuck
+    headX: 8, headY: -40, neckX: 6, neckY: -32, pelvisX: 2, pelvisY: -22,
+    leftHandX: 10, leftHandY: -15, rightHandX: 14, rightHandY: -15,
+    leftFootX: -6, leftFootY: 0, rightFootX: 4, rightFootY: 0
+  },
+  { // Mid-roll Ball
+    headX: 14, headY: -24, neckX: 10, neckY: -20, pelvisX: 4, pelvisY: -18,
+    leftHandX: 8, leftHandY: -6, rightHandX: 18, rightHandY: -6,
+    leftFootX: -4, leftFootY: -8, rightFootX: 6, rightFootY: -8
+  },
+  { // Unfurl
+    headX: 16, headY: -50, neckX: 12, neckY: -42, pelvisX: 4, pelvisY: -28,
+    leftHandX: 8, leftHandY: -35, rightHandX: 16, rightHandY: -35,
+    leftFootX: -8, leftFootY: 0, rightFootX: 14, rightFootY: 0
+  },
+  { // Pop Up
+    headX: 0, headY: -88, neckX: 0, neckY: -76, pelvisX: 0, pelvisY: -45,
+    leftHandX: -8, leftHandY: -60, rightHandX: 14, rightHandY: -62,
+    leftFootX: -12, leftFootY: 0, rightFootX: 12, rightFootY: 0
+  }
+];
+
 // Helper to retrieve the current frame pose without memory allocations
 export function getPoseForState(state: string, stateTime: number, animFrame: number): KeyframePose {
   switch (state) {
@@ -347,6 +515,20 @@ export function getPoseForState(state: string, stateTime: number, animFrame: num
       return POSE_DEFEAT[Math.min(POSE_DEFEAT.length - 1, Math.floor(stateTime / 7))];
     case 'VICTORY':
       return POSE_VICTORY[Math.floor(animFrame / 15) % POSE_VICTORY.length];
+    case 'CROSS_PUNCH':
+      return POSE_CROSS_PUNCH[Math.min(POSE_CROSS_PUNCH.length - 1, Math.floor(stateTime / 3))];
+    case 'PALM_BURST':
+      return POSE_PALM_BURST[Math.min(POSE_PALM_BURST.length - 1, Math.floor(stateTime / 3))];
+    case 'AXE_KICK':
+      return POSE_AXE_KICK[Math.min(POSE_AXE_KICK.length - 1, Math.floor(stateTime / 4))];
+    case 'UPPERCUT':
+      return POSE_UPPERCUT[Math.min(POSE_UPPERCUT.length - 1, Math.floor(stateTime / 4))];
+    case 'FLYING_KNEE':
+      return POSE_FLYING_KNEE[Math.min(POSE_FLYING_KNEE.length - 1, Math.floor(stateTime / 3))];
+    case 'LOW_SWEEP':
+      return POSE_LOW_SWEEP[Math.min(POSE_LOW_SWEEP.length - 1, Math.floor(stateTime / 3))];
+    case 'DODGE_ROLL':
+      return POSE_DODGE_ROLL[Math.min(POSE_DODGE_ROLL.length - 1, Math.floor(stateTime / 3))];
     default:
       return POSE_IDLE[0];
   }

@@ -146,13 +146,19 @@ export class AIController {
       }
     }
 
+    // --- 0. Corner Trap Evasion (Dodge Roll to escape corner boundaries) ---
+    const isGhostCornered = this.ghost.x <= 95 || this.ghost.x >= 705;
+    if (isGhostCornered && dist < 120 && Math.random() < 0.65) {
+      this.ghost.dodgeRoll();
+      this.actionCooldown = Math.max(12, 22 - cdReduction);
+      return;
+    }
+
     // --- 1. Real-Time Move Prediction via Markov Sequence Model ---
     if (this.telemetry) {
       const prediction = this.telemetry.predictNextMove(this.player.state);
       if (prediction && prediction.confidence >= 0.45 && this.parryCooldown <= 0) {
-        // Player is about to chain into their favorite move!
-        if (prediction.predicted === 'HEAVY_KICK' && dist < 110) {
-          // Anticipate heavy sweep: execute Matrix Parry & Slide Counter!
+        if (prediction.predicted === 'HEAVY_KICK' && dist < 115) {
           this.onTacticalRead?.(`⚡ GEMMA READ: PREDICTED HEAVY KICK (${Math.round(prediction.confidence * 100)}%)`);
           this.ghost.block(true);
           sound.playBlock();
@@ -162,9 +168,9 @@ export class AIController {
           setTimeout(() => {
             if (this.ghost.canAct()) {
               this.ghost.block(false);
-              this.ghost.heavyKick();
+              this.ghost.uppercut(); // Counter-launch the heavy kick!
             }
-          }, 140);
+          }, 130);
           return;
         }
       }
@@ -174,22 +180,17 @@ export class AIController {
     const isPlayerAirborne = this.player.state === 'JUMP' || this.player.state === 'JUMP_KICK';
     if (isPlayerAirborne && dist < 170) {
       if (Math.random() < antiAirRate) {
-        if (Math.random() < 0.75) {
-          // Dragon rising uppercut kick
-          this.onTacticalRead?.('⚡ GEMMA READ: ANTI-AIR INTERCEPT!');
-          this.ghost.heavyKick();
-          this.actionCooldown = Math.max(8, 20 - cdReduction);
+        if (Math.random() < 0.60) {
+          // Explosive Rising Uppercut Launcher
+          this.onTacticalRead?.('⚡ GEMMA READ: ANTI-AIR UPPERCUT!');
+          this.ghost.uppercut();
+          this.actionCooldown = Math.max(10, 22 - cdReduction);
           return;
         } else {
-          // Duck under flying kick, counter with snappy jab
-          this.ghost.crouch();
-          setTimeout(() => {
-            if (this.ghost.canAct()) {
-              this.ghost.unCrouch();
-              this.ghost.jab();
-            }
-          }, 180);
-          this.actionCooldown = Math.max(10, 24 - cdReduction);
+          // Flying Clinch Knee intercept
+          this.onTacticalRead?.('⚡ GEMMA READ: FLYING KNEE INTERCEPT!');
+          this.ghost.flyingKnee();
+          this.actionCooldown = Math.max(10, 22 - cdReduction);
           return;
         }
       }
@@ -198,61 +199,72 @@ export class AIController {
     // --- 3. Whiff Punish: Strike when player misses attack & is recovering ---
     const isPlayerWhiffing = (this.player.state === 'JAB' && this.player.stateTime > 6) ||
                              (this.player.state === 'HEAVY_KICK' && this.player.stateTime > 12);
-    if (isPlayerWhiffing && dist < 110 && Math.random() < aggRate) {
+    if (isPlayerWhiffing && dist < 115 && Math.random() < aggRate) {
       this.onTacticalRead?.('⚡ GEMMA READ: WHIFF PUNISH!');
-      this.ghost.heavyKick();
+      this.ghost.flyingKnee();
       this.actionCooldown = Math.max(10, 20 - cdReduction);
       return;
     }
 
-    // --- 4. Guard-Break Counter (Punishes Turtling Habits) ---
-    if (this.player.state === 'BLOCK' && dist < 100) {
+    // --- 4. Guard-Break Counter (Punishes Turtling Habits with Low Shin Sweep) ---
+    if (this.player.state === 'BLOCK' && dist < 110) {
       if (Math.random() < guardRate) {
-        this.onTacticalRead?.('⚡ GEMMA READ: GUARD-BREAK CRUSH!');
-        this.ghost.heavyKick();
-        this.actionCooldown = Math.max(10, 22 - cdReduction);
+        this.onTacticalRead?.('⚡ GEMMA READ: LOW SWEEP GUARD-BREAK!');
+        this.ghost.lowSweep();
+        this.actionCooldown = Math.max(10, 20 - cdReduction);
         return;
       }
     }
 
     // --- 5. Defensive Reaction vs Incoming Attacks ---
     const playerHitbox = this.player.getHitbox();
-    if (playerHitbox && dist < 95) {
+    if (playerHitbox && dist < 100) {
       const baseBlockChance = this.difficulty === 'casual' ? 0.30 : (this.difficulty === 'veteran' ? 0.60 : 0.85);
       const blockChance = Math.min(0.92, baseBlockChance + (this.roundNumber - 1) * 0.04);
       if (Math.random() < blockChance) {
-        this.ghost.block(true);
-        setTimeout(() => this.ghost.block(false), 200);
+        if (Math.random() < 0.40) {
+          this.ghost.dodgeRoll(); // Evasive tumble
+        } else {
+          this.ghost.block(true);
+          setTimeout(() => this.ghost.block(false), 200);
+        }
         this.actionCooldown = Math.max(8, 16 - cdReduction);
         return;
       }
     }
 
-    // --- 6. Spacing, Pressure & Dynamic Combo Strings ---
-    const closeDistance = 65;
-    const midDistance = 145;
+    // --- 6. Spacing, Pressure & Expanded Combo Strings ---
+    const closeDistance = 75;
+    const midDistance = 155;
 
     if (dist > midDistance) {
       this.ghost.move(dir);
     } else if (dist < closeDistance) {
       if (Math.random() < aggRate) {
         const roll = Math.random();
-        if (roll < 0.50) {
+        if (roll < 0.45) {
+          // 3-Hit Punch Chain (Jab -> Cross -> Palm)
           this.ghost.jab();
-          // Hit-confirm cancel: Jab into Heavy Roundhouse Kick
-          const comboChance = Math.min(0.90, 0.60 + (this.roundNumber - 1) * 0.08);
-          if (Math.random() < comboChance) {
-            setTimeout(() => {
-              if (this.ghost.canAct()) this.ghost.heavyKick();
-            }, 90);
-          }
-          this.actionCooldown = Math.max(8, 16 - cdReduction);
-        } else if (roll < 0.88) {
-          this.ghost.heavyKick();
+          setTimeout(() => {
+            if (this.ghost.canAct()) this.ghost.crossPunch();
+          }, 80);
+          setTimeout(() => {
+            if (this.ghost.canAct()) this.ghost.palmBurst();
+          }, 180);
           this.actionCooldown = Math.max(12, 22 - cdReduction);
+        } else if (roll < 0.70) {
+          // 2-Hit Kick Chain (Roundhouse -> Axe Kick)
+          this.ghost.heavyKick();
+          setTimeout(() => {
+            if (this.ghost.canAct()) this.ghost.axeKick();
+          }, 110);
+          this.actionCooldown = Math.max(12, 22 - cdReduction);
+        } else if (roll < 0.88) {
+          // Rising Uppercut Launcher
+          this.ghost.uppercut();
+          this.actionCooldown = Math.max(12, 24 - cdReduction);
         } else {
-          this.ghost.jump();
-          this.ghost.jumpKick();
+          this.ghost.flyingKnee();
           this.actionCooldown = Math.max(14, 26 - cdReduction);
         }
       } else {

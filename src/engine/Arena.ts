@@ -6,6 +6,7 @@
 
 import { Stickman, CharacterSkin } from './Stickman';
 import { sound } from './Audio';
+import { ArenaObstacle } from './Obstacle';
 
 export type ArenaStage = 'animator' | 'desktop' | 'matrix' | 'void' | 'ofrenda';
 export type GameDifficulty = 'casual' | 'veteran' | 'nightmare';
@@ -57,27 +58,27 @@ export interface AIStickmanArchetype {
 
 export const AI_GAUNTLET_ROSTER: AIStickmanArchetype[] = [
   {
-    name: 'SHADOW RECON',
-    title: 'Round 1: Reconnaissance Scout',
-    skin: 'classic',
-    color: '#8c9ba5',
-    auraColor: null,
-    scale: 0.96,
-    thickness: 3.8,
+    name: 'WHITE GHOST',
+    title: 'Round 1: The White Stickman (Pure Minimalist)',
+    skin: 'ghost_white',
+    color: '#ffffff',
+    auraColor: 'rgba(255, 255, 255, 0.4)',
+    scale: 1.00,
+    thickness: 4.2,
     damageMultiplier: 1.0,
     bonusMaxHealth: 0,
-    description: 'Probes challenger habits and opening moves'
+    description: 'The pure white minimalist prototype ghost'
   },
   {
     name: 'COBALT DUELIST',
     title: 'Round 2: Swift Kickboxer',
-    skin: 'blue',
-    color: '#2979ff',
-    auraColor: '#82b1ff',
+    skin: 'orange',
+    color: '#00e5ff',
+    auraColor: '#80d8ff',
     scale: 1.04,
     thickness: 4.2,
     damageMultiplier: 1.15,
-    bonusMaxHealth: 15,
+    bonusMaxHealth: 20,
     description: 'Armed with lightning arcs and anti-air interceptors'
   },
   {
@@ -86,15 +87,27 @@ export const AI_GAUNTLET_ROSTER: AIStickmanArchetype[] = [
     skin: 'green',
     color: '#00e676',
     auraColor: '#69f0ae',
-    scale: 1.08,
-    thickness: 4.4,
-    damageMultiplier: 1.30,
-    bonusMaxHealth: 30,
+    scale: 0.98,
+    thickness: 4.0,
+    damageMultiplier: 1.25,
+    bonusMaxHealth: 35,
     description: 'Nimble martial artist with rapid sweep counters'
   },
   {
+    name: 'BLOCKY STEVE',
+    title: 'Round 4: Voxel Brawler (Wildcard Easter Egg)',
+    skin: 'steve',
+    color: '#00a8a8',
+    auraColor: '#ffd700',
+    scale: 1.15,
+    thickness: 4.5,
+    damageMultiplier: 1.35,
+    bonusMaxHealth: 50,
+    description: 'The legendary blocky brawler with massive voxel boxing fists!'
+  },
+  {
     name: 'CRIMSON TITAN',
-    title: 'Round 4: Heavyweight Berserker',
+    title: 'Round 5: Bare-Knuckle Heavyweight Colossus',
     skin: 'darklord',
     color: '#ee1133',
     auraColor: '#ff0044',
@@ -102,45 +115,33 @@ export const AI_GAUNTLET_ROSTER: AIStickmanArchetype[] = [
     scale: 1.25,
     thickness: 5.6,
     damageMultiplier: 1.45,
-    bonusMaxHealth: 50,
-    description: 'Towering colossus with dual energy blades and guard-crush sweeps'
+    bonusMaxHealth: 65,
+    description: 'Towering bare-knuckle colossus with guard-crush sweeps'
   },
   {
     name: 'PLASMA ASCETIC',
-    title: 'Round 5: Void Halo Monk',
+    title: 'Round 6: Void Halo Monk',
     skin: 'chosen',
     color: '#111111',
     auraColor: '#00ffff',
     isHollowHead: true,
-    scale: 1.15,
+    scale: 1.14,
     thickness: 4.2,
     damageMultiplier: 1.60,
-    bonusMaxHealth: 70,
+    bonusMaxHealth: 80,
     description: 'Pure obsidian speedster with cyan halo and frame-trap punches'
   },
   {
     name: 'CALAVERA PHANTOM',
-    title: 'Round 6: Day of the Dead Spectral Reaper',
+    title: 'Round 7: Day of the Dead Sugar Skull Warrior',
     skin: 'calavera',
     color: '#f5f5f5',
     auraColor: '#ffaa00',
-    scale: 1.20,
-    thickness: 5.0,
+    scale: 1.18,
+    thickness: 4.8,
     damageMultiplier: 1.75,
-    bonusMaxHealth: 90,
+    bonusMaxHealth: 100,
     description: 'Resurrected warrior shrouded in golden marigolds and ghostly fury'
-  },
-  {
-    name: 'VOLT ARCHON',
-    title: 'Round 7: High-Voltage Spark Rusher',
-    skin: 'yellow',
-    color: '#ffea00',
-    auraColor: '#fff59d',
-    scale: 1.12,
-    thickness: 4.5,
-    damageMultiplier: 1.90,
-    bonusMaxHealth: 110,
-    description: 'Blistering speed with rapid dash chains and unreactable pressure'
   },
   {
     name: 'FLASH GHOST PRIME',
@@ -148,10 +149,10 @@ export const AI_GAUNTLET_ROSTER: AIStickmanArchetype[] = [
     skin: 'ghost',
     color: '#ff00aa',
     auraColor: '#d175ff',
-    scale: 1.30,
-    thickness: 5.8,
-    damageMultiplier: 2.10,
-    bonusMaxHealth: 140,
+    scale: 1.24,
+    thickness: 5.2,
+    damageMultiplier: 1.95,
+    bonusMaxHealth: 120,
     description: 'The ancient ghost of 2021 with Error 0x7E5 time-bomb teleports'
   }
 ];
@@ -218,22 +219,59 @@ export class Arena {
   public ghostCombo: number = 0;
   public playerTotalDamage: number = 0;
 
+  // Interactive Stage Obstacles & Platforms
+  public obstacles: ArenaObstacle[] = [];
+
   // Gemma Neural Read & Move Prediction Banner
   public tacticalBannerText: string | null = null;
   public tacticalBannerFrames: number = 0;
 
   public onRoundEnd?: (winner: string) => void;
 
-  constructor(canvas: HTMLCanvasElement, playerName: string = 'Apex Striker', playerSkin: CharacterSkin = 'orange') {
+  constructor(canvas: HTMLCanvasElement, playerName: string = 'Apex Striker', playerSkin: CharacterSkin = 'black') {
     this.canvas = canvas;
     const context = canvas.getContext('2d');
     if (!context) throw new Error('Failed to get 2D canvas context');
     this.ctx = context;
 
-    this.player = new Stickman(220, false, playerName, playerSkin);
-    this.ghost = new Stickman(580, true, 'Ghost of Flash', 'ghost');
+    this.player = new Stickman(220, false, playerName, 'black');
+    this.ghost = new Stickman(580, true, 'White Ghost', 'ghost_white');
 
     this.initStageParticles();
+    this.initStageObstacles(this.stage);
+  }
+
+  public initStageObstacles(stage: ArenaStage) {
+    this.obstacles = [];
+    const floorY = this.height - 90;
+    const midX = this.width / 2;
+
+    if (stage === 'animator') {
+      // 1. Flash Timeline Platform shelf (jumpable, semi-solid)
+      this.obstacles.push(new ArenaObstacle('timeline_shelf', midX - 100, floorY - 95, 200, 16, true, false, 'studio'));
+      // 2. Destructible Animator Pencil Crate
+      this.obstacles.push(new ArenaObstacle('pencil_crate', 170, floorY - 50, 50, 50, false, true, 'studio', 40));
+    } else if (stage === 'desktop') {
+      // 1. Taskbar Window Platform
+      this.obstacles.push(new ArenaObstacle('taskbar_shelf', midX - 110, floorY - 100, 220, 18, true, false, 'bliss'));
+      // 2. Desktop Beige Speaker
+      this.obstacles.push(new ArenaObstacle('crt_speaker', this.width - 230, floorY - 60, 55, 60, false, true, 'bliss', 45));
+    } else if (stage === 'matrix') {
+      // 1. Floating Bytecode Energy Platform
+      this.obstacles.push(new ArenaObstacle('bytecode_shelf', midX - 100, floorY - 100, 200, 16, true, false, 'matrix'));
+      // 2. Data Cache Block
+      this.obstacles.push(new ArenaObstacle('data_cube', 180, floorY - 55, 55, 55, false, true, 'matrix', 50));
+    } else if (stage === 'void') {
+      // 1. DRM Warning Platform
+      this.obstacles.push(new ArenaObstacle('drm_shelf', midX - 100, floorY - 95, 200, 16, true, false, 'void'));
+      // 2. Broken Flash Puzzle Crate
+      this.obstacles.push(new ArenaObstacle('void_crate', this.width - 230, floorY - 55, 55, 55, false, true, 'void', 45));
+    } else if (stage === 'ofrenda') {
+      // 1. Stone Memorial Altar Step
+      this.obstacles.push(new ArenaObstacle('stone_shelf', midX - 110, floorY - 100, 220, 18, true, false, 'ofrenda'));
+      // 2. Candle Tomb Block
+      this.obstacles.push(new ArenaObstacle('tomb_block', 180, floorY - 60, 55, 60, false, true, 'ofrenda', 50));
+    }
   }
 
   private initStageParticles() {
@@ -314,6 +352,7 @@ export class Arena {
     // 1. SCENE AUTOMATICALLY ADVANCES IN EACH ROUND!
     const roundStages: ArenaStage[] = ['animator', 'desktop', 'matrix', 'void', 'ofrenda'];
     this.stage = roundStages[(roundNum - 1) % roundStages.length];
+    this.initStageObstacles(this.stage);
 
     // 2. AI STICKMAN OPPONENT MORPHS INTO A NEW VARIATION & ARCHETYPE!
     const archetype = this.getArchetypeForRound(roundNum);
@@ -325,11 +364,12 @@ export class Arena {
     this.ghost.scale = archetype.scale;
     this.ghost.thickness = archetype.thickness;
     this.ghost.damageMultiplier = archetype.damageMultiplier;
-    this.ghost.maxHealth = 100 + archetype.bonusMaxHealth;
+    this.ghost.maxHealth = 180 + archetype.bonusMaxHealth;
 
-    // 3. Reset player & ghost positions and health
-    this.player.maxHealth = 100;
-    this.player.health = 100;
+    // 3. Reset player & ghost positions and health (180 HP Rebalanced Pool)
+    this.player.maxHealth = 180;
+    this.player.health = 180;
+    this.player.applySkin('black');
     this.player.reset(220);
     this.ghost.reset(580);
     this.ghost.health = this.ghost.maxHealth;
@@ -417,9 +457,24 @@ export class Arena {
       }
     }
 
-    // Update Fighters
-    this.player.update(this.width);
-    this.ghost.update(this.width);
+    // Update Stage Obstacles
+    for (const obs of this.obstacles) {
+      obs.update();
+    }
+
+    // Update Fighters with Obstacle Platform Collisions
+    this.player.update(this.width, this.obstacles);
+    this.ghost.update(this.width, this.obstacles);
+
+    // Corner Wall-Splat Collision Sparks
+    if (this.player.state === 'HIT_STUN' && (this.player.x <= 75 || this.player.x >= this.width - 75)) {
+      this.spawnHitSparks(this.player.x, this.player.y - 45, true, false);
+      this.screenShake = Math.max(this.screenShake, 6);
+    }
+    if (this.ghost.state === 'HIT_STUN' && (this.ghost.x <= 75 || this.ghost.x >= this.width - 75)) {
+      this.spawnHitSparks(this.ghost.x, this.ghost.y - 45, true, false);
+      this.screenShake = Math.max(this.screenShake, 6);
+    }
 
     // Animator Mouse Cursor tracking in 'animator' and 'desktop' stages
     if (this.stage === 'animator' || this.stage === 'desktop') {
@@ -670,17 +725,25 @@ export class Arena {
     // 1. Stage Background
     this.renderStage();
 
-    // 2. Stage Particles
+    // 2. Stage Obstacles & Platforms
+    for (const obs of this.obstacles) {
+      obs.render(this.ctx);
+    }
+
+    // 3. Stage Particles
     this.renderStageParticles();
 
-    // 3. Motion Afterimages
+    // 4. Motion Afterimages
     this.renderAfterimages();
 
-    // 4. Fighters
+    // 5. Fighters
     this.player.render(this.ctx);
     this.ghost.render(this.ctx);
 
-    // 5. Sparks
+    // 6. Themed Arena Boundary Pillars (Left & Right Walls)
+    this.renderThemedBoundaryPillars(this.ctx);
+
+    // 7. Sparks
     for (const p of this.sparks) {
       const alpha = 1 - p.life / p.maxLife;
       this.ctx.fillStyle = p.color;
@@ -691,7 +754,7 @@ export class Arena {
     }
     this.ctx.globalAlpha = 1.0;
 
-    // 6. Floating Damage Numbers
+    // 8. Floating Damage Numbers
     this.renderDamageNumbers();
 
     this.ctx.restore();
@@ -1193,6 +1256,170 @@ export class Arena {
       ctx.fill();
       i++;
     }
+  }
+
+  private renderThemedBoundaryPillars(ctx: CanvasRenderingContext2D) {
+    const leftX = 70;
+    const rightX = this.width - 70;
+    const floorY = this.height - 90;
+    const ceilingY = -200;
+    const wallH = floorY - ceilingY + 100;
+
+    ctx.save();
+
+    if (this.stage === 'animator') {
+      // 1. FLASH STUDIO CANVAS BOUNDARY PILLARS
+      ctx.fillStyle = '#3a3a42';
+      ctx.fillRect(-300, ceilingY, 370, wallH);
+      ctx.strokeStyle = '#222228';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(-300, ceilingY, 370, wallH);
+
+      // Vertical Metric Ruler on Left Pillar edge
+      ctx.fillStyle = '#e0e0e4';
+      ctx.fillRect(leftX - 18, ceilingY, 18, wallH);
+      ctx.strokeStyle = '#888892';
+      ctx.lineWidth = 1;
+      for (let y = 0; y < this.height; y += 15) {
+        ctx.beginPath();
+        ctx.moveTo(leftX - (y % 60 === 0 ? 16 : 8), y);
+        ctx.lineTo(leftX, y);
+        ctx.stroke();
+      }
+      // Red canvas border guide
+      ctx.strokeStyle = '#ff3333';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(leftX, ceilingY);
+      ctx.lineTo(leftX, floorY);
+      ctx.stroke();
+
+      // Right Pillar
+      ctx.fillStyle = '#3a3a42';
+      ctx.fillRect(rightX, ceilingY, 370, wallH);
+      ctx.strokeRect(rightX, ceilingY, 370, wallH);
+      ctx.fillStyle = '#e0e0e4';
+      ctx.fillRect(rightX, ceilingY, 18, wallH);
+      for (let y = 0; y < this.height; y += 15) {
+        ctx.beginPath();
+        ctx.moveTo(rightX, y);
+        ctx.lineTo(rightX + (y % 60 === 0 ? 16 : 8), y);
+        ctx.stroke();
+      }
+      ctx.strokeStyle = '#ff3333';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(rightX, ceilingY);
+      ctx.lineTo(rightX, floorY);
+      ctx.stroke();
+
+    } else if (this.stage === 'desktop') {
+      // 2. WINDOWS XP CRT MONITOR BEZEL BOUNDARIES
+      const gradL = ctx.createLinearGradient(0, 0, leftX, 0);
+      gradL.addColorStop(0, '#15151a');
+      gradL.addColorStop(0.7, '#24242c');
+      gradL.addColorStop(1, '#3b3b46');
+      ctx.fillStyle = gradL;
+      ctx.fillRect(-300, ceilingY, 370, wallH);
+
+      const gradR = ctx.createLinearGradient(rightX, 0, this.width, 0);
+      gradR.addColorStop(0, '#3b3b46');
+      gradR.addColorStop(0.3, '#24242c');
+      gradR.addColorStop(1, '#15151a');
+      ctx.fillStyle = gradR;
+      ctx.fillRect(rightX, ceilingY, 370, wallH);
+
+      ctx.strokeStyle = '#555566';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(leftX, ceilingY, rightX - leftX, wallH);
+
+    } else if (this.stage === 'matrix') {
+      // 3. CYBER MATRIX NEON LASER FIREWALL BOUNDARIES
+      ctx.fillStyle = 'rgba(0, 30, 10, 0.95)';
+      ctx.fillRect(-300, ceilingY, 370, wallH);
+      ctx.strokeStyle = '#00ff66';
+      ctx.shadowColor = '#00ff66';
+      ctx.shadowBlur = 16;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(leftX, ceilingY);
+      ctx.lineTo(leftX, floorY);
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(0, 30, 10, 0.95)';
+      ctx.fillRect(rightX, ceilingY, 370, wallH);
+      ctx.beginPath();
+      ctx.moveTo(rightX, ceilingY);
+      ctx.lineTo(rightX, floorY);
+      ctx.stroke();
+
+    } else if (this.stage === 'void') {
+      // 4. 2021 KILL-SWITCH CORRUPTED DRM BOUNDARIES
+      ctx.fillStyle = '#111116';
+      ctx.fillRect(-300, ceilingY, 370, wallH);
+      ctx.strokeStyle = '#ff0033';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(-300, ceilingY, 370, wallH);
+
+      ctx.fillStyle = '#ffcc00';
+      for (let y = 0; y < this.height; y += 30) {
+        ctx.beginPath();
+        ctx.moveTo(leftX - 25, y);
+        ctx.lineTo(leftX, y + 25);
+        ctx.lineTo(leftX, y + 10);
+        ctx.lineTo(leftX - 25, y - 15);
+        ctx.fill();
+      }
+
+      ctx.fillStyle = '#111116';
+      ctx.fillRect(rightX, ceilingY, 370, wallH);
+      ctx.strokeRect(rightX, ceilingY, 370, wallH);
+      for (let y = 0; y < this.height; y += 30) {
+        ctx.beginPath();
+        ctx.moveTo(rightX, y);
+        ctx.lineTo(rightX + 25, y + 25);
+        ctx.lineTo(rightX + 25, y + 10);
+        ctx.lineTo(rightX, y - 15);
+        ctx.fill();
+      }
+
+    } else if (this.stage === 'ofrenda') {
+      // 5. DÍA DE LOS MUERTOS STONE CEMETERY MAUSOLEUM PILLARS
+      ctx.fillStyle = '#2c251e';
+      ctx.fillRect(-300, ceilingY, 370, wallH);
+      ctx.strokeStyle = '#5a4d3f';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(-300, ceilingY, 370, wallH);
+
+      ctx.fillStyle = '#ffaa00';
+      for (let y = 20; y < this.height; y += 28) {
+        ctx.beginPath();
+        ctx.arc(leftX - 8, y, 9, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ff6600';
+        ctx.beginPath();
+        ctx.arc(leftX - 4, y + 4, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffaa00';
+      }
+
+      ctx.fillStyle = '#2c251e';
+      ctx.fillRect(rightX, ceilingY, 370, wallH);
+      ctx.strokeRect(rightX, ceilingY, 370, wallH);
+
+      for (let y = 20; y < this.height; y += 28) {
+        ctx.beginPath();
+        ctx.arc(rightX + 8, y, 9, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ff6600';
+        ctx.beginPath();
+        ctx.arc(rightX + 4, y + 4, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffaa00';
+      }
+    }
+
+    ctx.restore();
   }
 
   private drawAltarCandle(ctx: CanvasRenderingContext2D, x: number, floorY: number) {
