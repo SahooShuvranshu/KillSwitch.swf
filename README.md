@@ -18,7 +18,17 @@ The Ghost is not a hardcoded script. It is powered locally by **Google Gemma 3 4
 
 ## 🎮 Features & Gameplay
 
-- **60 FPS Procedural Canvas Combat**: Fully skeletal stickman physics inspired by classic *Xiao Xiao* animations, featuring dynamic hurtboxes, starburst spark particles, slow-motion hit freeze-frames, and wall bounces.
+- **Alan Becker *Animator vs. Animation* Character Suite**:
+  - **The Second Coming (Orange)**: Wields the Animator's drawing stylus/brush prop during attacks.
+  - **The Chosen One**: Signature hollow-ring head with glowing cyan divine fire aura.
+  - **The Dark Lord**: Blood crimson hollow head with twin energy blades.
+  - **Green, Blue, Yellow**: Color-coded martial arts friends.
+  - **Xiao Xiao Classic**: White ink with flowing red headband.
+- **Authentic Animator Environments**:
+  - **The Animator's Flash Canvas (Default)**: Battle directly inside Macromedia Flash with the top Timeline ruler, keyframe tracks, red scrubbing playhead, left Flash Tools palette, and a **giant floating Animator mouse cursor (`↖`)** that tracks the fighters!
+  - **Windows XP Bliss Desktop**: Rolling green grass hills, azure sky, desktop icons, and blue taskbar serving as the floor.
+  - **2021 Kill-Switch Void** & **Día de los Muertos Altar**.
+- **60 FPS Procedural Canvas Combat**: Dynamic cinematic camera zoom (1.0x to 1.28x), motion afterimages, inverted impact flash frames, floating damage numbers, combo counters, and slow-mo K.O. freeze-frames.
 - **Authentic Macromedia Flash MX Chrome**: Windows XP retro window chrome, CRT horizontal scanlines, phosphor glow, and an interactive 2021 kill-switch bypass flow.
 - **Zero-Dependency Procedural Web Audio**: 8-bit punches, heavy crunch kicks, metallic guard deflections, and mechanical terminal typewriter clicks synthesized live via Web Audio API.
 - **Real-Time Gemma 3:4B Combat Telemetry**: Tracks jump-kicks, ground jabs, defensive block duration, and player playstyle classifications.

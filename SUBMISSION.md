@@ -31,14 +31,21 @@ Additionally, in the spirit of **Día de los Muertos**, the project features an 
 
 `KillSwitch.swf` combines early-2000s web nostalgia with modern browser tech and cutting-edge local edge AI:
 
-1. **60 FPS Procedural Stickman Combat Engine**:
+1. **60 FPS Procedural Stickman Combat Engine (Alan Becker & Xiao Xiao Style)**:
    - Zero sprite sheets: Every limb, joint, and torso of the player and Flash Ghost is rendered procedurally with dynamic skeletal kinematics on an HTML5 `<canvas>`.
-   - Authentic *Xiao Xiao* moveset: Fast Jabs (`J`), Heavy Roundhouse Kicks (`K`), Airborne Xiao Xiao Flying Jump-Kicks (`W + K`), and Defensive Energy Shields (`L`).
-   - Impact mechanics: Starburst sparks, camera shake dampening, hit-stun frames, and dramatic slow-motion freeze-frames on heavy impacts.
-2. **Macromedia Flash MX 2004 Window Chrome**:
-   - Classic Windows XP / Flash Player 10 window frame with functional menus (`File`, `View`, `Control`, `Gemma 3:4B`, `Help`).
+   - Authentic Alan Becker *Animator vs. Animation* character suite:
+     - **The Second Coming (Orange)**: Wields the Animator's drawing stylus/brush prop during attacks.
+     - **The Chosen One**: Iconic hollow-ring head with cyan divine fire aura.
+     - **The Dark Lord**: Crimson hollow head with twin energy blades.
+     - **Green, Blue, Yellow**: Color-coded martial arts friends.
+     - **Xiao Xiao Classic**: White ink with flowing red headband.
+   - Moveset & game juice: Dynamic camera zoom (1.0x to 1.28x), motion afterimages, inverted impact flash frames, floating damage numbers, combo counter, and slow-mo K.O. freeze-frames.
+2. **Authentic Animator Environments & Flash MX 2004 Window Chrome**:
+   - **The Animator's Flash Canvas**: Brawling directly inside Macromedia Flash with the top Timeline ruler, keyframe tracks, red scrubbing playhead, left Flash Tools palette, and a **giant floating Animator mouse cursor (`↖`)** actively tracking the action!
+   - **Windows XP Bliss Desktop**: Rolling green grass hills, azure sky, desktop icons, and blue taskbar serving as the floor.
+   - **2021 Kill-Switch Void** & **Día de los Muertos Altar**.
    - CRT raster scanlines and phosphor bloom shaders overlaid on the canvas.
-   - The infamous red-and-white **"Adobe Flash Player is Blocked"** time-bomb dialog, complete with an interactive **"⚡ BYPASS KILL-SWITCH"** button that fractures the error window and drops you into the fight.
+   - Interactive 2021 time-bomb kill-switch bypass flow.
 3. **Procedural 8-Bit Web Audio Engine**:
    - No external `.mp3` or `.wav` files. All punches, whooshes, bone-crunch kicks, metallic guard deflections, and CRT terminal typewriter clicks are synthesized live in milliseconds using the browser's native `AudioContext`.
 4. **The Día de los Muertos Flash Cemetery (Ofrenda)**:
