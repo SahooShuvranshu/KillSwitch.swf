@@ -1,6 +1,7 @@
 // ============================================================================
 // KillSwitch.swf — Ultra-Polished 2D Skeletal Stickman Fighter
-// Xiao Xiao martial arts fluid kinematics, recoil, and combo cancels
+// Snappy jump physics, character variations (Xiao Xiao, Cyber, Clock Crew),
+// and fluid martial arts kinematics
 // ============================================================================
 
 export type FighterState = 
@@ -16,6 +17,8 @@ export type FighterState =
   | 'HIT_STUN' 
   | 'KNOCKDOWN' 
   | 'VICTORY';
+
+export type CharacterSkin = 'classic' | 'cyber' | 'clock' | 'ghost';
 
 export interface Hitbox {
   x: number;
@@ -44,8 +47,9 @@ export class Stickman {
   public facing: number = 1; // 1: facing right, -1: facing left
   public isAI: boolean;
   public name: string;
-  public color: string;
-  public eyeColor: string;
+  public skin: CharacterSkin = 'classic';
+  public color: string = '#111111';
+  public eyeColor: string = '#00ffff';
   public health: number = 100;
   public maxHealth: number = 100;
 
@@ -60,14 +64,33 @@ export class Stickman {
   public flashFrames: number = 0;
   public glitchOffset: number = 0;
 
-  constructor(x: number, isAI: boolean = false, name: string = 'Stickman', color: string = '#00f0ff') {
+  constructor(x: number, isAI: boolean = false, name: string = 'Stickman', skin: CharacterSkin = 'classic') {
     this.x = x;
     this.y = this.groundY;
     this.isAI = isAI;
     this.name = name;
-    this.color = color;
-    this.eyeColor = isAI ? '#ff0055' : '#00ffff';
+    this.applySkin(skin);
     this.facing = isAI ? -1 : 1;
+  }
+
+  public applySkin(skin: CharacterSkin) {
+    this.skin = skin;
+    if (skin === 'classic') {
+      // Xiao Xiao classic: Black ink lines with iconic red headband
+      this.color = '#ffffff';
+      this.eyeColor = '#ff3333';
+    } else if (skin === 'cyber') {
+      this.color = '#00f0ff';
+      this.eyeColor = '#00ffff';
+    } else if (skin === 'clock') {
+      // Clock Crew gold
+      this.color = '#ffd700';
+      this.eyeColor = '#ff8800';
+    } else if (skin === 'ghost') {
+      // Flash Ghost: Magenta / Purple chromatic
+      this.color = '#ff00aa';
+      this.eyeColor = '#ff0055';
+    }
   }
 
   public reset(x: number) {
@@ -84,10 +107,10 @@ export class Stickman {
     this.facing = this.isAI ? -1 : 1;
   }
 
-  // --- Attack & Movement Actions with Combo Cancels ---
+  // --- Attack & Movement Actions with SNAPPY Jump Physics ---
   public move(dir: number) {
     if (this.canAct()) {
-      const speed = 4.8;
+      const speed = 5.0;
       this.vx = dir * speed;
       if (this.isGrounded) {
         if ((dir > 0 && this.facing > 0) || (dir < 0 && this.facing < 0)) {
@@ -106,9 +129,10 @@ export class Stickman {
     this.vx *= 0.5;
   }
 
+  // SNAPPY Xiao Xiao jump: controlled height, never floats off screen!
   public jump() {
     if (this.canAct() && this.isGrounded) {
-      this.vy = -15.0;
+      this.vy = -10.8; // Tuned for tight, grounded fighting game feel
       this.isGrounded = false;
       this.setState('JUMP');
     }
@@ -129,24 +153,23 @@ export class Stickman {
 
   public jab() {
     if (this.canAct() && this.isGrounded) {
-      this.vx = this.facing * 2.0; // aggressive step forward
+      this.vx = this.facing * 2.2;
       this.setState('JAB');
     }
   }
 
   public heavyKick() {
-    // Allows cancelling Jab recovery directly into Heavy Kick (Xiao Xiao combo chain!)
-    const canCancelFromJab = this.state === 'JAB' && this.stateTime >= 6;
+    const canCancelFromJab = this.state === 'JAB' && this.stateTime >= 5;
     if ((this.canAct() || canCancelFromJab) && this.isGrounded) {
-      this.vx = this.facing * 3.5; // lunging roundhouse
+      this.vx = this.facing * 3.8;
       this.setState('HEAVY_KICK');
     }
   }
 
   public jumpKick() {
     if (this.canAct() && !this.isGrounded) {
-      this.vx = this.facing * 8.5; // High velocity Xiao Xiao flying leap!
-      this.vy = 4.5;
+      this.vx = this.facing * 7.5; // Flying martial arts dive kick
+      this.vy = 4.0;
       this.setState('JUMP_KICK');
     }
   }
@@ -180,7 +203,7 @@ export class Stickman {
     this.stateTime = 0;
   }
 
-  // --- Physics & Kinematics Step ---
+  // --- Physics Step with SNAPPY Gravity ---
   public update(arenaWidth: number) {
     this.stateTime++;
     this.animFrame++;
@@ -188,15 +211,15 @@ export class Stickman {
     if (this.flashFrames > 0) this.flashFrames--;
 
     // Ghost visual glitching
-    if (this.isAI && Math.random() < 0.2) {
+    if (this.skin === 'ghost' && Math.random() < 0.22) {
       this.glitchOffset = (Math.random() - 0.5) * 8;
     } else {
       this.glitchOffset = 0;
     }
 
-    // Gravity
+    // Snappy, weighted gravity (prevents floatiness!)
     if (!this.isGrounded) {
-      this.vy += 0.88;
+      this.vy += 1.05;
     }
 
     this.x += this.vx;
@@ -226,14 +249,14 @@ export class Stickman {
     if (this.x < padding) {
       this.x = padding;
       if (this.state === 'HIT_STUN' && Math.abs(this.vx) > 3) {
-        this.vx = -this.vx * 0.6; // dynamic wall bounce!
+        this.vx = -this.vx * 0.6;
       } else {
         this.vx = 0;
       }
     } else if (this.x > arenaWidth - padding) {
       this.x = arenaWidth - padding;
       if (this.state === 'HIT_STUN' && Math.abs(this.vx) > 3) {
-        this.vx = -this.vx * 0.6; // dynamic wall bounce!
+        this.vx = -this.vx * 0.6;
       } else {
         this.vx = 0;
       }
@@ -268,7 +291,6 @@ export class Stickman {
   }
 
   public getHitbox(): Hitbox | null {
-    // Fast Jab (Frames 3 to 7)
     if (this.state === 'JAB' && this.stateTime >= 3 && this.stateTime <= 7) {
       return {
         x: this.facing > 0 ? this.x + 12 : this.x - 52,
@@ -282,7 +304,6 @@ export class Stickman {
       };
     }
 
-    // Heavy Roundhouse Kick (Frames 5 to 13)
     if (this.state === 'HEAVY_KICK' && this.stateTime >= 5 && this.stateTime <= 13) {
       return {
         x: this.facing > 0 ? this.x + 14 : this.x - 62,
@@ -291,12 +312,11 @@ export class Stickman {
         h: 34,
         damage: 20,
         knockbackX: this.facing * 8.5,
-        knockbackY: -6.0,
+        knockbackY: -5.5,
         isHeavy: true
       };
     }
 
-    // Xiao Xiao Flying Jump Kick
     if (this.state === 'JUMP_KICK' && this.stateTime >= 2) {
       return {
         x: this.facing > 0 ? this.x + 12 : this.x - 58,
@@ -304,8 +324,8 @@ export class Stickman {
         w: 48,
         h: 38,
         damage: 26,
-        knockbackX: this.facing * 10.5,
-        knockbackY: -7.5,
+        knockbackX: this.facing * 10.0,
+        knockbackY: -6.5,
         isHeavy: true
       };
     }
@@ -330,25 +350,25 @@ export class Stickman {
     this.flashFrames = 10;
 
     if (hitbox.isHeavy || this.health <= 0) {
-      this.hitStunFrames = 28;
+      this.hitStunFrames = 26;
       this.setState('HIT_STUN');
       this.isGrounded = false;
     } else {
-      this.hitStunFrames = 14;
+      this.hitStunFrames = 13;
       this.setState('HIT_STUN');
     }
 
     return { damageDealt: hitbox.damage, blocked: false };
   }
 
-  // --- Render Skeletal Stickman ---
+  // --- Render Skeletal Stickman with Skin Accessories ---
   public render(ctx: CanvasRenderingContext2D) {
     ctx.save();
 
     const renderX = this.x + this.glitchOffset;
     const renderY = this.y;
 
-    // Fluid Floor Drop Shadow with elevation scaling
+    // Drop Shadow
     const elevation = Math.max(0, this.groundY - this.y);
     const shadowWidth = Math.max(10, 24 - elevation * 0.15);
     const shadowAlpha = Math.max(0.1, 0.45 - elevation * 0.003);
@@ -366,14 +386,10 @@ export class Stickman {
       ctx.strokeStyle = '#ffffff';
       ctx.shadowColor = '#ffffff';
       ctx.shadowBlur = 14;
-    } else if (this.isAI) {
-      ctx.strokeStyle = this.color;
-      ctx.shadowColor = '#ff00aa';
-      ctx.shadowBlur = 10;
     } else {
       ctx.strokeStyle = this.color;
-      ctx.shadowColor = '#00ffff';
-      ctx.shadowBlur = 8;
+      ctx.shadowColor = this.color;
+      ctx.shadowBlur = this.skin === 'classic' ? 0 : 8;
     }
 
     const f = this.facing;
@@ -453,11 +469,9 @@ export class Stickman {
       neckX -= 8 * f;
       headX -= 12 * f;
       if (t < 5) {
-        // Anticipation coil
         rightFootX = renderX - 12 * f;
         rightFootY = renderY - 30;
       } else if (t < 13) {
-        // High whip roundhouse
         rightFootX = renderX + 52 * f;
         rightFootY = renderY - 76;
       } else {
@@ -486,11 +500,10 @@ export class Stickman {
       leftHandX = renderX + 12 * f;
       leftHandY = renderY - 70;
 
-      // Glowing Deflection Shield
       ctx.beginPath();
       ctx.arc(renderX + 18 * f, renderY - 60, 32, -Math.PI / 2.3, Math.PI / 2.3, f < 0);
       ctx.lineWidth = 4.5;
-      ctx.strokeStyle = this.isAI ? 'rgba(255, 0, 170, 0.8)' : 'rgba(0, 255, 255, 0.8)';
+      ctx.strokeStyle = this.skin === 'ghost' ? 'rgba(255, 0, 170, 0.8)' : 'rgba(0, 255, 255, 0.8)';
       ctx.stroke();
       ctx.lineWidth = 4.0;
       ctx.strokeStyle = this.color;
@@ -504,7 +517,7 @@ export class Stickman {
       rightHandY = renderY - 82;
     }
 
-    // 1. Spine / Torso
+    // 1. Spine
     ctx.beginPath();
     ctx.moveTo(neckX, neckY);
     ctx.lineTo(pelvisX, pelvisY);
@@ -515,11 +528,29 @@ export class Stickman {
     ctx.arc(headX, headY, 12, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Head Visor / Eye
+    // Visor / Eyes
     ctx.beginPath();
     ctx.arc(headX + 5 * f, headY - 1, 3.0, 0, Math.PI * 2);
     ctx.fillStyle = this.eyeColor;
     ctx.fill();
+
+    // Xiao Xiao Iconic Flowing Red Headband
+    if (this.skin === 'classic') {
+      ctx.save();
+      ctx.strokeStyle = '#ff2200';
+      ctx.lineWidth = 3.0;
+      ctx.beginPath();
+      ctx.arc(headX, headY - 4, 13, Math.PI * 0.8, Math.PI * 1.8, false);
+      ctx.stroke();
+      // Flowing tail ribbons
+      const wave1 = Math.sin(this.animFrame * 0.2) * 5;
+      const wave2 = Math.cos(this.animFrame * 0.25) * 6;
+      ctx.beginPath();
+      ctx.moveTo(headX - 12 * f, headY - 4);
+      ctx.quadraticCurveTo(headX - 22 * f, headY - 2 + wave1, headX - 32 * f, headY + wave2);
+      ctx.stroke();
+      ctx.restore();
+    }
 
     // 3. Left Arm
     const leftElbowX = (neckX + leftHandX) / 2 - 4 * f;

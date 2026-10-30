@@ -1,10 +1,13 @@
 // ============================================================================
 // KillSwitch.swf — Ultra-Polished 60 FPS Combat Arena & Camera Engine
-// Dynamic Cinematics, Afterimages, Floating Damage & Impact Flashes
+// Dynamic Stages: Void, Newgrounds 2004, Día de los Muertos, and ActionScript Matrix
 // ============================================================================
 
-import { Stickman } from './Stickman';
+import { Stickman, CharacterSkin } from './Stickman';
 import { sound } from './Audio';
+
+export type ArenaStage = 'void' | 'newgrounds' | 'ofrenda' | 'matrix';
+export type GameDifficulty = 'casual' | 'veteran' | 'nightmare';
 
 export interface SparkParticle {
   x: number;
@@ -32,7 +35,7 @@ export interface Afterimage {
   x: number;
   y: number;
   facing: number;
-  state: string;
+  skin: CharacterSkin;
   color: string;
   alpha: number;
 }
@@ -46,9 +49,19 @@ export class Arena {
   public player: Stickman;
   public ghost: Stickman;
 
+  public stage: ArenaStage = 'void';
+  public difficulty: GameDifficulty = 'veteran';
+
   public sparks: SparkParticle[] = [];
   public damageNumbers: DamageNumber[] = [];
   public afterimages: Afterimage[] = [];
+
+  // Matrix code rain particles for 'matrix' stage
+  private matrixChars: string[] = ['0', '1', 'A', 'S', '2', 'F', 'L', 'A', 'S', 'H', 'x', '7', 'E', '5'];
+  private matrixDrops: Array<{ x: number; y: number; speed: number; char: string }> = [];
+
+  // Ofrenda floating marigold petals
+  private petals: Array<{ x: number; y: number; vx: number; vy: number; rot: number; rotSpeed: number }> = [];
 
   // Dynamic Camera & Screen Shake
   public cameraX: number = 400;
@@ -72,21 +85,53 @@ export class Arena {
   public announcementSub: string = 'READY... FIGHT!';
   public announcementFrames: number = 90;
 
-  // Combo tracker
   public playerCombo: number = 0;
   public ghostCombo: number = 0;
-  public comboResetTimer: number = 0;
 
   public onRoundEnd?: (winner: string) => void;
 
-  constructor(canvas: HTMLCanvasElement, playerName: string = 'XiaoXiao_04') {
+  constructor(canvas: HTMLCanvasElement, playerName: string = 'XiaoXiao_04', playerSkin: CharacterSkin = 'classic') {
     this.canvas = canvas;
     const context = canvas.getContext('2d');
     if (!context) throw new Error('Failed to get 2D canvas context');
     this.ctx = context;
 
-    this.player = new Stickman(220, false, playerName, '#00f0ff');
-    this.ghost = new Stickman(580, true, 'Ghost of Flash', '#ff00aa');
+    this.player = new Stickman(220, false, playerName, playerSkin);
+    this.ghost = new Stickman(580, true, 'Ghost of Flash', 'ghost');
+
+    this.initStageParticles();
+  }
+
+  private initStageParticles() {
+    this.matrixDrops = [];
+    for (let x = -200; x <= this.width + 200; x += 25) {
+      this.matrixDrops.push({
+        x,
+        y: Math.random() * this.height,
+        speed: 2 + Math.random() * 4,
+        char: this.matrixChars[Math.floor(Math.random() * this.matrixChars.length)]
+      });
+    }
+
+    this.petals = [];
+    for (let i = 0; i < 35; i++) {
+      this.petals.push({
+        x: Math.random() * this.width,
+        y: Math.random() * this.height,
+        vx: (Math.random() - 0.5) * 1.5 - 0.5,
+        vy: 0.8 + Math.random() * 1.2,
+        rot: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.05
+      });
+    }
+  }
+
+  public setStage(stage: ArenaStage) {
+    this.stage = stage;
+  }
+
+  public setDifficulty(diff: GameDifficulty) {
+    this.difficulty = diff;
   }
 
   public startRound(roundNum: number) {
@@ -108,7 +153,7 @@ export class Arena {
     this.ghostCombo = 0;
 
     this.announcementText = `ROUND ${roundNum}`;
-    this.announcementSub = 'READY... FIGHT!';
+    this.announcementSub = `DIFFICULTY: ${this.difficulty.toUpperCase()}`;
     this.announcementFrames = 90;
   }
 
@@ -146,7 +191,6 @@ export class Arena {
   }
 
   public update() {
-    // 1. Impact Hit-Freeze
     if (this.freezeFrames > 0) {
       this.freezeFrames--;
       return;
@@ -160,7 +204,7 @@ export class Arena {
       this.announcementFrames--;
     }
 
-    // 2. Round Timer
+    // Round Timer
     if (!this.isRoundOver && this.announcementFrames <= 30) {
       this.timerFrames++;
       if (this.timerFrames >= 60) {
@@ -172,7 +216,7 @@ export class Arena {
       }
     }
 
-    // 3. Facing orientation
+    // Auto Facing
     if (this.player.canAct() && this.ghost.canAct() && !this.isRoundOver) {
       if (this.player.x < this.ghost.x) {
         this.player.facing = 1;
@@ -183,18 +227,18 @@ export class Arena {
       }
     }
 
-    // 4. Update Fighters
+    // Update Fighters
     this.player.update(this.width);
     this.ghost.update(this.width);
 
-    // 5. Spawn Afterimages on Fast Actions (Jump Kick, Heavy Kick)
+    // Afterimages
     if (this.player.state === 'JUMP_KICK' || (this.player.state === 'HEAVY_KICK' && this.player.stateTime < 8)) {
       if (this.player.animFrame % 2 === 0) {
         this.afterimages.push({
           x: this.player.x,
           y: this.player.y,
           facing: this.player.facing,
-          state: this.player.state,
+          skin: this.player.skin,
           color: this.player.color,
           alpha: 0.6
         });
@@ -207,14 +251,13 @@ export class Arena {
           x: this.ghost.x,
           y: this.ghost.y,
           facing: this.ghost.facing,
-          state: this.ghost.state,
+          skin: this.ghost.skin,
           color: this.ghost.color,
           alpha: 0.6
         });
       }
     }
 
-    // Update Afterimages
     for (let i = this.afterimages.length - 1; i >= 0; i--) {
       this.afterimages[i].alpha -= 0.07;
       if (this.afterimages[i].alpha <= 0) {
@@ -222,7 +265,7 @@ export class Arena {
       }
     }
 
-    // 6. Update Sparks
+    // Sparks
     for (let i = this.sparks.length - 1; i >= 0; i--) {
       const p = this.sparks[i];
       p.x += p.vx;
@@ -234,33 +277,52 @@ export class Arena {
       }
     }
 
-    // 7. Update Floating Damage Numbers
+    // Floating Damage
     for (let i = this.damageNumbers.length - 1; i >= 0; i--) {
       const d = this.damageNumbers[i];
       d.y += d.vy;
-      d.vy += 0.15; // float decel
+      d.vy += 0.15;
       d.life++;
       if (d.life >= d.maxLife) {
         this.damageNumbers.splice(i, 1);
       }
     }
 
-    // 8. Dynamic Cinematic Camera Zoom & Tracking
+    // Stage Particle Updates
+    if (this.stage === 'matrix') {
+      for (const drop of this.matrixDrops) {
+        drop.y += drop.speed;
+        if (drop.y > this.height) {
+          drop.y = 0;
+          drop.char = this.matrixChars[Math.floor(Math.random() * this.matrixChars.length)];
+        }
+      }
+    } else if (this.stage === 'ofrenda') {
+      for (const p of this.petals) {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.rot += p.rotSpeed;
+        if (p.y > this.height) {
+          p.y = -10;
+          p.x = Math.random() * this.width;
+        }
+      }
+    }
+
+    // Dynamic Camera Tracking & Zoom
     const midX = (this.player.x + this.ghost.x) / 2;
     const midY = (this.player.y + this.ghost.y) / 2 - 35;
     const dist = Math.abs(this.player.x - this.ghost.x);
 
-    // Zoom in when fighters brawl up close
     let desiredZoom = 1.0;
     if (dist < 120) {
-      desiredZoom = 1.28; // dramatic close-up
+      desiredZoom = 1.28;
     } else if (dist < 220) {
       desiredZoom = 1.15;
     } else {
       desiredZoom = 1.0;
     }
 
-    // Smooth camera interpolation (lerp)
     this.targetCameraX = midX;
     this.targetCameraY = midY;
     this.targetCameraZoom = desiredZoom;
@@ -269,19 +331,18 @@ export class Arena {
     this.cameraY += (this.targetCameraY - this.cameraY) * 0.12;
     this.cameraZoom += (this.targetCameraZoom - this.cameraZoom) * 0.08;
 
-    // Shake dampening
     if (this.screenShake > 0) {
       this.screenShake *= 0.84;
       if (this.screenShake < 0.5) this.screenShake = 0;
     }
 
-    // 9. Combat Hit Collisions
+    // Hit Detection
     if (!this.isRoundOver) {
       this.checkHit(this.player, this.ghost, true);
       this.checkHit(this.ghost, this.player, false);
     }
 
-    // 10. Win/Loss Check
+    // Win/Loss
     if (!this.isRoundOver) {
       if (this.player.health <= 0) {
         this.endRound(this.ghost.name);
@@ -328,8 +389,8 @@ export class Arena {
         if (hitbox.isHeavy) {
           sound.playHeavyHit();
           this.screenShake = 14;
-          this.freezeFrames = 6; // juicy hit-freeze!
-          this.impactFlashFrames = 2; // inverted impact flash!
+          this.freezeFrames = 6;
+          this.impactFlashFrames = 2;
         } else {
           sound.playJab();
           this.screenShake = 4;
@@ -345,7 +406,7 @@ export class Arena {
     this.winner = winnerName;
     sound.playKO();
     this.screenShake = 22;
-    this.freezeFrames = 20; // slow-mo freeze
+    this.freezeFrames = 20;
     this.impactFlashFrames = 4;
 
     this.announcementText = 'K.O.!';
@@ -359,11 +420,9 @@ export class Arena {
     }
   }
 
-  // --- Render Pipeline ---
   public render() {
     this.ctx.save();
 
-    // Inverted Impact Flash (Anime / Xiao Xiao style)
     if (this.impactFlashFrames > 0) {
       this.ctx.fillStyle = '#ffffff';
       this.ctx.fillRect(0, 0, this.width, this.height);
@@ -371,7 +430,6 @@ export class Arena {
       return;
     }
 
-    // Screen Shake Offset
     let shakeX = 0;
     let shakeY = 0;
     if (this.screenShake > 0) {
@@ -379,7 +437,6 @@ export class Arena {
       shakeY = (Math.random() - 0.5) * this.screenShake;
     }
 
-    // Dynamic Camera Transform (Center + Zoom + Shake)
     this.ctx.translate(this.width / 2 + shakeX, this.height / 2 + shakeY);
     this.ctx.scale(this.cameraZoom, this.cameraZoom);
     this.ctx.translate(-this.cameraX, -this.cameraY);
@@ -387,14 +444,17 @@ export class Arena {
     // 1. Stage Background
     this.renderStage();
 
-    // 2. Render Motion Afterimages
+    // 2. Render Stage Particles
+    this.renderStageParticles();
+
+    // 3. Motion Afterimages
     this.renderAfterimages();
 
-    // 3. Render Fighters
+    // 4. Fighters
     this.player.render(this.ctx);
     this.ghost.render(this.ctx);
 
-    // 4. Render Sparks
+    // 5. Sparks
     for (const p of this.sparks) {
       const alpha = 1 - p.life / p.maxLife;
       this.ctx.fillStyle = p.color;
@@ -405,17 +465,140 @@ export class Arena {
     }
     this.ctx.globalAlpha = 1.0;
 
-    // 5. Render Floating Damage Numbers
+    // 6. Floating Damage Numbers
     this.renderDamageNumbers();
 
-    // Restore Camera Transform before rendering static HUD
     this.ctx.restore();
 
-    // 6. Static Screen HUD (Health Bars, Combo, Announcements)
+    // 7. HUD
     this.renderHUD();
 
     if (this.announcementFrames > 0) {
       this.renderAnnouncements();
+    }
+  }
+
+  private renderStage() {
+    const floorY = 410;
+
+    if (this.stage === 'void') {
+      // 2021 Kill-Switch Void (Dark vector, red shattered logo)
+      const grad = this.ctx.createLinearGradient(0, 0, 0, this.height);
+      grad.addColorStop(0, '#0a0a14');
+      grad.addColorStop(0.7, '#141424');
+      grad.addColorStop(1, '#050508');
+      this.ctx.fillStyle = grad;
+      this.ctx.fillRect(-400, 0, this.width + 800, this.height);
+
+      this.ctx.fillStyle = '#0f0f1c';
+      this.ctx.fillRect(-400, floorY, this.width + 800, this.height - floorY);
+
+      this.ctx.beginPath();
+      this.ctx.moveTo(-400, floorY);
+      this.ctx.lineTo(this.width + 400, floorY);
+      this.ctx.strokeStyle = 'rgba(0, 255, 255, 0.4)';
+      this.ctx.lineWidth = 2.5;
+      this.ctx.stroke();
+
+      this.ctx.save();
+      this.ctx.font = 'italic bold 160px Arial Black';
+      this.ctx.fillStyle = 'rgba(255, 0, 100, 0.05)';
+      this.ctx.textAlign = 'center';
+      this.ctx.fillText('f', this.width / 2, floorY - 50);
+      this.ctx.restore();
+
+    } else if (this.stage === 'newgrounds') {
+      // Newgrounds 2004 Portal (Orange & Charcoal)
+      const grad = this.ctx.createLinearGradient(0, 0, 0, this.height);
+      grad.addColorStop(0, '#1c150e');
+      grad.addColorStop(0.7, '#2b1b0d');
+      grad.addColorStop(1, '#110b06');
+      this.ctx.fillStyle = grad;
+      this.ctx.fillRect(-400, 0, this.width + 800, this.height);
+
+      this.ctx.fillStyle = '#1e140d';
+      this.ctx.fillRect(-400, floorY, this.width + 800, this.height - floorY);
+
+      this.ctx.beginPath();
+      this.ctx.moveTo(-400, floorY);
+      this.ctx.lineTo(this.width + 400, floorY);
+      this.ctx.strokeStyle = 'rgba(255, 140, 0, 0.6)';
+      this.ctx.lineWidth = 2.5;
+      this.ctx.stroke();
+
+      this.ctx.save();
+      this.ctx.font = 'bold 90px "Press Start 2P"';
+      this.ctx.fillStyle = 'rgba(255, 150, 0, 0.04)';
+      this.ctx.textAlign = 'center';
+      this.ctx.fillText('NG 2004', this.width / 2, floorY - 60);
+      this.ctx.restore();
+
+    } else if (this.stage === 'ofrenda') {
+      // Día de los Muertos Altar (Deep purple & gold)
+      const grad = this.ctx.createLinearGradient(0, 0, 0, this.height);
+      grad.addColorStop(0, '#15091c');
+      grad.addColorStop(0.7, '#2d1138');
+      grad.addColorStop(1, '#0c0512');
+      this.ctx.fillStyle = grad;
+      this.ctx.fillRect(-400, 0, this.width + 800, this.height);
+
+      this.ctx.fillStyle = '#190a21';
+      this.ctx.fillRect(-400, floorY, this.width + 800, this.height - floorY);
+
+      this.ctx.beginPath();
+      this.ctx.moveTo(-400, floorY);
+      this.ctx.lineTo(this.width + 400, floorY);
+      this.ctx.strokeStyle = 'rgba(255, 215, 0, 0.5)';
+      this.ctx.lineWidth = 2.5;
+      this.ctx.stroke();
+
+      this.ctx.save();
+      this.ctx.font = 'italic bold 100px "VT323"';
+      this.ctx.fillStyle = 'rgba(255, 215, 0, 0.08)';
+      this.ctx.textAlign = 'center';
+      this.ctx.fillText('💀 DÍA DE LOS MUERTOS 🕯️', this.width / 2, floorY - 70);
+      this.ctx.restore();
+
+    } else if (this.stage === 'matrix') {
+      // ActionScript 2.0 Bytecode Matrix
+      this.ctx.fillStyle = '#020703';
+      this.ctx.fillRect(-400, 0, this.width + 800, this.height);
+
+      this.ctx.fillStyle = '#031205';
+      this.ctx.fillRect(-400, floorY, this.width + 800, this.height - floorY);
+
+      this.ctx.beginPath();
+      this.ctx.moveTo(-400, floorY);
+      this.ctx.lineTo(this.width + 400, floorY);
+      this.ctx.strokeStyle = 'rgba(0, 255, 100, 0.5)';
+      this.ctx.lineWidth = 2.5;
+      this.ctx.stroke();
+    }
+  }
+
+  private renderStageParticles() {
+    if (this.stage === 'matrix') {
+      this.ctx.save();
+      this.ctx.font = '12px "Share Tech Mono", monospace';
+      this.ctx.fillStyle = 'rgba(0, 255, 100, 0.25)';
+      for (const drop of this.matrixDrops) {
+        this.ctx.fillText(drop.char, drop.x, drop.y);
+      }
+      this.ctx.restore();
+    } else if (this.stage === 'ofrenda') {
+      this.ctx.save();
+      for (const p of this.petals) {
+        this.ctx.save();
+        this.ctx.translate(p.x, p.y);
+        this.ctx.rotate(p.rot);
+        this.ctx.fillStyle = '#ff8800';
+        this.ctx.globalAlpha = 0.55;
+        this.ctx.beginPath();
+        this.ctx.ellipse(0, 0, 6, 3, 0, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.restore();
+      }
+      this.ctx.restore();
     }
   }
 
@@ -426,7 +609,6 @@ export class Arena {
       this.ctx.strokeStyle = img.color;
       this.ctx.lineWidth = 2.5;
       this.ctx.beginPath();
-      // simplified ghost silhouette
       this.ctx.arc(img.x, img.y - 88, 10, 0, Math.PI * 2);
       this.ctx.moveTo(img.x, img.y - 76);
       this.ctx.lineTo(img.x, img.y - 45);
@@ -450,50 +632,12 @@ export class Arena {
     }
   }
 
-  private renderStage() {
-    const grad = this.ctx.createLinearGradient(0, 0, 0, this.height);
-    grad.addColorStop(0, '#0a0a14');
-    grad.addColorStop(0.7, '#141424');
-    grad.addColorStop(1, '#050508');
-    this.ctx.fillStyle = grad;
-    this.ctx.fillRect(0, 0, this.width, this.height);
-
-    const floorY = 410;
-    this.ctx.fillStyle = '#0f0f1c';
-    this.ctx.fillRect(-400, floorY, this.width + 800, this.height - floorY);
-
-    // Neon Floor Rim
-    this.ctx.beginPath();
-    this.ctx.moveTo(-400, floorY);
-    this.ctx.lineTo(this.width + 400, floorY);
-    this.ctx.strokeStyle = 'rgba(0, 255, 255, 0.4)';
-    this.ctx.lineWidth = 2.5;
-    this.ctx.stroke();
-
-    // Perspective Lines
-    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-    for (let x = -400; x <= this.width + 400; x += 60) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(x, floorY);
-      this.ctx.lineTo(x + (x - this.width / 2) * 0.5, this.height + 100);
-      this.ctx.stroke();
-    }
-
-    // Ghost of Flash vector watermark
-    this.ctx.save();
-    this.ctx.font = 'italic bold 160px Arial Black';
-    this.ctx.fillStyle = 'rgba(255, 0, 100, 0.05)';
-    this.ctx.textAlign = 'center';
-    this.ctx.fillText('f', this.width / 2, floorY - 50);
-    this.ctx.restore();
-  }
-
   private renderHUD() {
     const barWidth = 300;
     const barHeight = 20;
     const barY = 24;
 
-    // Player Health Bar (Left)
+    // Player Health Bar
     this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
     this.ctx.fillRect(36, barY, barWidth, barHeight);
     this.ctx.strokeStyle = '#444';
@@ -509,9 +653,9 @@ export class Arena {
     this.ctx.fillStyle = '#fff';
     this.ctx.font = 'bold 13px "Share Tech Mono", monospace';
     this.ctx.textAlign = 'left';
-    this.ctx.fillText(`P1: ${this.player.name.toUpperCase()} [${Math.round(this.player.health)}%]`, 36, barY - 6);
+    this.ctx.fillText(`P1: ${this.player.name.toUpperCase()} (${this.player.skin.toUpperCase()}) [${Math.round(this.player.health)}%]`, 36, barY - 6);
 
-    // Ghost Health Bar (Right)
+    // Ghost Health Bar
     const ghostBarX = this.width - 36 - barWidth;
     this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
     this.ctx.fillRect(ghostBarX, barY, barWidth, barHeight);
@@ -536,7 +680,7 @@ export class Arena {
     this.ctx.textAlign = 'center';
     this.ctx.fillText(`${this.roundTime}`, this.width / 2, barY + 18);
 
-    // Combo Counter Display
+    // Combo Counter
     if (this.playerCombo > 1) {
       this.ctx.fillStyle = '#00ffff';
       this.ctx.font = 'bold 18px "Press Start 2P", monospace';
@@ -561,7 +705,7 @@ export class Arena {
 
     this.ctx.shadowBlur = 12;
     this.ctx.fillStyle = '#00ffff';
-    this.ctx.font = 'bold 20px "Share Tech Mono", monospace';
+    this.ctx.font = 'bold 18px "Share Tech Mono", monospace';
     this.ctx.fillText(this.announcementSub, this.width / 2, this.height / 2 + 32);
 
     this.ctx.restore();

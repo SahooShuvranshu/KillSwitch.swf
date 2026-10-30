@@ -3,7 +3,8 @@
 // ============================================================================
 
 import './style.css';
-import { Arena } from './engine/Arena';
+import { Arena, ArenaStage, GameDifficulty } from './engine/Arena';
+import { CharacterSkin } from './engine/Stickman';
 import { sound } from './engine/Audio';
 import { TelemetryTracker } from './ai/Telemetry';
 import { gemmaGhost, CombatAdaptation } from './ai/GemmaGhost';
@@ -87,7 +88,19 @@ class KillSwitchGame {
 
     btnBypass?.addEventListener('click', () => {
       const name = nameInput.value.trim() || 'XiaoXiao_04';
+      const skinSelect = document.getElementById('select-skin') as HTMLSelectElement;
+      const stageSelect = document.getElementById('select-stage') as HTMLSelectElement;
+      const diffSelect = document.getElementById('select-difficulty') as HTMLSelectElement;
+
+      const skin = (skinSelect?.value as CharacterSkin) || 'classic';
+      const stage = (stageSelect?.value as ArenaStage) || 'void';
+      const difficulty = (diffSelect?.value as GameDifficulty) || 'veteran';
+
       this.arena.player.name = name;
+      this.arena.player.applySkin(skin);
+      this.arena.setStage(stage);
+      this.arena.setDifficulty(difficulty);
+      this.aiController.setDifficulty(difficulty);
       this.telemetry.setPlayerName(name);
 
       sound.playBypass();

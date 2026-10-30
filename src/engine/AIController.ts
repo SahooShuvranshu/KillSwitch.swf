@@ -1,34 +1,48 @@
 // ============================================================================
 // KillSwitch.swf — Adaptive AI Stickman Controller (The Flash Ghost)
-// Powered by Google Gemma 3:4B combat parameters
+// Powered by Google Gemma 3:4B with Multi-Round Learning & Difficulty Scaling
 // ============================================================================
 
 import { Stickman } from './Stickman';
 import { CombatAdaptation } from '../ai/GemmaGhost';
+import { GameDifficulty } from './Arena';
 
 export class AIController {
   private ghost: Stickman;
   private player: Stickman;
 
+  public difficulty: GameDifficulty = 'veteran';
+
   // Gemma-tuned adaptation parameters
   public antiAirPriority: number = 0.35;
-  public aggression: number = 0.50;
-  public guardBreakRate: number = 0.30;
+  public aggression: number = 0.55;
+  public guardBreakRate: number = 0.35;
 
   private actionCooldown: number = 0;
   private decisionTimer: number = 0;
 
-  constructor(ghost: Stickman, player: Stickman) {
+  constructor(ghost: Stickman, player: Stickman, difficulty: GameDifficulty = 'veteran') {
     this.ghost = ghost;
     this.player = player;
+    this.difficulty = difficulty;
+  }
+
+  public setDifficulty(diff: GameDifficulty) {
+    this.difficulty = diff;
   }
 
   // Update dynamic weights from Gemma 3:4B round analysis
   public applyAdaptation(adaptation: CombatAdaptation) {
-    this.antiAirPriority = adaptation.antiAirPriority;
-    this.aggression = adaptation.aggression;
-    this.guardBreakRate = adaptation.guardBreakRate;
+    let multiplier = 1.0;
+    if (this.difficulty === 'casual') multiplier = 0.7;
+    else if (this.difficulty === 'nightmare') multiplier = 1.25;
+
+    this.antiAirPriority = Math.min(0.95, adaptation.antiAirPriority * multiplier);
+    this.aggression = Math.min(0.95, adaptation.aggression * multiplier);
+    this.guardBreakRate = Math.min(0.95, adaptation.guardBreakRate * multiplier);
+
     console.log('[AI Controller] Applied Gemma 3:4B Adaptation:', {
+      difficulty: this.difficulty,
       antiAir: this.antiAirPriority,
       aggression: this.aggression,
       guardBreak: this.guardBreakRate
@@ -43,8 +57,10 @@ export class AIController {
       return;
     }
 
+    // Reaction frame interval based on difficulty
+    const reactionDelay = this.difficulty === 'casual' ? 7 : (this.difficulty === 'veteran' ? 3 : 1);
     this.decisionTimer++;
-    if (this.decisionTimer < 4) return; // run decision every 4 frames for realistic human reaction time
+    if (this.decisionTimer < reactionDelay) return;
     this.decisionTimer = 0;
 
     const dx = this.player.x - this.ghost.x;
@@ -53,46 +69,44 @@ export class AIController {
 
     // --- 1. Reactive Anti-Air Counter (Gemma Adaptive Priority) ---
     const isPlayerAirborne = this.player.state === 'JUMP' || this.player.state === 'JUMP_KICK';
-    if (isPlayerAirborne && dist < 140) {
+    if (isPlayerAirborne && dist < 150) {
       if (Math.random() < this.antiAirPriority) {
-        // Anti-air choice: Rising Dragon Kick or Duck Under
-        if (Math.random() < 0.6) {
+        if (Math.random() < 0.65) {
           // Dragon rising kick to punish airborne spammer
           this.ghost.jump();
           this.ghost.heavyKick();
-          this.actionCooldown = 28;
+          this.actionCooldown = this.difficulty === 'nightmare' ? 16 : 26;
           return;
         } else {
-          // Duck under flying kick
+          // Duck under flying kick, counter with jab
           this.ghost.crouch();
           setTimeout(() => {
             this.ghost.unCrouch();
             this.ghost.jab();
-          }, 350);
-          this.actionCooldown = 32;
+          }, 300);
+          this.actionCooldown = this.difficulty === 'nightmare' ? 20 : 30;
           return;
         }
       }
     }
 
     // --- 2. Guard-Break Counter (Gemma Adaptive Priority) ---
-    if (this.player.state === 'BLOCK' && dist < 85) {
+    if (this.player.state === 'BLOCK' && dist < 95) {
       if (Math.random() < this.guardBreakRate) {
-        // Execute low heavy kick to push through guard
         this.ghost.heavyKick();
-        this.actionCooldown = 30;
+        this.actionCooldown = this.difficulty === 'nightmare' ? 18 : 28;
         return;
       }
     }
 
     // --- 3. Defensive Evasion vs Incoming Attack ---
     const playerHitbox = this.player.getHitbox();
-    if (playerHitbox && dist < 90) {
-      const blockChance = 0.35 + (1 - this.aggression) * 0.3;
+    if (playerHitbox && dist < 95) {
+      const blockChance = this.difficulty === 'casual' ? 0.2 : (this.difficulty === 'veteran' ? 0.45 : 0.7);
       if (Math.random() < blockChance) {
         this.ghost.block(true);
-        setTimeout(() => this.ghost.block(false), 220);
-        this.actionCooldown = 20;
+        setTimeout(() => this.ghost.block(false), 200);
+        this.actionCooldown = 18;
         return;
       }
     }
@@ -102,36 +116,34 @@ export class AIController {
     const midDistance = 140;
 
     if (dist > midDistance) {
-      // Approach player
       this.ghost.move(dir);
     } else if (dist < closeDistance) {
-      // Very close: initiate attack or step back based on aggression
       if (Math.random() < this.aggression) {
-        // Attack chain
         const roll = Math.random();
-        if (roll < 0.5) {
+        if (roll < 0.45) {
           this.ghost.jab();
-          this.actionCooldown = 16;
+          // Nightmare chains jab into heavy kick immediately
+          if (this.difficulty === 'nightmare' || Math.random() < 0.5) {
+            setTimeout(() => this.ghost.heavyKick(), 120);
+          }
+          this.actionCooldown = 18;
         } else if (roll < 0.85) {
           this.ghost.heavyKick();
           this.actionCooldown = 26;
         } else {
-          // Xiao Xiao flying leap kick back
           this.ghost.jump();
           this.ghost.jumpKick();
-          this.actionCooldown = 35;
+          this.actionCooldown = 32;
         }
       } else {
-        // Spacing step back
         this.ghost.move(-dir);
       }
     } else {
-      // In mid-range (65px - 140px): Poke or Jump-Kick
-      if (Math.random() < this.aggression * 0.7) {
+      if (Math.random() < this.aggression * 0.75) {
         if (Math.random() < 0.4) {
           this.ghost.jump();
           this.ghost.jumpKick();
-          this.actionCooldown = 38;
+          this.actionCooldown = 34;
         } else {
           this.ghost.move(dir);
         }
