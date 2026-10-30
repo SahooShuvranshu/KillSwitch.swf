@@ -179,6 +179,89 @@ export class StickmanAnatomy {
       ctx.restore();
     }
 
+    // --- High-Contrast Black Boundary for White / Light Stickmen ---
+    const hasBlackOutline = config.archetype === 'ghost_white' || 
+                            config.color === '#ffffff' || 
+                            config.color === '#f5f5f5';
+
+    if (hasBlackOutline) {
+      ctx.save();
+      ctx.strokeStyle = '#000000';
+      ctx.fillStyle = '#000000';
+      ctx.lineWidth = thick + 3.2 * s;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      // 1. Clavicle outline
+      ctx.beginPath();
+      ctx.moveTo(leftShoulderX, leftShoulderY);
+      ctx.lineTo(rightShoulderX, rightShoulderY);
+      ctx.stroke();
+
+      // 2. Spine outline
+      ctx.beginPath();
+      ctx.moveTo(neckX, neckY);
+      ctx.quadraticCurveTo(solarPlexusX, solarPlexusY, pelvisX, pelvisY);
+      ctx.stroke();
+
+      // 3. Pelvis outline
+      ctx.beginPath();
+      ctx.moveTo(leftHipX, leftHipY);
+      ctx.lineTo(rightHipX, rightHipY);
+      ctx.stroke();
+
+      // 4. Back leg outline
+      ctx.beginPath();
+      ctx.moveTo(leftHipX, leftHipY);
+      ctx.lineTo(leftKneeX, leftKneeY);
+      ctx.lineTo(leftFootX, leftFootY);
+      ctx.stroke();
+
+      // 5. Front leg outline
+      ctx.beginPath();
+      ctx.moveTo(rightHipX, rightHipY);
+      ctx.lineTo(rightKneeX, rightKneeY);
+      ctx.lineTo(rightFootX, rightFootY);
+      ctx.stroke();
+
+      // 6. Back arm outline
+      ctx.beginPath();
+      ctx.moveTo(leftShoulderX, leftShoulderY);
+      ctx.lineTo(leftElbowX, leftElbowY);
+      ctx.lineTo(leftHandX, leftHandY);
+      ctx.stroke();
+
+      // 7. Front arm outline
+      ctx.beginPath();
+      ctx.moveTo(rightShoulderX, rightShoulderY);
+      ctx.lineTo(rightElbowX, rightElbowY);
+      ctx.lineTo(rightHandX, rightHandY);
+      ctx.stroke();
+
+      // 8. Fists black outline
+      ctx.beginPath();
+      ctx.arc(leftHandX, leftHandY, 6.2 * s, 0, Math.PI * 2);
+      ctx.arc(rightHandX, rightHandY, 6.2 * s, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 9. Head black outline
+      const headRadius = 12 * s * (config.headScale || 1.0);
+      ctx.beginPath();
+      ctx.arc(headX, headY, headRadius + 1.8 * s, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 10. Feet black outline
+      ctx.lineWidth = 5.6 * s;
+      ctx.beginPath();
+      ctx.moveTo(leftFootX - 6 * f * s, leftFootY);
+      ctx.lineTo(leftFootX + 11 * f * s, leftFootY);
+      ctx.moveTo(rightFootX - 6 * f * s, rightFootY);
+      ctx.lineTo(rightFootX + 11 * f * s, rightFootY);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
     // 5. Clavicle / Shoulder Bar
     ctx.beginPath();
     ctx.moveTo(leftShoulderX, leftShoulderY);
@@ -294,6 +377,7 @@ export class StickmanAnatomy {
   // --- Sub-renderer: Flat Planted Martial Arts Foot ---
   private static drawFoot(ctx: CanvasRenderingContext2D, x: number, y: number, f: number, s: number, color: string) {
     ctx.save();
+    const isWhiteGuy = color === '#ffffff' || color === '#f5f5f5';
     ctx.lineWidth = 3.6 * s;
     ctx.strokeStyle = color;
     ctx.beginPath();
@@ -303,6 +387,15 @@ export class StickmanAnatomy {
     // Slight angled toe cap
     ctx.lineTo(x + 10 * f * s, y - 2 * s);
     ctx.stroke();
+
+    if (isWhiteGuy) {
+      ctx.lineWidth = 2.0 * s;
+      ctx.strokeStyle = '#000000';
+      ctx.beginPath();
+      ctx.moveTo(x - 5 * f * s, y + 1.2 * s);
+      ctx.lineTo(x + 10 * f * s, y + 1.2 * s);
+      ctx.stroke();
+    }
     ctx.restore();
   }
 
@@ -318,16 +411,18 @@ export class StickmanAnatomy {
   ) {
     ctx.save();
     const fistRadius = 4.8 * s;
+    const isWhiteGuy = config.archetype === 'ghost_white' || config.color === '#ffffff' || config.color === '#f5f5f5';
 
     if (isOpenPalm) {
       // Wing Chun Open Palm Strike
       ctx.fillStyle = config.color;
-      ctx.strokeStyle = config.color;
+      ctx.strokeStyle = isWhiteGuy ? '#000000' : config.color;
       ctx.beginPath();
       ctx.arc(x, y, fistRadius * 0.9, 0, Math.PI * 2);
       ctx.fill();
-      // 4 open finger ridges
       ctx.lineWidth = 2.0 * s;
+      ctx.stroke();
+      // 4 open finger ridges
       for (let i = -2; i <= 2; i++) {
         ctx.beginPath();
         ctx.moveTo(x + (i * 2) * s, y);
@@ -343,11 +438,12 @@ export class StickmanAnatomy {
     ctx.arc(x, y, fistRadius, 0, Math.PI * 2);
     ctx.fillStyle = config.color;
     ctx.fill();
-    ctx.strokeStyle = config.color;
+    ctx.strokeStyle = isWhiteGuy ? '#000000' : config.color;
+    ctx.lineWidth = isWhiteGuy ? 2.2 * s : 1.5 * s;
     ctx.stroke();
 
-    // Knuckle Tape / Hand Wraps (White for pure black player, themed for opponents)
-    const tapeColor = config.knuckleTapeColor || (config.archetype === 'player_black' ? '#ffffff' : 'rgba(255, 255, 255, 0.7)');
+    // Knuckle Tape / Hand Wraps (White for pure black player, black/themed for white opponents)
+    const tapeColor = config.knuckleTapeColor || (isWhiteGuy ? '#111111' : (config.archetype === 'player_black' ? '#ffffff' : 'rgba(255, 255, 255, 0.7)'));
     ctx.strokeStyle = tapeColor;
     ctx.lineWidth = 1.8 * s;
     // Cross wrap lines on fist
@@ -373,6 +469,7 @@ export class StickmanAnatomy {
     animFrame: number
   ) {
     const headRadius = 12 * s * (config.headScale || 1.0);
+    const isWhiteGuy = config.archetype === 'ghost_white' || config.color === '#ffffff' || config.color === '#f5f5f5';
 
     if (config.isHollowHead) {
       // Hollow Void Head (Plasma Ascetic / Crimson Titan)
@@ -403,7 +500,8 @@ export class StickmanAnatomy {
     ctx.arc(headX, headY, headRadius, 0, Math.PI * 2);
     ctx.fillStyle = config.color;
     ctx.fill();
-    ctx.strokeStyle = config.color;
+    ctx.strokeStyle = isWhiteGuy ? '#000000' : config.color;
+    ctx.lineWidth = isWhiteGuy ? 2.4 * s : 1.5 * s;
     ctx.stroke();
 
     // Calavera Face Paint (Sugar Skull)
