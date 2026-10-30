@@ -41,6 +41,121 @@ export interface Afterimage {
   alpha: number;
 }
 
+export interface AIStickmanArchetype {
+  name: string;
+  title: string;
+  skin: CharacterSkin;
+  color?: string;
+  auraColor?: string | null;
+  isHollowHead?: boolean;
+  scale: number;
+  thickness: number;
+  damageMultiplier: number;
+  bonusMaxHealth: number;
+  description: string;
+}
+
+export const AI_GAUNTLET_ROSTER: AIStickmanArchetype[] = [
+  {
+    name: 'SHADOW RECON',
+    title: 'Round 1: Reconnaissance Scout',
+    skin: 'classic',
+    color: '#8c9ba5',
+    auraColor: null,
+    scale: 0.96,
+    thickness: 3.8,
+    damageMultiplier: 1.0,
+    bonusMaxHealth: 0,
+    description: 'Probes challenger habits and opening moves'
+  },
+  {
+    name: 'COBALT DUELIST',
+    title: 'Round 2: Swift Kickboxer',
+    skin: 'blue',
+    color: '#2979ff',
+    auraColor: '#82b1ff',
+    scale: 1.04,
+    thickness: 4.2,
+    damageMultiplier: 1.15,
+    bonusMaxHealth: 15,
+    description: 'Armed with lightning arcs and anti-air interceptors'
+  },
+  {
+    name: 'JADE GRANDMASTER',
+    title: 'Round 3: Acrobatic Martial Artist',
+    skin: 'green',
+    color: '#00e676',
+    auraColor: '#69f0ae',
+    scale: 1.08,
+    thickness: 4.4,
+    damageMultiplier: 1.30,
+    bonusMaxHealth: 30,
+    description: 'Nimble martial artist with rapid sweep counters'
+  },
+  {
+    name: 'CRIMSON TITAN',
+    title: 'Round 4: Heavyweight Berserker',
+    skin: 'darklord',
+    color: '#ee1133',
+    auraColor: '#ff0044',
+    isHollowHead: true,
+    scale: 1.25,
+    thickness: 5.6,
+    damageMultiplier: 1.45,
+    bonusMaxHealth: 50,
+    description: 'Towering colossus with dual energy blades and guard-crush sweeps'
+  },
+  {
+    name: 'PLASMA ASCETIC',
+    title: 'Round 5: Void Halo Monk',
+    skin: 'chosen',
+    color: '#111111',
+    auraColor: '#00ffff',
+    isHollowHead: true,
+    scale: 1.15,
+    thickness: 4.2,
+    damageMultiplier: 1.60,
+    bonusMaxHealth: 70,
+    description: 'Pure obsidian speedster with cyan halo and frame-trap punches'
+  },
+  {
+    name: 'CALAVERA PHANTOM',
+    title: 'Round 6: Day of the Dead Spectral Reaper',
+    skin: 'calavera',
+    color: '#f5f5f5',
+    auraColor: '#ffaa00',
+    scale: 1.20,
+    thickness: 5.0,
+    damageMultiplier: 1.75,
+    bonusMaxHealth: 90,
+    description: 'Resurrected warrior shrouded in golden marigolds and ghostly fury'
+  },
+  {
+    name: 'VOLT ARCHON',
+    title: 'Round 7: High-Voltage Spark Rusher',
+    skin: 'yellow',
+    color: '#ffea00',
+    auraColor: '#fff59d',
+    scale: 1.12,
+    thickness: 4.5,
+    damageMultiplier: 1.90,
+    bonusMaxHealth: 110,
+    description: 'Blistering speed with rapid dash chains and unreactable pressure'
+  },
+  {
+    name: 'FLASH GHOST PRIME',
+    title: 'Round 8: Corrupted Bytecode Overlord',
+    skin: 'ghost',
+    color: '#ff00aa',
+    auraColor: '#d175ff',
+    scale: 1.30,
+    thickness: 5.8,
+    damageMultiplier: 2.10,
+    bonusMaxHealth: 140,
+    description: 'The ancient ghost of 2021 with Error 0x7E5 time-bomb teleports'
+  }
+];
+
 export class Arena {
   public canvas: HTMLCanvasElement;
   public ctx: CanvasRenderingContext2D;
@@ -163,6 +278,31 @@ export class Arena {
     }
   }
 
+  public getArchetypeForRound(roundNum: number): AIStickmanArchetype {
+    const rosterIdx = (roundNum - 1) % AI_GAUNTLET_ROSTER.length;
+    const base = AI_GAUNTLET_ROSTER[rosterIdx];
+    const loopCycle = Math.floor((roundNum - 1) / AI_GAUNTLET_ROSTER.length);
+
+    if (loopCycle === 0) {
+      return base;
+    }
+
+    // Procedural scaling for infinite loop beyond Round 8
+    return {
+      name: `${base.name} Mk. ${loopCycle + 1}`,
+      title: `Round ${roundNum}: Ascended ${base.name}`,
+      skin: base.skin,
+      color: base.color,
+      auraColor: loopCycle % 2 === 0 ? '#ff0055' : '#00ffff',
+      isHollowHead: base.isHollowHead,
+      scale: Math.min(1.35, base.scale + loopCycle * 0.05),
+      thickness: Math.min(6.0, base.thickness + loopCycle * 0.3),
+      damageMultiplier: base.damageMultiplier + loopCycle * 0.35,
+      bonusMaxHealth: base.bonusMaxHealth + loopCycle * 50,
+      description: 'Ascended combat iteration with hyper-reactive adaptation.'
+    };
+  }
+
   public startRound(roundNum: number) {
     this.roundNumber = roundNum;
     this.roundTime = 99;
@@ -170,23 +310,28 @@ export class Arena {
     this.isRoundOver = false;
     this.winner = null;
 
-    // SCENE AUTOMATICALLY ADVANCES IN EACH ROUND!
-    // Round 1: Flash Studio Canvas
-    // Round 2: Windows XP Bliss Desktop
-    // Round 3: ActionScript Cyber Matrix
-    // Round 4: 2021 Kill-Switch Void
-    // Round 5: Día de los Muertos Altar
+    // 1. SCENE AUTOMATICALLY ADVANCES IN EACH ROUND!
     const roundStages: ArenaStage[] = ['animator', 'desktop', 'matrix', 'void', 'ofrenda'];
     this.stage = roundStages[(roundNum - 1) % roundStages.length];
 
-    // In Round 2+, the Ghost adapts and grows in boss stature!
-    if (this.ghost) {
-      this.ghost.scale = Math.min(1.30, 1.16 + (roundNum - 1) * 0.07);
-      this.ghost.thickness = Math.min(5.6, 4.8 + (roundNum - 1) * 0.3);
-    }
+    // 2. AI STICKMAN OPPONENT MORPHS INTO A NEW VARIATION & ARCHETYPE!
+    const archetype = this.getArchetypeForRound(roundNum);
+    this.ghost.name = archetype.name;
+    this.ghost.applySkin(archetype.skin);
+    if (archetype.color) this.ghost.color = archetype.color;
+    if (archetype.auraColor !== undefined) this.ghost.auraColor = archetype.auraColor;
+    if (archetype.isHollowHead !== undefined) this.ghost.isHollowHead = archetype.isHollowHead;
+    this.ghost.scale = archetype.scale;
+    this.ghost.thickness = archetype.thickness;
+    this.ghost.damageMultiplier = archetype.damageMultiplier;
+    this.ghost.maxHealth = 100 + archetype.bonusMaxHealth;
 
+    // 3. Reset player & ghost positions and health
+    this.player.maxHealth = 100;
+    this.player.health = 100;
     this.player.reset(220);
     this.ghost.reset(580);
+    this.ghost.health = this.ghost.maxHealth;
     this.player.facing = 1;
     this.ghost.facing = -1;
 
@@ -197,7 +342,7 @@ export class Arena {
     this.ghostCombo = 0;
 
     this.announcementText = `ROUND ${roundNum}`;
-    this.announcementSub = `STAGE: ${this.getStageDisplayName(this.stage)}`;
+    this.announcementSub = `VS ${archetype.name} • ${this.getStageDisplayName(this.stage)}`;
     this.announcementFrames = 90;
   }
 

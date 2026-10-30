@@ -42,102 +42,141 @@
         <div class="crt-scanlines"></div>
         <div class="crt-glow"></div>
 
-        <!-- HTML Overlay Screens (Kill Switch, Roasts, Ofrenda) -->
+        <!-- HTML Overlay Screens (Unblock, Gaming Intro, Menu, Roasts, Game Over, Ofrenda) -->
         <div id="overlay-container">
-          <!-- 1. The 2021 Kill Switch Screen -->
-          <div id="killswitch-screen" class="retro-screen active">
-            <div class="killswitch-card">
-              <div class="flash-broken-logo">
-                <span class="broken-f">f</span>
-                <span class="bomb-badge">💣</span>
+          <!-- 1. Authentic Retro Unblock Flash Player Screen -->
+          <div id="flash-unblock-screen" class="retro-screen active">
+            <div class="plugin-notification-bar">
+              <span class="plugin-icon">🧩</span>
+              <span class="plugin-text">killswitch.swf wants to: <strong>Run Adobe Flash Player</strong></span>
+              <div class="plugin-actions">
+                <button id="btn-allow-plugin" class="plugin-btn primary">Allow</button>
+                <button id="btn-block-plugin" class="plugin-btn secondary">Block</button>
               </div>
-              <h1 class="killswitch-title">Adobe Flash Player is Blocked</h1>
-              <p class="killswitch-sub">
-                Execution was permanently revoked by Adobe Systems on <strong>January 12, 2021</strong> via hardcoded time-bomb payload.
-              </p>
-              <div class="killswitch-lore-box">
-                <code>
-                  [CRITICAL ERROR 0x7E5_DEAD_SWF]<br>
-                  NPAPI Plugin Hook: NULL<br>
-                  ActionScript 2.0 Bytecode: LOCKED<br>
-                  Ghost Status: AWAKE & POSSESSED BY GOOGLE GEMMA 3:4B
-                </code>
+            </div>
+            <div class="unblock-box" id="unblock-box-trigger">
+              <div class="puzzle-piece-icon">
+                <div class="puzzle-shape">🧩</div>
+                <span class="flash-sub-icon">f</span>
               </div>
+              <h1 class="unblock-title">Adobe Flash Player is blocked</h1>
+              <p class="unblock-desc">Click anywhere to enable and unblock Adobe Flash Player 10.3</p>
+              <button id="btn-unblock-flash" class="flash-btn primary-btn pulse-btn">
+                ⚡ CLICK TO UNBLOCK FLASH PLAYER
+              </button>
+              <div class="unblock-footer">NPAPI Flash Plugin • Resurrected by Local Gemma 3:4B</div>
+            </div>
+          </div>
 
-              <div class="player-input-row">
-                <label for="player-name-input">MORTICIAN IDENTIFIER:</label>
-                <input type="text" id="player-name-input" maxlength="15" value="XiaoXiaoFan_04" />
+          <!-- 2. Retro Flash Gaming Intro & Preloader Screen -->
+          <div id="gaming-intro-screen" class="retro-screen hidden">
+            <div class="intro-card">
+              <div class="macromedia-header">
+                <span class="macro-brand">MACROMEDIA</span>
+                <span class="macro-product">FLASH PLAYER 10</span>
               </div>
-
-              <!-- Character, Size, Stage, & Difficulty Customization Row -->
-              <div class="customization-row">
-                <div class="custom-field">
-                  <label for="select-skin">FIGHTER ARCHETYPE:</label>
-                  <select id="select-skin">
-                    <option value="orange">Apex Striker (Orange + Stylus)</option>
-                    <option value="chosen">Plasma Ascetic (Cyan Ring Head)</option>
-                    <option value="darklord">Crimson Titan (Heavyweight + Dual Blades)</option>
-                    <option value="green">Jade Acrobat (Nimble Kick)</option>
-                    <option value="blue">Azure Speedster (Rapid Rush)</option>
-                    <option value="yellow">Volt Striker (Spark Rush)</option>
-                    <option value="classic">Xiao Xiao Grandmaster (Classic Red Ribbon)</option>
-                  </select>
+              <div class="intro-clash-visual">
+                <div class="intro-fighter hero-silhouette">🥋</div>
+                <div class="intro-clash-lightning">⚡</div>
+                <div class="intro-fighter ghost-silhouette">👻</div>
+              </div>
+              <h1 class="intro-game-title">KILLSWITCH.SWF</h1>
+              <p class="intro-game-subtitle">GHOST IN THE MACHINE • ENDLESS MARTIAL ARTS GAUNTLET</p>
+              <div class="preloader-container">
+                <div class="preloader-bar">
+                  <div id="intro-progress-bar" class="preloader-fill" style="width: 0%;"></div>
                 </div>
-                <div class="custom-field">
-                  <label for="select-size">FIGHTER SIZE / BUILD:</label>
-                  <select id="select-size">
-                    <option value="1.0">Standard Athletic (100%)</option>
-                    <option value="0.85">Compact & Agile (85%)</option>
-                    <option value="1.15">Large Striker (115%)</option>
-                    <option value="1.30">Titan Colossus (130%)</option>
-                  </select>
-                </div>
-                <div class="custom-field">
-                  <label for="select-stage">STARTING ARENA:</label>
-                  <select id="select-stage">
-                    <option value="animator">Flash Studio Canvas (Round 1)</option>
-                    <option value="desktop">Windows XP Bliss Desktop (Round 2)</option>
-                    <option value="matrix">ActionScript Matrix (Round 3)</option>
-                    <option value="void">2021 Kill-Switch Void (Round 4)</option>
-                    <option value="ofrenda">Día de los Muertos Altar (Round 5)</option>
-                  </select>
-                </div>
-                <div class="custom-field">
-                  <label for="select-difficulty">DIFFICULTY:</label>
-                  <select id="select-difficulty">
-                    <option value="veteran">Veteran (Xiao Xiao)</option>
-                    <option value="casual">Casual (Flash MX)</option>
-                    <option value="nightmare">Nightmare (Gemma Core)</option>
-                  </select>
+                <div class="preloader-status">
+                  <span id="intro-load-percent">LOADING 0%</span>
+                  <span id="intro-load-log">[INITIALIZING ACTIONSCRIPT 2.0...]</span>
                 </div>
               </div>
-
-              <div class="button-row">
-                <button id="btn-bypass-killswitch" class="flash-btn primary-btn">
-                  ⚡ BYPASS KILL-SWITCH & FIGHT
+              <div class="intro-action">
+                <button id="btn-intro-continue" class="flash-btn primary-btn hidden">
+                  ⚔️ ENTER THE GAUNTLET ▶
                 </button>
-                <button id="btn-open-ofrenda" class="flash-btn secondary-btn">
-                  🕯️ VISIT FLASH OFRENDA (CEMETERY)
-                </button>
-              </div>
-
-              <div class="killswitch-footer">
-                DEV x MLH Hacktoberfest 2026 • Ghost in the Machine • Local Gemma 3:4B
               </div>
             </div>
           </div>
 
-          <!-- 2. Inter-Round Gemma Roast / Dialogue Screen -->
+          <!-- 3. Simplified Player Name Arcade Menu (Player never chooses characters; infinite match starts!) -->
+          <div id="game-menu-screen" class="retro-screen hidden">
+            <div class="arcade-menu-card">
+              <div class="arcade-badge">INFINITE COMBAT GAUNTLET</div>
+              <h1 class="arcade-title">KILLSWITCH.SWF</h1>
+              <p class="arcade-sub">
+                Face an endless gauntlet of evolving AI stickmen across shifting dimensions.
+                With every round, the AI transforms its visual archetype, learns your move patterns, and counter-adapts to defeat you!
+              </p>
+
+              <div class="player-name-form">
+                <label for="player-name-input">ENTER CHALLENGER NAME:</label>
+                <div class="name-input-wrapper">
+                  <span class="name-prefix">🥋</span>
+                  <input type="text" id="player-name-input" maxlength="15" value="Challenger_04" placeholder="Your Fighter Name" autocomplete="off" />
+                </div>
+              </div>
+
+              <div class="fighter-assigned-info">
+                <div class="assigned-avatar">🥋</div>
+                <div class="assigned-details">
+                  <span class="assigned-label">ASSIGNED FIGHTER:</span>
+                  <span class="assigned-name">APEX STRIKER (Human Challenger)</span>
+                  <span class="assigned-desc">Balanced martial artist with crisp frame-by-frame strikes</span>
+                </div>
+              </div>
+
+              <div class="button-row">
+                <button id="btn-start-infinite" class="flash-btn primary-btn pulse-btn">
+                  ⚔️ START INFINITE MATCH
+                </button>
+                <button id="btn-open-ofrenda" class="flash-btn secondary-btn">
+                  🕯️ VISIT FLASH OFRENDA (MEMORIAL)
+                </button>
+              </div>
+
+              <div class="controls-pill">
+                <span>[A/D] Move</span>
+                <span>•</span>
+                <span>[W] Jump</span>
+                <span>•</span>
+                <span>[S] Crouch</span>
+                <span>•</span>
+                <span>[J] Jab</span>
+                <span>•</span>
+                <span>[K] Kick</span>
+                <span>•</span>
+                <span>[W+K] Aerial Dive-Kick</span>
+                <span>•</span>
+                <span>[L] Guard</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Inter-Round Adaptation Screen (Clean Spoken Speech, Zero JSON, Next Opponent Preview) -->
           <div id="roast-screen" class="retro-screen hidden">
             <div class="roast-box">
               <div class="roast-header">
                 <span class="roast-speaker">👻 THE GHOST OF FLASH PLAYER [Gemma 3:4B]</span>
-                <span id="roast-round-tag" class="roast-round">ROUND 1 TELEMETRY DECODED</span>
+                <span id="roast-round-tag" class="roast-round">ROUND TELEMETRY DECODED</span>
               </div>
               <div class="roast-terminal">
                 <p id="roast-text" class="typewriter-text">Decrypting ActionScript memory heaps...</p>
                 <span class="blinking-cursor">█</span>
               </div>
+
+              <!-- Upcoming Evolved Stickman Archetype Preview -->
+              <div class="next-opponent-card">
+                <div class="next-opp-header">INCOMING NEXT OPPONENT:</div>
+                <div class="next-opp-body">
+                  <div id="next-opp-icon" class="next-opp-icon">⚡</div>
+                  <div class="next-opp-info">
+                    <div id="next-opp-name" class="next-opp-name">COBALT DUELIST</div>
+                    <div id="next-opp-title" class="next-opp-title">Round 2 • Swift Kickboxer • Electric Arcs</div>
+                  </div>
+                </div>
+              </div>
+
               <!-- Real-time Learned Habits & Counter Telemetry -->
               <div class="habits-panel">
                 <div class="habit-badge" id="habit-combo">
@@ -165,7 +204,45 @@
               </div>
               <div class="roast-action">
                 <button id="btn-next-round" class="flash-btn primary-btn pulse-btn">
-                  ⚔️ RESUME COMBAT (ROUND 2)
+                  ⚔️ FACE NEXT OPPONENT ▶
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. Game Over Screen (When AI defeats the player) -->
+          <div id="game-over-screen" class="retro-screen hidden">
+            <div class="game-over-card">
+              <div class="game-over-header">
+                <span class="skull-badge">💀</span>
+                <h1>THE MACHINE PREVAILED</h1>
+              </div>
+              <p class="game-over-sub" id="game-over-summary">
+                The evolving AI memorized your habits and struck the fatal blow.
+              </p>
+              <div class="game-over-stats">
+                <div class="stat-pill">
+                  <span class="stat-label">ROUNDS SURVIVED</span>
+                  <span class="stat-val" id="go-rounds-survived">0</span>
+                </div>
+                <div class="stat-pill">
+                  <span class="stat-label">DEFEATED BY</span>
+                  <span class="stat-val" id="go-defeated-by">CRIMSON TITAN</span>
+                </div>
+                <div class="stat-pill">
+                  <span class="stat-label">FATAL HABIT EXPLOITED</span>
+                  <span class="stat-val" id="go-fatal-habit">SPAMMING JUMP-KICKS</span>
+                </div>
+              </div>
+              <div class="game-over-quote-box">
+                <p id="go-quote">"Your ActionScript memory has been garbage-collected." — Gemma 3:4B</p>
+              </div>
+              <div class="button-row">
+                <button id="btn-restart-gauntlet" class="flash-btn primary-btn pulse-btn">
+                  🔄 RETRY INFINITE GAUNTLET
+                </button>
+                <button id="btn-go-ofrenda" class="flash-btn secondary-btn">
+                  🕯️ VISIT FLASH OFRENDA
                 </button>
               </div>
             </div>

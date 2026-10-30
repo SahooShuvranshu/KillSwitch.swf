@@ -235,177 +235,408 @@ body {
 }
 
 /* ==========================================================================
-   Screen 1: The Infamous 2021 Kill Switch Dialog
+   Screen 1: Authentic Retro Unblock Flash Player Screen
    ========================================================================== */
 
-#killswitch-screen {
-  background: rgba(10, 10, 18, 0.94);
-  backdrop-filter: blur(5px);
+#flash-unblock-screen {
+  background: rgba(18, 18, 26, 0.96);
+  flex-direction: column;
 }
 
-.killswitch-card {
-  width: min(92%, 720px);
-  max-height: 90vh;
-  overflow-y: auto;
-  background: #ffffff;
-  border: 3px solid #cc0000;
-  border-radius: 6px;
-  padding: 24px 32px;
-  box-shadow: 0 16px 50px rgba(255, 0, 0, 0.35);
-  text-align: center;
+.plugin-notification-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #fffae6;
+  border-bottom: 1px solid #d4c58d;
+  color: #333;
+  padding: 8px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
   font-family: 'Segoe UI', Tahoma, sans-serif;
-  color: #111;
-  animation: subtleShake 4s infinite ease-in-out;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 10;
 }
 
-@keyframes subtleShake {
-  0%, 96%, 100% { transform: translate(0, 0); }
-  97% { transform: translate(-2px, 1px); }
-  98% { transform: translate(2px, -1px); }
-  99% { transform: translate(-1px, 2px); }
+.plugin-icon {
+  font-size: 16px;
+  margin-right: 8px;
 }
 
-.flash-broken-logo {
+.plugin-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.plugin-btn {
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 14px;
+  border-radius: 3px;
+  cursor: pointer;
+  border: 1px solid #aaa;
+  transition: all 0.15s ease;
+}
+
+.plugin-btn.primary {
+  background: #1976d2;
+  color: #fff;
+  border-color: #1565c0;
+}
+
+.plugin-btn.primary:hover {
+  background: #1565c0;
+}
+
+.plugin-btn.secondary {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.unblock-box {
+  width: min(90%, 540px);
+  background: #2b2b36;
+  border: 2px dashed #666677;
+  border-radius: 8px;
+  padding: 36px 30px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+
+.unblock-box:hover {
+  border-color: #ff3344;
+  background: #323240;
+  transform: scale(1.02);
+  box-shadow: 0 16px 50px rgba(255, 51, 68, 0.25);
+}
+
+.puzzle-piece-icon {
   position: relative;
-  width: 72px;
-  height: 72px;
-  margin: 0 auto 14px;
+  display: inline-block;
+  margin-bottom: 16px;
+}
+
+.puzzle-shape {
+  font-size: 54px;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+}
+
+.flash-sub-icon {
+  position: absolute;
+  bottom: 0;
+  right: -4px;
   background: #d80000;
-  border-radius: 14px;
+  color: #fff;
+  font-family: 'Arial Black', sans-serif;
+  font-size: 18px;
+  font-style: italic;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 14px rgba(216, 0, 0, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
-.broken-f {
-  font-family: 'Arial Black', sans-serif;
-  font-size: 50px;
-  color: #fff;
-  font-style: italic;
-  transform: rotate(-10deg) skew(-5deg);
-}
-
-.bomb-badge {
-  position: absolute;
-  bottom: -8px;
-  right: -8px;
-  font-size: 26px;
-}
-
-.killswitch-title {
-  font-size: 24px;
-  font-weight: 800;
-  color: #cc0000;
+.unblock-title {
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 700;
   margin-bottom: 8px;
   letter-spacing: -0.5px;
 }
 
-.killswitch-sub {
+.unblock-desc {
+  color: #aaaabb;
   font-size: 14px;
-  color: #444;
-  line-height: 1.5;
+  margin-bottom: 22px;
+}
+
+.unblock-footer {
+  margin-top: 20px;
+  font-size: 11px;
+  color: #777788;
+}
+
+/* ==========================================================================
+   Screen 2: Retro Gaming Intro & Preloader Screen
+   ========================================================================== */
+
+#gaming-intro-screen {
+  background: rgba(6, 6, 12, 0.98);
+}
+
+.intro-card {
+  width: min(92%, 620px);
+  background: #0d0d16;
+  border: 2px solid #ff3344;
+  border-radius: 8px;
+  padding: 30px;
+  text-align: center;
+  box-shadow: 0 0 40px rgba(255, 51, 68, 0.35);
+  animation: introGlow 2.5s infinite alternate ease-in-out;
+}
+
+@keyframes introGlow {
+  0% { box-shadow: 0 0 25px rgba(255, 51, 68, 0.25); }
+  100% { box-shadow: 0 0 50px rgba(255, 51, 68, 0.55); }
+}
+
+.macromedia-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  color: #ff5566;
+  letter-spacing: 2px;
   margin-bottom: 18px;
 }
 
-.killswitch-lore-box {
-  background: #111;
-  border: 1px solid #444;
-  border-radius: 4px;
-  padding: 12px 16px;
-  text-align: left;
-  margin-bottom: 20px;
+.macro-brand {
+  font-weight: bold;
 }
 
-.killswitch-lore-box code {
-  font-family: 'Share Tech Mono', 'Courier New', monospace;
-  font-size: 12px;
-  color: #ff5555;
-  line-height: 1.6;
-}
-
-.player-input-row {
+.intro-clash-visual {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  margin-bottom: 18px;
+  gap: 20px;
+  font-size: 42px;
+  margin-bottom: 16px;
 }
 
-.player-input-row label {
-  font-size: 13px;
-  font-weight: bold;
-  color: #333;
+.intro-fighter {
+  animation: fighterPulse 1.2s infinite alternate ease-in-out;
 }
 
-.player-input-row input {
+@keyframes fighterPulse {
+  0% { transform: scale(1) translateY(0); }
+  100% { transform: scale(1.15) translateY(-4px); }
+}
+
+.intro-clash-lightning {
+  font-size: 32px;
+  color: #ffff00;
+  text-shadow: 0 0 15px #ffff00;
+  animation: lightningFlicker 0.4s infinite;
+}
+
+@keyframes lightningFlicker {
+  0%, 100% { opacity: 1; transform: scale(1.1); }
+  50% { opacity: 0.6; transform: scale(0.9); }
+}
+
+.intro-game-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 26px;
+  color: #ffffff;
+  text-shadow: 0 0 16px #ff0044, 0 0 30px #ff0044;
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+}
+
+.intro-game-subtitle {
   font-family: 'Share Tech Mono', monospace;
-  font-size: 15px;
-  padding: 8px 14px;
-  border: 2px solid #555;
-  border-radius: 4px;
-  background: #f0f0f0;
-  width: 220px;
-  text-align: center;
-  font-weight: bold;
+  font-size: 12px;
+  color: #00ffff;
+  letter-spacing: 1.5px;
+  margin-bottom: 24px;
 }
 
-.player-input-row input:focus {
-  outline: none;
-  border-color: #cc0000;
-  background: #fff;
-  box-shadow: 0 0 8px rgba(204, 0, 0, 0.4);
-}
-
-.customization-row {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px 16px;
-  background: #f5f5f7;
-  padding: 14px 16px;
-  border: 1px solid #d5d5dc;
+.preloader-container {
+  background: #151522;
+  border: 1px solid #333348;
   border-radius: 6px;
+  padding: 16px;
   margin-bottom: 20px;
 }
 
-.custom-field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  text-align: left;
-  min-width: 0;
+.preloader-bar {
+  width: 100%;
+  height: 14px;
+  background: #090910;
+  border: 1px solid #55556a;
+  border-radius: 7px;
+  overflow: hidden;
+  margin-bottom: 10px;
 }
 
-.custom-field label {
+.preloader-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff0055, #ffaa00, #00ffff);
+  background-size: 200% 100%;
+  animation: gradientShift 2s linear infinite;
+  transition: width 0.1s linear;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+.preloader-status {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  color: #88ffaa;
+}
+
+/* ==========================================================================
+   Screen 3: Simplified Challenger Arcade Menu
+   ========================================================================== */
+
+#game-menu-screen {
+  background: rgba(10, 10, 18, 0.95);
+}
+
+.arcade-menu-card {
+  width: min(92%, 600px);
+  background: #ffffff;
+  border: 3px solid #ff3344;
+  border-radius: 8px;
+  padding: 26px 30px;
+  text-align: center;
+  box-shadow: 0 16px 50px rgba(255, 51, 68, 0.35);
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  color: #111;
+}
+
+.arcade-badge {
+  display: inline-block;
+  background: #ff3344;
+  color: #fff;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  padding: 3px 12px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+}
+
+.arcade-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #111;
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+}
+
+.arcade-sub {
+  font-size: 13px;
+  color: #555;
+  line-height: 1.45;
+  margin-bottom: 20px;
+}
+
+.player-name-form {
+  background: #f7f7fa;
+  border: 1px solid #dcdce6;
+  border-radius: 6px;
+  padding: 14px 18px;
+  text-align: left;
+  margin-bottom: 16px;
+}
+
+.player-name-form label {
+  display: block;
   font-size: 11px;
   font-weight: 700;
   color: #444;
-  letter-spacing: 0.3px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
 }
 
-.custom-field select {
-  font-family: 'Segoe UI', Tahoma, sans-serif;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 7px 6px;
-  border: 1px solid #aaa;
-  border-radius: 4px;
+.name-input-wrapper {
+  display: flex;
+  align-items: center;
   background: #ffffff;
-  color: #222;
-  cursor: pointer;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
-  outline: none;
-  min-width: 0;
-  width: 100%;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  padding: 4px 10px;
+  gap: 8px;
   transition: border-color 0.15s ease;
 }
 
-.custom-field select:focus {
-  border-color: #cc0000;
-  box-shadow: 0 0 6px rgba(204, 0, 0, 0.35);
+.name-input-wrapper:focus-within {
+  border-color: #ff3344;
+  box-shadow: 0 0 8px rgba(255, 51, 68, 0.3);
+}
+
+.name-prefix {
+  font-size: 18px;
+}
+
+.name-input-wrapper input {
+  border: none;
+  outline: none;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111;
+  width: 100%;
+}
+
+.fighter-assigned-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #fff8f0;
+  border: 1px solid #ffe0b2;
+  border-radius: 6px;
+  padding: 10px 16px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.assigned-avatar {
+  font-size: 28px;
+}
+
+.assigned-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.assigned-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #e65100;
+  letter-spacing: 0.5px;
+}
+
+.assigned-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: #bf360c;
+}
+
+.assigned-desc {
+  font-size: 11px;
+  color: #666;
+}
+
+.controls-pill {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #666;
+  background: #f0f0f4;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-top: 10px;
 }
 
 .button-row {
@@ -448,14 +679,6 @@ body {
 .secondary-btn:hover {
   background: linear-gradient(180deg, #ffa826 0%, #e67300 100%);
   transform: translateY(-1px);
-}
-
-.killswitch-footer {
-  font-size: 11px;
-  color: #888;
-  border-top: 1px solid #eee;
-  padding-top: 10px;
-  margin-top: 10px;
 }
 
 /* ==========================================================================
@@ -612,6 +835,137 @@ body {
 @keyframes pulse {
   0% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 0, 85, 0.4); }
   100% { transform: scale(1.03); box-shadow: 0 0 25px rgba(255, 0, 85, 0.8); }
+}
+
+/* ==========================================================================
+   Next Opponent Preview Card (In Inter-Round Roast Screen)
+   ========================================================================== */
+
+.next-opponent-card {
+  background: #141424;
+  border: 1px solid #333348;
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.next-opp-header {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: #ff9900;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.next-opp-body {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.next-opp-icon {
+  font-size: 24px;
+}
+
+.next-opp-name {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 13px;
+  color: #00ffff;
+  letter-spacing: 0.5px;
+}
+
+.next-opp-title {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: #aaaabb;
+  margin-top: 3px;
+}
+
+/* ==========================================================================
+   Screen 5: Game Over Screen (Machine Prevailed)
+   ========================================================================== */
+
+#game-over-screen {
+  background: rgba(14, 5, 8, 0.97);
+}
+
+.game-over-card {
+  width: min(92%, 620px);
+  background: #0f0a0d;
+  border: 3px solid #ff0044;
+  border-radius: 8px;
+  padding: 30px;
+  text-align: center;
+  box-shadow: 0 0 50px rgba(255, 0, 68, 0.45);
+  color: #eee;
+}
+
+.game-over-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.skull-badge {
+  font-size: 36px;
+}
+
+.game-over-header h1 {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 18px;
+  color: #ff0044;
+  text-shadow: 0 0 14px #ff0044;
+  letter-spacing: 1px;
+}
+
+.game-over-sub {
+  font-size: 13px;
+  color: #ccc;
+  margin-bottom: 20px;
+}
+
+.game-over-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.stat-pill {
+  background: #1c1016;
+  border: 1px solid #4d1525;
+  border-radius: 6px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: #ff7799;
+}
+
+.stat-val {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 14px;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.game-over-quote-box {
+  background: #140b0f;
+  border-left: 3px solid #ff0044;
+  padding: 12px 16px;
+  font-style: italic;
+  font-size: 13px;
+  color: #ffbbcc;
+  text-align: left;
+  margin-bottom: 24px;
 }
 
 /* ==========================================================================

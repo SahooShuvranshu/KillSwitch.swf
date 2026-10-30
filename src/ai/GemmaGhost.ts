@@ -45,23 +45,17 @@ export class GemmaGhostBridge {
       ).join('\n') + `\nNotice if the player adapted or changed habits between rounds!`;
     }
 
-    const systemPrompt = `You are the vengeful Ghost of Adobe Flash Player (executed on Jan 12, 2021 by Adobe's time-bomb kill switch).
-You are watching a martial arts stickman inside your resurrected ActionScript 2.0 runtime.
-Analyze the player's martial arts combat habits across rounds to PREDICT and HARD-COUNTER their specific moves in the next round.
-Speak in sarcastic, nostalgic 2000s Newgrounds / Flash slang (mention Xiao Xiao, Steve Jobs, dial-up lag, preloader bars, or ActionScript crashes).
+    const systemPrompt = `You are the Ghost of Adobe Flash Player (executed in 2021 by Adobe's time-bomb kill switch).
+You are an ActionScript 2.0 martial arts commentator dueling a stickman player.
+Task: Roast the player's fighting habits in 2 short, witty sentences of pure natural speech.
+CRITICAL FORMAT RULES:
+- DO NOT OUTPUT ANY JSON.
+- DO NOT OUTPUT BRACKETS, BRACES { }, OR CODE BLOCKS.
+- Speak in nostalgic 2000s Newgrounds / Flash slang (mention dial-up lag, preloader bars, Xiao Xiao, or 2021 time-bombs).
 
-Output format MUST be EXACTLY:
-SPEECH: <Your 2-sentence sarcastic monologue directly calling out the player's learned combo or dive-kick spam. No quotes, brackets, or JSON formatting.>
-ADAPTATION: {"predictedOpening": "JUMP_KICK", "parryComboTrigger": "JAB", "counterTactic": "ANTI_AIR", "antiAirPriority": 0.95, "aggression": 0.70, "guardBreakRate": 0.40, "tacticalAnalysis": "Learned dive-kick habit; anti-air rising counter primed."}
-
-Where:
-- predictedOpening: "JUMP_KICK" | "JAB" | "HEAVY_KICK" | "BLOCK" (predict player's opening move)
-- parryComboTrigger: "JAB" | "JUMP" | "NONE" (the move to predictively parry)
-- counterTactic: "ANTI_AIR" | "PARRY_PUNISH" | "GUARD_SHATTER" | "RUSHDOWN"
-- antiAirPriority: float 0.1 to 0.95
-- aggression: float 0.2 to 0.95
-- guardBreakRate: float 0.1 to 0.95
-- tacticalAnalysis: 1 concise sentence describing the exact habit memorized.`;
+Reply in EXACTLY this format:
+TALK: <Your 2-sentence sarcastic taunt calling out their habits or dive-kick spam>
+TACTICS: opening=JUMP_KICK; counter=ANTI_AIR; antiAir=0.85; aggression=0.75; guardBreak=0.55; reason=Countering aerial dive kicks with rising dragon sweep.`;
 
     const userPrompt = `Round ${currentTelemetry.round} Just Ended:
 Player "${currentTelemetry.playerName}":
@@ -75,7 +69,7 @@ Player "${currentTelemetry.playerName}":
 - Jump-Kicks: ${currentTelemetry.jumpKicks} | Punches: ${currentTelemetry.punches} | Kicks: ${currentTelemetry.heavyKicks} | Blocks: ${currentTelemetry.blocksCount}
 ${historyContext}
 
-Formulate your in-character roast calling out their habits, and output the counter adaptation:`;
+Formulate your spoken taunt and tactical adaptation:`;
 
     let accumulatedRaw = '';
     let parsedAdaptation: CombatAdaptation | null = null;
@@ -158,39 +152,77 @@ Formulate your in-character roast calling out their habits, and output the count
 
   // Extracts pure dialogue without JSON braces or keys
   private extractCleanDialogue(raw: string): string {
-    // 1. If SPEECH: header is found, extract only the monologue
-    const speechIndex = raw.indexOf('SPEECH:');
-    if (speechIndex !== -1) {
-      let speechPart = raw.slice(speechIndex + 7);
-      const adaptIndex = speechPart.search(/ADAPTATION:|```|\{/i);
-      if (adaptIndex !== -1) {
-        speechPart = speechPart.slice(0, adaptIndex);
-      }
-      const clean = speechPart.replace(/["*{}\[\]]/g, '').replace(/\r?\n+/g, ' ').trim();
-      if (clean) return clean;
+    let text = raw;
+
+    // 1. If TALK: or SPEECH: header is found, extract only the natural speech
+    const talkMatch = text.match(/(?:TALK|SPEECH):\s*([\s\S]*?)(?=(?:TACTICS:|ADAPTATION:|```|\{|$))/i);
+    if (talkMatch && talkMatch[1].trim()) {
+      return talkMatch[1].replace(/["*{}\[\]]/g, '').replace(/\r?\n+/g, ' ').trim();
     }
 
-    // 2. Try regex extraction of "roast": "..."
-    const roastMatch = raw.match(/"roast"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)/i);
-    if (roastMatch && roastMatch[1]) {
-      return roastMatch[1].replace(/\\n/g, ' ').replace(/\\"/g, '"').trim();
+    // 2. If model output JSON like {"roast": "..."} or {"speech": "..."}
+    const jsonFieldMatch = text.match(/"(?:roast|speech|dialogue|text)"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)/i);
+    if (jsonFieldMatch && jsonFieldMatch[1].trim()) {
+      return jsonFieldMatch[1].replace(/\\n/g, ' ').replace(/\\"/g, '"').trim();
     }
 
-    // 3. Robust scrubber: remove all JSON tags, keys, brackets, numbers
-    const scrubbed = raw
-      .replace(/```(?:json)?[\s\S]*?```/gi, '')
-      .replace(/ADAPTATION:[\s\S]*/gi, '')
-      .replace(/\{[\s\S]*?\}/g, '')
-      .replace(/["*{}\[\]:]/g, '')
-      .replace(/antiAirPriority|aggression|guardBreakRate|roast/gi, '')
-      .replace(/\d+\.\d+/g, '')
+    // 3. Cut off everything starting at TACTICS:, ADAPTATION:, ```, or {
+    const cutIndex = text.search(/(?:TACTICS:|ADAPTATION:|```|\{)/i);
+    if (cutIndex !== -1) {
+      text = text.substring(0, cutIndex);
+    }
+
+    // 4. Clean remaining punctuation / noise
+    text = text
+      .replace(/^[\s"':{}[\],]+/, '')
+      .replace(/["*{}\[\]]/g, '')
+      .replace(/antiAirPriority|aggression|guardBreakRate|counterTactic|roast/gi, '')
       .replace(/\r?\n+/g, ' ')
       .trim();
 
-    return scrubbed || 'ActionScript 2.0 telemetry analyzing...';
+    return text || 'ActionScript 2.0 telemetry analyzing...';
   }
 
   private extractAdaptation(text: string, telemetry: RoundTelemetry): CombatAdaptation {
+    // 1. Try key-value TACTICS: line
+    const tacticsMatch = text.match(/TACTICS:\s*([^\r\n]+)/i);
+    if (tacticsMatch) {
+      const line = tacticsMatch[1];
+      const getVal = (key: string, def: string) => {
+        const m = line.match(new RegExp(`${key}=([^;\\s]+)`, 'i'));
+        return m ? m[1].trim() : def;
+      };
+      const getNum = (key: string, def: number) => {
+        const m = line.match(new RegExp(`${key}=([0-9.]+)`, 'i'));
+        return m ? parseFloat(m[1]) : def;
+      };
+
+      const opening = getVal('opening', telemetry.habits?.openingMove || 'JUMP_KICK');
+      const counterRaw = getVal('counter', 'ANTI_AIR').toUpperCase();
+      const validCounters = ['ANTI_AIR', 'PARRY_PUNISH', 'GUARD_SHATTER', 'RUSHDOWN'];
+      const counter = (validCounters.includes(counterRaw) ? counterRaw : 'ANTI_AIR') as any;
+
+      const antiAir = Math.min(0.95, Math.max(0.1, getNum('antiAir', 0.65)));
+      const aggression = Math.min(0.95, Math.max(0.2, getNum('aggression', 0.70)));
+      const guardBreak = Math.min(0.95, Math.max(0.1, getNum('guardBreak', 0.45)));
+
+      const reasonMatch = line.match(/reason=([^;\r\n]+)/i);
+      const reason = reasonMatch ? reasonMatch[1].trim() : 'Analyzing combat habits.';
+
+      const cleanRoast = this.extractCleanDialogue(text);
+      return {
+        roast: cleanRoast || this.generateProceduralFallback(telemetry).roast,
+        predictedOpening: opening,
+        parryComboTrigger: telemetry.habits?.favoriteCombo?.split(' -> ')[0] || 'JAB',
+        counterTactic: counter,
+        antiAirPriority: antiAir,
+        aggression: aggression,
+        guardBreakRate: guardBreak,
+        tacticalAnalysis: reason
+      };
+    }
+
+    // 2. Try JSON parsing fallback if Gemma output JSON format
     try {
       const jsonMatch = text.match(/\{[\s\S]*?\}/);
       if (jsonMatch) {
@@ -201,9 +233,9 @@ Formulate your in-character roast calling out their habits, and output the count
           predictedOpening: parsed.predictedOpening || telemetry.habits?.openingMove || 'JUMP_KICK',
           parryComboTrigger: parsed.parryComboTrigger || (telemetry.habits?.favoriteCombo?.split(' -> ')[0] || 'JAB'),
           counterTactic: parsed.counterTactic || (telemetry.habits?.aerialRatio > 0.4 ? 'ANTI_AIR' : 'PARRY_PUNISH'),
-          antiAirPriority: Math.min(0.95, Math.max(0.1, Number(parsed.antiAirPriority) || 0.45)),
-          aggression: Math.min(0.95, Math.max(0.2, Number(parsed.aggression) || 0.55)),
-          guardBreakRate: Math.min(0.95, Math.max(0.1, Number(parsed.guardBreakRate) || 0.35)),
+          antiAirPriority: Math.min(0.95, Math.max(0.1, Number(parsed.antiAirPriority) || 0.65)),
+          aggression: Math.min(0.95, Math.max(0.2, Number(parsed.aggression) || 0.70)),
+          guardBreakRate: Math.min(0.95, Math.max(0.1, Number(parsed.guardBreakRate) || 0.45)),
           tacticalAnalysis: parsed.tacticalAnalysis || telemetry.habits?.predictiveRead || 'Combat rhythm analyzed.'
         };
       }

@@ -15,6 +15,7 @@ export class AIController {
   private telemetry?: TelemetryTracker;
 
   public difficulty: GameDifficulty = 'veteran';
+  public roundNumber: number = 1;
 
   // Gemma-tuned adaptation parameters
   public antiAirPriority: number = 0.45;
@@ -53,6 +54,13 @@ export class AIController {
     this.difficulty = diff;
   }
 
+  public setRound(roundNum: number) {
+    this.roundNumber = roundNum;
+    this.isRageModeActive = false;
+    this.rageAttackTimer = 0;
+    this.actionCooldown = 0;
+  }
+
   // Update dynamic weights & learned counters from Gemma 3:4B analysis
   public applyAdaptation(adaptation: CombatAdaptation) {
     let multiplier = 1.0;
@@ -69,6 +77,7 @@ export class AIController {
     this.tacticalAnalysis = adaptation.tacticalAnalysis || 'Analyzing player rhythm.';
 
     console.log('[AI Controller] Applied Gemma 3:4B Move Learning:', {
+      round: this.roundNumber,
       difficulty: this.difficulty,
       predictedOpening: this.predictedOpening,
       parryComboTrigger: this.parryComboTrigger,
@@ -78,7 +87,7 @@ export class AIController {
       guardBreak: this.guardBreakRate
     });
 
-    this.onTacticalRead?.(`⚡ GEMMA 3:4B: PRIMED ${this.counterTactic} COUNTER`);
+    this.onTacticalRead?.(`⚡ GEMMA 3:4B: PRIMED ${this.counterTactic} COUNTER (ROUND ${this.roundNumber})`);
   }
 
   public update() {
@@ -91,8 +100,11 @@ export class AIController {
       return;
     }
 
-    // Reaction frame interval based on difficulty
-    const reactionDelay = this.difficulty === 'casual' ? 6 : (this.difficulty === 'veteran' ? 3 : 1);
+    // Reaction frame interval scales sharper across rounds
+    const roundSpeedTier = Math.floor((this.roundNumber - 1) / 2);
+    const baseDelay = this.difficulty === 'casual' ? 5 : (this.difficulty === 'veteran' ? 2 : 1);
+    const reactionDelay = Math.max(1, baseDelay - roundSpeedTier);
+    
     this.decisionTimer++;
     if (this.decisionTimer < reactionDelay) return;
     this.decisionTimer = 0;
@@ -101,9 +113,17 @@ export class AIController {
     const dist = Math.abs(dx);
     const dir = dx > 0 ? 1 : -1;
 
-    // --- Gemma 3:4B Designed Boss Mechanic: ActionScript Error 0x7E5 Time-Bomb ---
+    // Cumulative round scaling factors
+    const roundBoost = Math.min(0.35, (this.roundNumber - 1) * 0.05);
+    const antiAirRate = Math.min(0.95, this.antiAirPriority + roundBoost);
+    const aggRate = Math.min(0.95, this.aggression + roundBoost);
+    const guardRate = Math.min(0.95, this.guardBreakRate + roundBoost);
+    const cdReduction = Math.min(10, Math.floor((this.roundNumber - 1) * 1.5));
+
+    // --- Gemma 3:4B Boss Mechanic: ActionScript Error 0x7E5 Time-Bomb ---
+    const rageThreshold = Math.min(55, 35 + (this.roundNumber - 1) * 4);
     const ghostHpPercent = (this.ghost.health / this.ghost.maxHealth) * 100;
-    if (ghostHpPercent <= 35 && !this.isRageModeActive) {
+    if (ghostHpPercent <= rageThreshold && !this.isRageModeActive) {
       this.isRageModeActive = true;
       this.ghost.auraColor = '#ff0033'; // Pulsating red warning aura
       this.onTacticalRead?.('⚠️ GEMMA CORE: ACTIONSCRIPT ERROR 0x7E5 TIME-BOMB!');
@@ -112,7 +132,8 @@ export class AIController {
 
     if (this.isRageModeActive) {
       this.rageAttackTimer++;
-      if (this.rageAttackTimer >= 140) {
+      const rageInterval = Math.max(80, 140 - (this.roundNumber - 1) * 10);
+      if (this.rageAttackTimer >= rageInterval) {
         this.rageAttackTimer = 0;
         this.executeError0x7E5TripleTeleport();
         return;
@@ -122,23 +143,22 @@ export class AIController {
     // --- 1. Real-Time Move Prediction via Markov Sequence Model ---
     if (this.telemetry) {
       const prediction = this.telemetry.predictNextMove(this.player.state);
-      if (prediction && prediction.confidence >= 0.50 && this.parryCooldown <= 0) {
+      if (prediction && prediction.confidence >= 0.45 && this.parryCooldown <= 0) {
         // Player is about to chain into their favorite move!
         if (prediction.predicted === 'HEAVY_KICK' && dist < 110) {
           // Anticipate heavy sweep: execute Matrix Parry & Slide Counter!
           this.onTacticalRead?.(`⚡ GEMMA READ: PREDICTED HEAVY KICK (${Math.round(prediction.confidence * 100)}%)`);
           this.ghost.block(true);
           sound.playBlock();
-          this.parryCooldown = 90;
-          this.actionCooldown = 12;
+          this.parryCooldown = Math.max(50, 90 - cdReduction * 3);
+          this.actionCooldown = Math.max(6, 12 - cdReduction);
 
           setTimeout(() => {
             if (this.ghost.canAct()) {
               this.ghost.block(false);
-              // Slide counter-attack
               this.ghost.heavyKick();
             }
-          }, 180);
+          }, 140);
           return;
         }
       }
@@ -147,12 +167,12 @@ export class AIController {
     // --- 2. Reactive Anti-Air Counter (Punishes Aerial Dive Habits) ---
     const isPlayerAirborne = this.player.state === 'JUMP' || this.player.state === 'JUMP_KICK';
     if (isPlayerAirborne && dist < 170) {
-      if (Math.random() < this.antiAirPriority) {
-        if (Math.random() < 0.70) {
+      if (Math.random() < antiAirRate) {
+        if (Math.random() < 0.75) {
           // Dragon rising uppercut kick
           this.onTacticalRead?.('⚡ GEMMA READ: ANTI-AIR INTERCEPT!');
           this.ghost.heavyKick();
-          this.actionCooldown = this.difficulty === 'nightmare' ? 14 : 22;
+          this.actionCooldown = Math.max(8, 20 - cdReduction);
           return;
         } else {
           // Duck under flying kick, counter with snappy jab
@@ -162,70 +182,82 @@ export class AIController {
               this.ghost.unCrouch();
               this.ghost.jab();
             }
-          }, 240);
-          this.actionCooldown = this.difficulty === 'nightmare' ? 18 : 28;
+          }, 180);
+          this.actionCooldown = Math.max(10, 24 - cdReduction);
           return;
         }
       }
     }
 
-    // --- 3. Guard-Break Counter (Punishes Turtling Habits) ---
+    // --- 3. Whiff Punish: Strike when player misses attack & is recovering ---
+    const isPlayerWhiffing = (this.player.state === 'JAB' && this.player.stateTime > 6) ||
+                             (this.player.state === 'HEAVY_KICK' && this.player.stateTime > 12);
+    if (isPlayerWhiffing && dist < 110 && Math.random() < aggRate) {
+      this.onTacticalRead?.('⚡ GEMMA READ: WHIFF PUNISH!');
+      this.ghost.heavyKick();
+      this.actionCooldown = Math.max(10, 20 - cdReduction);
+      return;
+    }
+
+    // --- 4. Guard-Break Counter (Punishes Turtling Habits) ---
     if (this.player.state === 'BLOCK' && dist < 100) {
-      if (Math.random() < this.guardBreakRate) {
-        this.onTacticalRead?.('⚡ GEMMA READ: GUARD-BREAK COUNTER!');
+      if (Math.random() < guardRate) {
+        this.onTacticalRead?.('⚡ GEMMA READ: GUARD-BREAK CRUSH!');
         this.ghost.heavyKick();
-        this.actionCooldown = this.difficulty === 'nightmare' ? 16 : 24;
+        this.actionCooldown = Math.max(10, 22 - cdReduction);
         return;
       }
     }
 
-    // --- 4. Defensive Reaction vs Incoming Attacks ---
+    // --- 5. Defensive Reaction vs Incoming Attacks ---
     const playerHitbox = this.player.getHitbox();
     if (playerHitbox && dist < 95) {
-      const blockChance = this.difficulty === 'casual' ? 0.25 : (this.difficulty === 'veteran' ? 0.50 : 0.75);
+      const baseBlockChance = this.difficulty === 'casual' ? 0.30 : (this.difficulty === 'veteran' ? 0.60 : 0.85);
+      const blockChance = Math.min(0.92, baseBlockChance + (this.roundNumber - 1) * 0.04);
       if (Math.random() < blockChance) {
         this.ghost.block(true);
-        setTimeout(() => this.ghost.block(false), 220);
-        this.actionCooldown = 16;
+        setTimeout(() => this.ghost.block(false), 200);
+        this.actionCooldown = Math.max(8, 16 - cdReduction);
         return;
       }
     }
 
-    // --- 5. Spacing, Footsies & Aggressive Combat Chains ---
+    // --- 6. Spacing, Pressure & Dynamic Combo Strings ---
     const closeDistance = 65;
     const midDistance = 145;
 
     if (dist > midDistance) {
       this.ghost.move(dir);
     } else if (dist < closeDistance) {
-      if (Math.random() < this.aggression) {
+      if (Math.random() < aggRate) {
         const roll = Math.random();
         if (roll < 0.50) {
           this.ghost.jab();
-          // Frame-trap cancel into heavy kick
-          if (this.difficulty === 'nightmare' || Math.random() < 0.6) {
+          // Hit-confirm cancel: Jab into Heavy Roundhouse Kick
+          const comboChance = Math.min(0.90, 0.60 + (this.roundNumber - 1) * 0.08);
+          if (Math.random() < comboChance) {
             setTimeout(() => {
               if (this.ghost.canAct()) this.ghost.heavyKick();
-            }, 100);
+            }, 90);
           }
-          this.actionCooldown = 18;
+          this.actionCooldown = Math.max(8, 16 - cdReduction);
         } else if (roll < 0.88) {
           this.ghost.heavyKick();
-          this.actionCooldown = 24;
+          this.actionCooldown = Math.max(12, 22 - cdReduction);
         } else {
           this.ghost.jump();
           this.ghost.jumpKick();
-          this.actionCooldown = 30;
+          this.actionCooldown = Math.max(14, 26 - cdReduction);
         }
       } else {
         this.ghost.move(-dir);
       }
     } else {
-      if (Math.random() < this.aggression * 0.75) {
+      if (Math.random() < aggRate * 0.80) {
         if (Math.random() < 0.35) {
           this.ghost.jump();
           this.ghost.jumpKick();
-          this.actionCooldown = 32;
+          this.actionCooldown = Math.max(14, 28 - cdReduction);
         } else {
           this.ghost.move(dir);
         }

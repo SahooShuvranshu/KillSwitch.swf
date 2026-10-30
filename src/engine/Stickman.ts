@@ -27,6 +27,7 @@ export type CharacterSkin =
   | 'blue'      // Azure Speedster (Compact Rush Fighter)
   | 'yellow'    // Volt Striker (Spark Rush)
   | 'classic'   // Xiao Xiao Grandmaster (White Ink + Red Headband)
+  | 'calavera'  // Calavera Phantom (Día de los Muertos Resurrected Warrior)
   | 'ghost';    // The Flash Ghost (Corrupted Bytecode Boss)
 
 export interface Hitbox {
@@ -62,6 +63,7 @@ export class Stickman {
   public isHollowHead: boolean = false;
   public health: number = 100;
   public maxHealth: number = 100;
+  public damageMultiplier: number = 1.0;
 
   // --- Dynamic Physical Stature & Scale Variation ---
   public scale: number = 1.0;
@@ -150,6 +152,13 @@ export class Stickman {
       baseScale = 1.02;
       baseThickness = 4.4;
       baseHeadScale = 1.00;
+    } else if (skin === 'calavera') {
+      // Calavera Phantom: Day of the Dead Resurrected Warrior
+      this.color = '#f5f5f5';
+      this.auraColor = '#ffaa00';
+      baseScale = 1.18;
+      baseThickness = 4.8;
+      baseHeadScale = 1.05;
     } else if (skin === 'ghost') {
       // Flash Ghost Boss: Imposing cyber-phantom
       this.color = '#ff00aa';
@@ -353,13 +362,14 @@ export class Stickman {
 
   public getHitbox(): Hitbox | null {
     const s = this.scale;
+    const dmgMult = this.damageMultiplier;
     if (this.state === 'JAB' && this.stateTime >= 3 && this.stateTime <= 7) {
       return {
         x: this.facing > 0 ? this.x + 12 * s : this.x - 52 * s,
         y: this.y - 78 * s,
         w: 42 * s,
         h: 26 * s,
-        damage: Math.round(10 * Math.max(0.8, s)),
+        damage: Math.round(10 * Math.max(0.8, s) * dmgMult),
         knockbackX: this.facing * (4.0 * s),
         knockbackY: -2.5 * s,
         isHeavy: false
@@ -372,7 +382,7 @@ export class Stickman {
         y: this.y - 84 * s,
         w: 52 * s,
         h: 36 * s,
-        damage: Math.round(20 * Math.max(0.8, s)),
+        damage: Math.round(20 * Math.max(0.8, s) * dmgMult),
         knockbackX: this.facing * (8.5 * s),
         knockbackY: -5.5 * s,
         isHeavy: true
@@ -385,7 +395,7 @@ export class Stickman {
         y: this.y - 68 * s,
         w: 50 * s,
         h: 40 * s,
-        damage: Math.round(26 * Math.max(0.8, s)),
+        damage: Math.round(26 * Math.max(0.8, s) * dmgMult),
         knockbackX: this.facing * (10.0 * s),
         knockbackY: -6.5 * s,
         isHeavy: true
@@ -610,6 +620,34 @@ export class Stickman {
       ctx.shadowBlur = 14 * s;
       ctx.fillRect(headX + (2 * f - 2) * s, headY - 2 * s, 4 * s, 3 * s);
       ctx.fillRect(headX - (4 * f + 2) * s, headY - 2 * s, 4 * s, 3 * s);
+      ctx.restore();
+    }
+
+    // Calavera Phantom Day of the Dead Sugar Skull Ornaments
+    if (this.skin === 'calavera') {
+      ctx.save();
+      // Marigold flower petals surrounding eye sockets
+      ctx.fillStyle = '#ffaa00';
+      for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
+        const petX = headX + 3 * f * s + Math.cos(a) * 5 * s;
+        const petY = headY - 1 * s + Math.sin(a) * 5 * s;
+        ctx.beginPath();
+        ctx.arc(petX, petY, 1.8 * s, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      // Skull mouth stitches
+      ctx.strokeStyle = '#111111';
+      ctx.lineWidth = 1.6 * s;
+      ctx.beginPath();
+      ctx.moveTo(headX + (f * s - 4 * s), headY + 7 * s);
+      ctx.lineTo(headX + (f * s + 6 * s), headY + 7 * s);
+      ctx.stroke();
+      for (let st = -3; st <= 5; st += 2.5) {
+        ctx.beginPath();
+        ctx.moveTo(headX + (f * s + st * s), headY + 5 * s);
+        ctx.lineTo(headX + (f * s + st * s), headY + 9 * s);
+        ctx.stroke();
+      }
       ctx.restore();
     }
 
