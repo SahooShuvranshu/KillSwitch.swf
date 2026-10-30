@@ -1,15 +1,11 @@
 // ============================================================================
-// KillSwitch.swf — Web Audio API Procedural Synthesizer
-// Zero external audio files: generates authentic 8-bit / 2000s Flash sounds
+// KillSwitch.swf — Ultra-Juicy Web Audio Procedural Synthesizer
+// Punchy bass, crunchy impacts, metallic deflections, and typewriter audio
 // ============================================================================
 
 export class SoundEngine {
   private ctx: AudioContext | null = null;
   private isMuted: boolean = false;
-
-  constructor() {
-    // AudioContext will be initialized on first user interaction
-  }
 
   private initCtx() {
     if (!this.ctx) {
@@ -26,7 +22,7 @@ export class SoundEngine {
     return this.isMuted;
   }
 
-  // 1. Quick Light Punch / Jab Whoosh & Snap
+  // 1. Fast Jab Whoosh
   public playJab() {
     if (this.isMuted) return;
     this.initCtx();
@@ -37,17 +33,17 @@ export class SoundEngine {
     const now = this.ctx.currentTime;
 
     osc.type = 'triangle';
-    osc.frequency.setValueAtTime(450, now);
-    osc.frequency.exponentialRampToValueAtTime(80, now + 0.08);
+    osc.frequency.setValueAtTime(520, now);
+    osc.frequency.exponentialRampToValueAtTime(100, now + 0.07);
 
-    gain.gain.setValueAtTime(0.35, now);
-    gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+    gain.gain.setValueAtTime(0.4, now);
+    gain.gain.linearRampToValueAtTime(0.01, now + 0.07);
 
     osc.connect(gain);
     gain.connect(this.ctx.destination);
 
     osc.start(now);
-    osc.stop(now + 0.08);
+    osc.stop(now + 0.07);
   }
 
   // 2. Heavy Kick Impact / Xiao Xiao Bone-Crunch
@@ -58,18 +54,18 @@ export class SoundEngine {
 
     const now = this.ctx.currentTime;
 
-    // Sub-bass impact
+    // Sub-bass thump
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(260, now);
-    osc.frequency.exponentialRampToValueAtTime(30, now + 0.18);
+    osc.frequency.setValueAtTime(320, now);
+    osc.frequency.exponentialRampToValueAtTime(25, now + 0.22);
 
-    gain.gain.setValueAtTime(0.6, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+    gain.gain.setValueAtTime(0.75, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.22);
 
-    // Noise burst for punch crunch
-    const bufferSize = this.ctx.sampleRate * 0.08;
+    // Distortion crunch noise
+    const bufferSize = this.ctx.sampleRate * 0.1;
     const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
     const data = buffer.getChannelData(0);
     for (let i = 0; i < bufferSize; i++) {
@@ -80,11 +76,11 @@ export class SoundEngine {
     noise.buffer = buffer;
     const noiseFilter = this.ctx.createBiquadFilter();
     noiseFilter.type = 'lowpass';
-    noiseFilter.frequency.setValueAtTime(1000, now);
+    noiseFilter.frequency.setValueAtTime(1200, now);
 
     const noiseGain = this.ctx.createGain();
-    noiseGain.gain.setValueAtTime(0.4, now);
-    noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+    noiseGain.gain.setValueAtTime(0.5, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
 
     osc.connect(gain);
     gain.connect(this.ctx.destination);
@@ -94,9 +90,9 @@ export class SoundEngine {
     noiseGain.connect(this.ctx.destination);
 
     osc.start(now);
-    osc.stop(now + 0.18);
+    osc.stop(now + 0.22);
     noise.start(now);
-    noise.stop(now + 0.08);
+    noise.stop(now + 0.1);
   }
 
   // 3. Metallic Guard / Block Deflection Ping
@@ -111,15 +107,15 @@ export class SoundEngine {
     const gain = this.ctx.createGain();
 
     osc1.type = 'sine';
-    osc1.frequency.setValueAtTime(1200, now);
-    osc1.frequency.exponentialRampToValueAtTime(800, now + 0.12);
+    osc1.frequency.setValueAtTime(1400, now);
+    osc1.frequency.exponentialRampToValueAtTime(900, now + 0.14);
 
     osc2.type = 'square';
-    osc2.frequency.setValueAtTime(2450, now);
-    osc2.frequency.exponentialRampToValueAtTime(1600, now + 0.1);
+    osc2.frequency.setValueAtTime(2800, now);
+    osc2.frequency.exponentialRampToValueAtTime(1800, now + 0.1);
 
-    gain.gain.setValueAtTime(0.3, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+    gain.gain.setValueAtTime(0.35, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
 
     osc1.connect(gain);
     osc2.connect(gain);
@@ -127,8 +123,8 @@ export class SoundEngine {
 
     osc1.start(now);
     osc2.start(now);
-    osc1.stop(now + 0.14);
-    osc2.stop(now + 0.14);
+    osc1.stop(now + 0.15);
+    osc2.stop(now + 0.15);
   }
 
   // 4. Jump Airborne Whoosh
@@ -142,10 +138,10 @@ export class SoundEngine {
     const gain = this.ctx.createGain();
 
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(180, now);
-    osc.frequency.exponentialRampToValueAtTime(520, now + 0.12);
+    osc.frequency.setValueAtTime(190, now);
+    osc.frequency.exponentialRampToValueAtTime(580, now + 0.12);
 
-    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.setValueAtTime(0.25, now);
     gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
 
     osc.connect(gain);
@@ -166,18 +162,17 @@ export class SoundEngine {
     const gain = this.ctx.createGain();
 
     osc.type = 'sine';
-    // subtle randomized pitch for realistic typing feel
-    const freq = 1400 + Math.random() * 400;
+    const freq = 1500 + Math.random() * 450;
     osc.frequency.setValueAtTime(freq, now);
 
-    gain.gain.setValueAtTime(0.06, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+    gain.gain.setValueAtTime(0.07, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
 
     osc.connect(gain);
     gain.connect(this.ctx.destination);
 
     osc.start(now);
-    osc.stop(now + 0.025);
+    osc.stop(now + 0.03);
   }
 
   // 6. Slow-Motion K.O. Gong & Explosion
@@ -191,17 +186,17 @@ export class SoundEngine {
     const gain = this.ctx.createGain();
 
     osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(150, now);
-    osc.frequency.exponentialRampToValueAtTime(25, now + 1.2);
+    osc.frequency.setValueAtTime(180, now);
+    osc.frequency.exponentialRampToValueAtTime(20, now + 1.4);
 
-    gain.gain.setValueAtTime(0.7, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 1.2);
+    gain.gain.setValueAtTime(0.85, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 1.4);
 
     osc.connect(gain);
     gain.connect(this.ctx.destination);
 
     osc.start(now);
-    osc.stop(now + 1.2);
+    osc.stop(now + 1.4);
   }
 
   // 7. Electric Kill-Switch Bypass Surge
@@ -215,17 +210,17 @@ export class SoundEngine {
     const gain = this.ctx.createGain();
 
     osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(80, now);
-    osc.frequency.linearRampToValueAtTime(880, now + 0.35);
+    osc.frequency.setValueAtTime(90, now);
+    osc.frequency.linearRampToValueAtTime(950, now + 0.38);
 
-    gain.gain.setValueAtTime(0.4, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+    gain.gain.setValueAtTime(0.45, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
 
     osc.connect(gain);
     gain.connect(this.ctx.destination);
 
     osc.start(now);
-    osc.stop(now + 0.45);
+    osc.stop(now + 0.5);
   }
 }
 

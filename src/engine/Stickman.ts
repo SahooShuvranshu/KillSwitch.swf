@@ -1,5 +1,6 @@
 // ============================================================================
-// KillSwitch.swf — 2D Skeletal Stickman Fighter (Xiao Xiao Style)
+// KillSwitch.swf — Ultra-Polished 2D Skeletal Stickman Fighter
+// Xiao Xiao martial arts fluid kinematics, recoil, and combo cancels
 // ============================================================================
 
 export type FighterState = 
@@ -49,16 +50,15 @@ export class Stickman {
   public maxHealth: number = 100;
 
   public state: FighterState = 'IDLE';
-  public stateTime: number = 0; // frames in current state
+  public stateTime: number = 0;
   public animFrame: number = 0;
   public isGrounded: boolean = true;
   public hitStunFrames: number = 0;
   public blockStunFrames: number = 0;
-  public comboCounter: number = 0;
 
   // Visual effects
-  public flashFrames: number = 0; // flash white/red when hit
-  public glitchOffset: number = 0; // Flash Ghost glitch effect
+  public flashFrames: number = 0;
+  public glitchOffset: number = 0;
 
   constructor(x: number, isAI: boolean = false, name: string = 'Stickman', color: string = '#00f0ff') {
     this.x = x;
@@ -84,10 +84,10 @@ export class Stickman {
     this.facing = this.isAI ? -1 : 1;
   }
 
-  // --- Attack & Movement Actions ---
+  // --- Attack & Movement Actions with Combo Cancels ---
   public move(dir: number) {
     if (this.canAct()) {
-      const speed = 4.5;
+      const speed = 4.8;
       this.vx = dir * speed;
       if (this.isGrounded) {
         if ((dir > 0 && this.facing > 0) || (dir < 0 && this.facing < 0)) {
@@ -108,7 +108,7 @@ export class Stickman {
 
   public jump() {
     if (this.canAct() && this.isGrounded) {
-      this.vy = -14.5;
+      this.vy = -15.0;
       this.isGrounded = false;
       this.setState('JUMP');
     }
@@ -129,22 +129,24 @@ export class Stickman {
 
   public jab() {
     if (this.canAct() && this.isGrounded) {
-      this.vx = this.facing * 1.5; // slight forward step
+      this.vx = this.facing * 2.0; // aggressive step forward
       this.setState('JAB');
     }
   }
 
   public heavyKick() {
-    if (this.canAct() && this.isGrounded) {
-      this.vx = this.facing * 2.5;
+    // Allows cancelling Jab recovery directly into Heavy Kick (Xiao Xiao combo chain!)
+    const canCancelFromJab = this.state === 'JAB' && this.stateTime >= 6;
+    if ((this.canAct() || canCancelFromJab) && this.isGrounded) {
+      this.vx = this.facing * 3.5; // lunging roundhouse
       this.setState('HEAVY_KICK');
     }
   }
 
   public jumpKick() {
     if (this.canAct() && !this.isGrounded) {
-      this.vx = this.facing * 7.5; // Xiao Xiao flying leap kick!
-      this.vy = 5;
+      this.vx = this.facing * 8.5; // High velocity Xiao Xiao flying leap!
+      this.vy = 4.5;
       this.setState('JUMP_KICK');
     }
   }
@@ -178,7 +180,7 @@ export class Stickman {
     this.stateTime = 0;
   }
 
-  // --- Physics & Animation Step ---
+  // --- Physics & Kinematics Step ---
   public update(arenaWidth: number) {
     this.stateTime++;
     this.animFrame++;
@@ -186,18 +188,17 @@ export class Stickman {
     if (this.flashFrames > 0) this.flashFrames--;
 
     // Ghost visual glitching
-    if (this.isAI && Math.random() < 0.15) {
-      this.glitchOffset = (Math.random() - 0.5) * 6;
+    if (this.isAI && Math.random() < 0.2) {
+      this.glitchOffset = (Math.random() - 0.5) * 8;
     } else {
       this.glitchOffset = 0;
     }
 
     // Gravity
     if (!this.isGrounded) {
-      this.vy += 0.85; // gravity constant
+      this.vy += 0.88;
     }
 
-    // Position integration
     this.x += this.vx;
     this.y += this.vy;
 
@@ -216,32 +217,32 @@ export class Stickman {
     // Friction
     if (this.isGrounded) {
       if (this.state === 'IDLE' || this.state === 'BLOCK' || this.state === 'CROUCH') {
-        this.vx *= 0.75;
+        this.vx *= 0.72;
       }
     }
 
     // Arena walls (with wall bounce)
-    const padding = 35;
+    const padding = 40;
     if (this.x < padding) {
       this.x = padding;
       if (this.state === 'HIT_STUN' && Math.abs(this.vx) > 3) {
-        this.vx = -this.vx * 0.5; // wall bounce!
+        this.vx = -this.vx * 0.6; // dynamic wall bounce!
       } else {
         this.vx = 0;
       }
     } else if (this.x > arenaWidth - padding) {
       this.x = arenaWidth - padding;
       if (this.state === 'HIT_STUN' && Math.abs(this.vx) > 3) {
-        this.vx = -this.vx * 0.5; // wall bounce!
+        this.vx = -this.vx * 0.6; // dynamic wall bounce!
       } else {
         this.vx = 0;
       }
     }
 
-    // State Durations & Recoveries
-    if (this.state === 'JAB' && this.stateTime > 14) {
+    // State Recoveries & Frame Timings
+    if (this.state === 'JAB' && this.stateTime > 12) {
       this.setState('IDLE');
-    } else if (this.state === 'HEAVY_KICK' && this.stateTime > 22) {
+    } else if (this.state === 'HEAVY_KICK' && this.stateTime > 20) {
       this.setState('IDLE');
     } else if (this.state === 'HIT_STUN') {
       this.hitStunFrames--;
@@ -257,7 +258,7 @@ export class Stickman {
   public getHurtbox(): Hurtbox {
     const isCrouching = this.state === 'CROUCH';
     const h = isCrouching ? 55 : 95;
-    const w = 36;
+    const w = 38;
     return {
       x: this.x - w / 2,
       y: this.y - h,
@@ -267,44 +268,44 @@ export class Stickman {
   }
 
   public getHitbox(): Hitbox | null {
-    // Jab hitbox active frames: 4 to 8
-    if (this.state === 'JAB' && this.stateTime >= 4 && this.stateTime <= 8) {
+    // Fast Jab (Frames 3 to 7)
+    if (this.state === 'JAB' && this.stateTime >= 3 && this.stateTime <= 7) {
       return {
-        x: this.facing > 0 ? this.x + 10 : this.x - 48,
-        y: this.y - 75,
-        w: 38,
-        h: 24,
-        damage: 8,
-        knockbackX: this.facing * 3.5,
-        knockbackY: -2,
+        x: this.facing > 0 ? this.x + 12 : this.x - 52,
+        y: this.y - 78,
+        w: 42,
+        h: 26,
+        damage: 10,
+        knockbackX: this.facing * 4.0,
+        knockbackY: -2.5,
         isHeavy: false
       };
     }
 
-    // Heavy Kick active frames: 6 to 14
-    if (this.state === 'HEAVY_KICK' && this.stateTime >= 6 && this.stateTime <= 14) {
+    // Heavy Roundhouse Kick (Frames 5 to 13)
+    if (this.state === 'HEAVY_KICK' && this.stateTime >= 5 && this.stateTime <= 13) {
       return {
-        x: this.facing > 0 ? this.x + 12 : this.x - 56,
-        y: this.y - 82,
-        w: 44,
-        h: 30,
-        damage: 18,
-        knockbackX: this.facing * 7.5,
-        knockbackY: -5,
+        x: this.facing > 0 ? this.x + 14 : this.x - 62,
+        y: this.y - 84,
+        w: 50,
+        h: 34,
+        damage: 20,
+        knockbackX: this.facing * 8.5,
+        knockbackY: -6.0,
         isHeavy: true
       };
     }
 
-    // Jump Kick active throughout flight until landing
-    if (this.state === 'JUMP_KICK' && this.stateTime >= 3) {
+    // Xiao Xiao Flying Jump Kick
+    if (this.state === 'JUMP_KICK' && this.stateTime >= 2) {
       return {
-        x: this.facing > 0 ? this.x + 10 : this.x - 52,
-        y: this.y - 65,
-        w: 42,
-        h: 34,
-        damage: 22,
-        knockbackX: this.facing * 9.0,
-        knockbackY: -6.5,
+        x: this.facing > 0 ? this.x + 12 : this.x - 58,
+        y: this.y - 68,
+        w: 48,
+        h: 38,
+        damage: 26,
+        knockbackX: this.facing * 10.5,
+        knockbackY: -7.5,
         isHeavy: true
       };
     }
@@ -316,69 +317,68 @@ export class Stickman {
     const isGuarding = this.state === 'BLOCK';
 
     if (isGuarding) {
-      // Block absorbs 85% damage, minor pushback
       const blockedDamage = Math.max(1, Math.round(hitbox.damage * 0.15));
       this.health = Math.max(0, this.health - blockedDamage);
       this.vx = hitbox.knockbackX * 0.35;
-      this.flashFrames = 3;
+      this.flashFrames = 4;
       return { damageDealt: blockedDamage, blocked: true };
     }
 
-    // Full damage taken
     this.health = Math.max(0, this.health - hitbox.damage);
     this.vx = hitbox.knockbackX;
     this.vy = hitbox.knockbackY;
-    this.flashFrames = 8;
+    this.flashFrames = 10;
 
     if (hitbox.isHeavy || this.health <= 0) {
-      this.hitStunFrames = 26;
+      this.hitStunFrames = 28;
       this.setState('HIT_STUN');
       this.isGrounded = false;
     } else {
-      this.hitStunFrames = 12;
+      this.hitStunFrames = 14;
       this.setState('HIT_STUN');
     }
 
     return { damageDealt: hitbox.damage, blocked: false };
   }
 
-  // --- Rendering 2D Stick Skeleton ---
+  // --- Render Skeletal Stickman ---
   public render(ctx: CanvasRenderingContext2D) {
     ctx.save();
 
-    // Glitch shift for Flash Ghost
     const renderX = this.x + this.glitchOffset;
     const renderY = this.y;
 
-    // Drop shadow
+    // Fluid Floor Drop Shadow with elevation scaling
+    const elevation = Math.max(0, this.groundY - this.y);
+    const shadowWidth = Math.max(10, 24 - elevation * 0.15);
+    const shadowAlpha = Math.max(0.1, 0.45 - elevation * 0.003);
+
     ctx.beginPath();
-    ctx.ellipse(renderX, this.groundY, 22, 6, 0, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+    ctx.ellipse(renderX, this.groundY, shadowWidth, 6, 0, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(0, 0, 0, ${shadowAlpha})`;
     ctx.fill();
 
-    // Line style
-    ctx.lineWidth = 3.5;
+    ctx.lineWidth = 4.0;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
     if (this.flashFrames > 0) {
       ctx.strokeStyle = '#ffffff';
       ctx.shadowColor = '#ffffff';
-      ctx.shadowBlur = 10;
+      ctx.shadowBlur = 14;
     } else if (this.isAI) {
       ctx.strokeStyle = this.color;
       ctx.shadowColor = '#ff00aa';
-      ctx.shadowBlur = 8;
+      ctx.shadowBlur = 10;
     } else {
       ctx.strokeStyle = this.color;
       ctx.shadowColor = '#00ffff';
-      ctx.shadowBlur = 6;
+      ctx.shadowBlur = 8;
     }
 
     const f = this.facing;
     const t = this.stateTime;
 
-    // Coordinate joints calculation based on state
     let headX = renderX;
     let headY = renderY - 88;
     let neckX = renderX;
@@ -388,39 +388,39 @@ export class Stickman {
 
     let leftHandX = renderX - 10 * f;
     let leftHandY = renderY - 60;
-    let rightHandX = renderX + 12 * f;
+    let rightHandX = renderX + 14 * f;
     let rightHandY = renderY - 60;
 
     let leftFootX = renderX - 12 * f;
     let leftFootY = renderY;
-    let rightFootX = renderX + 10 * f;
+    let rightFootX = renderX + 12 * f;
     let rightFootY = renderY;
 
-    // --- State-Driven Skeletal Poses ---
+    // State Kinematics
     if (this.state === 'IDLE') {
-      const breath = Math.sin(this.animFrame * 0.08) * 2;
+      const breath = Math.sin(this.animFrame * 0.09) * 2.5;
       headY += breath;
       neckY += breath;
       pelvisY += breath * 0.5;
-      rightHandX = renderX + 14 * f;
+      rightHandX = renderX + 16 * f;
       rightHandY = renderY - 62 + breath;
       leftHandX = renderX - 8 * f;
       leftHandY = renderY - 58 + breath;
     } else if (this.state === 'WALK_FORWARD' || this.state === 'WALK_BACK') {
-      const stride = Math.sin(this.animFrame * 0.25) * 16;
+      const stride = Math.sin(this.animFrame * 0.28) * 18;
       leftFootX = renderX - stride * f;
       rightFootX = renderX + stride * f;
       leftHandX = renderX + stride * 0.8 * f;
       rightHandX = renderX - stride * 0.8 * f;
-      headY += Math.abs(Math.sin(this.animFrame * 0.25)) * 3;
+      headY += Math.abs(Math.sin(this.animFrame * 0.28)) * 3;
     } else if (this.state === 'JUMP') {
       headY = renderY - 92;
       neckY = renderY - 80;
       pelvisY = renderY - 50;
       leftFootX = renderX - 8 * f;
-      leftFootY = renderY - 15;
+      leftFootY = renderY - 18;
       rightFootX = renderX + 6 * f;
-      rightFootY = renderY - 12;
+      rightFootY = renderY - 14;
       leftHandX = renderX - 14 * f;
       leftHandY = renderY - 85;
       rightHandX = renderX + 14 * f;
@@ -429,82 +429,81 @@ export class Stickman {
       headY = renderY - 60;
       neckY = renderY - 50;
       pelvisY = renderY - 26;
-      leftFootX = renderX - 16 * f;
-      rightFootX = renderX + 14 * f;
+      leftFootX = renderX - 18 * f;
+      rightFootX = renderX + 16 * f;
       leftHandX = renderX + 6 * f;
       leftHandY = renderY - 45;
-      rightHandX = renderX + 18 * f;
+      rightHandX = renderX + 20 * f;
       rightHandY = renderY - 45;
     } else if (this.state === 'JAB') {
-      // Rapid extension
-      pelvisX += 4 * f;
-      neckX += 6 * f;
-      headX += 8 * f;
-      if (t < 7) {
-        // punching out
-        rightHandX = renderX + 38 * f;
-        rightHandY = renderY - 72;
+      pelvisX += 5 * f;
+      neckX += 8 * f;
+      headX += 10 * f;
+      if (t < 6) {
+        rightHandX = renderX + 42 * f;
+        rightHandY = renderY - 74;
       } else {
-        // retracting
-        rightHandX = renderX + 18 * f;
-        rightHandY = renderY - 64;
+        rightHandX = renderX + 20 * f;
+        rightHandY = renderY - 66;
       }
       leftHandX = renderX - 4 * f;
-      leftHandY = renderY - 68;
+      leftHandY = renderY - 70;
     } else if (this.state === 'HEAVY_KICK') {
       pelvisX -= 6 * f;
       neckX -= 8 * f;
-      headX -= 10 * f;
-      if (t < 14) {
-        // High roundhouse kick extension
-        rightFootX = renderX + 46 * f;
-        rightFootY = renderY - 74;
+      headX -= 12 * f;
+      if (t < 5) {
+        // Anticipation coil
+        rightFootX = renderX - 12 * f;
+        rightFootY = renderY - 30;
+      } else if (t < 13) {
+        // High whip roundhouse
+        rightFootX = renderX + 52 * f;
+        rightFootY = renderY - 76;
       } else {
-        rightFootX = renderX + 20 * f;
-        rightFootY = renderY - 20;
+        rightFootX = renderX + 22 * f;
+        rightFootY = renderY - 22;
       }
-      leftFootX = renderX - 8 * f;
-      rightHandX = renderX - 12 * f;
-      rightHandY = renderY - 75;
-    } else if (this.state === 'JUMP_KICK') {
-      // Xiao Xiao Flying Kick: Torso angled forward, kick foot extended far
-      headX = renderX + 14 * f;
-      headY = renderY - 70;
-      neckX = renderX + 8 * f;
-      neckY = renderY - 62;
-      pelvisX = renderX - 10 * f;
-      pelvisY = renderY - 45;
-      rightFootX = renderX + 44 * f;
-      rightFootY = renderY - 60;
-      leftFootX = renderX - 22 * f;
-      leftFootY = renderY - 35;
+      leftFootX = renderX - 10 * f;
       rightHandX = renderX - 14 * f;
-      rightHandY = renderY - 65;
+      rightHandY = renderY - 78;
+    } else if (this.state === 'JUMP_KICK') {
+      headX = renderX + 16 * f;
+      headY = renderY - 72;
+      neckX = renderX + 10 * f;
+      neckY = renderY - 64;
+      pelvisX = renderX - 12 * f;
+      pelvisY = renderY - 46;
+      rightFootX = renderX + 50 * f;
+      rightFootY = renderY - 62;
+      leftFootX = renderX - 24 * f;
+      leftFootY = renderY - 36;
+      rightHandX = renderX - 16 * f;
+      rightHandY = renderY - 66;
     } else if (this.state === 'BLOCK') {
-      // Arms crossed defensively
-      rightHandX = renderX + 12 * f;
-      rightHandY = renderY - 75;
-      leftHandX = renderX + 10 * f;
-      leftHandY = renderY - 68;
-      // Draw neon energy shield
+      rightHandX = renderX + 14 * f;
+      rightHandY = renderY - 78;
+      leftHandX = renderX + 12 * f;
+      leftHandY = renderY - 70;
+
+      // Glowing Deflection Shield
       ctx.beginPath();
-      ctx.arc(renderX + 16 * f, renderY - 60, 30, -Math.PI / 2.5, Math.PI / 2.5, f < 0);
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = this.isAI ? 'rgba(255, 0, 150, 0.7)' : 'rgba(0, 255, 255, 0.7)';
+      ctx.arc(renderX + 18 * f, renderY - 60, 32, -Math.PI / 2.3, Math.PI / 2.3, f < 0);
+      ctx.lineWidth = 4.5;
+      ctx.strokeStyle = this.isAI ? 'rgba(255, 0, 170, 0.8)' : 'rgba(0, 255, 255, 0.8)';
       ctx.stroke();
-      ctx.lineWidth = 3.5;
+      ctx.lineWidth = 4.0;
       ctx.strokeStyle = this.color;
     } else if (this.state === 'HIT_STUN') {
-      headX = renderX - 12 * f;
-      neckX = renderX - 8 * f;
-      headY = renderY - 82;
-      leftHandX = renderX - 20 * f;
-      leftHandY = renderY - 70;
-      rightHandX = renderX - 10 * f;
-      rightHandY = renderY - 80;
+      headX = renderX - 16 * f;
+      neckX = renderX - 10 * f;
+      headY = renderY - 84;
+      leftHandX = renderX - 22 * f;
+      leftHandY = renderY - 72;
+      rightHandX = renderX - 12 * f;
+      rightHandY = renderY - 82;
     }
 
-    // --- Draw Skeleton Elements ---
     // 1. Spine / Torso
     ctx.beginPath();
     ctx.moveTo(neckX, neckY);
@@ -513,16 +512,16 @@ export class Stickman {
 
     // 2. Head
     ctx.beginPath();
-    ctx.arc(headX, headY, 11, 0, Math.PI * 2);
+    ctx.arc(headX, headY, 12, 0, Math.PI * 2);
     ctx.stroke();
 
     // Head Visor / Eye
     ctx.beginPath();
-    ctx.arc(headX + 5 * f, headY - 1, 2.5, 0, Math.PI * 2);
+    ctx.arc(headX + 5 * f, headY - 1, 3.0, 0, Math.PI * 2);
     ctx.fillStyle = this.eyeColor;
     ctx.fill();
 
-    // 3. Left Arm (shoulder -> elbow -> hand)
+    // 3. Left Arm
     const leftElbowX = (neckX + leftHandX) / 2 - 4 * f;
     const leftElbowY = (neckY + leftHandY) / 2 + 5;
     ctx.beginPath();
@@ -532,7 +531,7 @@ export class Stickman {
     ctx.stroke();
 
     // 4. Right Arm
-    const rightElbowX = (neckX + rightHandX) / 2 + 3 * f;
+    const rightElbowX = (neckX + rightHandX) / 2 + 4 * f;
     const rightElbowY = (neckY + rightHandY) / 2 + 5;
     ctx.beginPath();
     ctx.moveTo(neckX, neckY);
@@ -540,8 +539,8 @@ export class Stickman {
     ctx.lineTo(rightHandX, rightHandY);
     ctx.stroke();
 
-    // 5. Left Leg (pelvis -> knee -> foot)
-    const leftKneeX = (pelvisX + leftFootX) / 2 - 5 * f;
+    // 5. Left Leg
+    const leftKneeX = (pelvisX + leftFootX) / 2 - 6 * f;
     const leftKneeY = (pelvisY + leftFootY) / 2;
     ctx.beginPath();
     ctx.moveTo(pelvisX, pelvisY);
@@ -550,7 +549,7 @@ export class Stickman {
     ctx.stroke();
 
     // 6. Right Leg
-    const rightKneeX = (pelvisX + rightFootX) / 2 + 4 * f;
+    const rightKneeX = (pelvisX + rightFootX) / 2 + 5 * f;
     const rightKneeY = (pelvisY + rightFootY) / 2;
     ctx.beginPath();
     ctx.moveTo(pelvisX, pelvisY);

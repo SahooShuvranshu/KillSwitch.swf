@@ -1,8 +1,9 @@
 // ============================================================================
-// KillSwitch.swf — Combat Arena & 60 FPS Particle Physics Engine
+// KillSwitch.swf — Ultra-Polished 60 FPS Combat Arena & Camera Engine
+// Dynamic Cinematics, Afterimages, Floating Damage & Impact Flashes
 // ============================================================================
 
-import { Stickman, Hitbox } from './Stickman';
+import { Stickman } from './Stickman';
 import { sound } from './Audio';
 
 export interface SparkParticle {
@@ -16,6 +17,26 @@ export interface SparkParticle {
   color: string;
 }
 
+export interface DamageNumber {
+  x: number;
+  y: number;
+  vy: number;
+  text: string;
+  color: string;
+  scale: number;
+  life: number;
+  maxLife: number;
+}
+
+export interface Afterimage {
+  x: number;
+  y: number;
+  facing: number;
+  state: string;
+  color: string;
+  alpha: number;
+}
+
 export class Arena {
   public canvas: HTMLCanvasElement;
   public ctx: CanvasRenderingContext2D;
@@ -26,20 +47,36 @@ export class Arena {
   public ghost: Stickman;
 
   public sparks: SparkParticle[] = [];
+  public damageNumbers: DamageNumber[] = [];
+  public afterimages: Afterimage[] = [];
+
+  // Dynamic Camera & Screen Shake
+  public cameraX: number = 400;
+  public cameraY: number = 250;
+  public targetCameraX: number = 400;
+  public targetCameraY: number = 250;
+  public cameraZoom: number = 1.0;
+  public targetCameraZoom: number = 1.0;
+
   public screenShake: number = 0;
   public freezeFrames: number = 0;
+  public impactFlashFrames: number = 0;
+
   public roundNumber: number = 1;
-  public roundTime: number = 99; // 99 seconds
+  public roundTime: number = 99;
   public timerFrames: number = 0;
   public isRoundOver: boolean = false;
   public winner: string | null = null;
 
-  // Visual text announcements (e.g. "ROUND 1", "FIGHT!", "K.O.!")
   public announcementText: string = 'ROUND 1';
-  public announcementSub: string = 'READY...';
+  public announcementSub: string = 'READY... FIGHT!';
   public announcementFrames: number = 90;
 
-  // Telemetry callback to notify AI loop when round ends
+  // Combo tracker
+  public playerCombo: number = 0;
+  public ghostCombo: number = 0;
+  public comboResetTimer: number = 0;
+
   public onRoundEnd?: (winner: string) => void;
 
   constructor(canvas: HTMLCanvasElement, playerName: string = 'XiaoXiao_04') {
@@ -64,45 +101,66 @@ export class Arena {
     this.player.facing = 1;
     this.ghost.facing = -1;
 
+    this.sparks = [];
+    this.damageNumbers = [];
+    this.afterimages = [];
+    this.playerCombo = 0;
+    this.ghostCombo = 0;
+
     this.announcementText = `ROUND ${roundNum}`;
     this.announcementSub = 'READY... FIGHT!';
     this.announcementFrames = 90;
   }
 
-  // Spawn starburst sparks on hit
+  public spawnDamageNumber(x: number, y: number, text: string, isCrit: boolean, isBlocked: boolean) {
+    this.damageNumbers.push({
+      x,
+      y,
+      vy: -3.5,
+      text,
+      color: isBlocked ? '#ffffaa' : (isCrit ? '#ff0055' : '#00ffff'),
+      scale: isCrit ? 1.6 : 1.1,
+      life: 0,
+      maxLife: 32
+    });
+  }
+
   public spawnHitSparks(x: number, y: number, isHeavy: boolean, isBlocked: boolean) {
-    const count = isBlocked ? 8 : (isHeavy ? 24 : 12);
-    const baseColor = isBlocked ? '#ffffaa' : (isHeavy ? '#ff3300' : '#00ffff');
+    const count = isBlocked ? 10 : (isHeavy ? 30 : 16);
+    const baseColor = isBlocked ? '#ffffaa' : (isHeavy ? '#ff2200' : '#00ffff');
 
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const speed = isHeavy ? 3 + Math.random() * 8 : 2 + Math.random() * 5;
+      const speed = isHeavy ? 4 + Math.random() * 9 : 2.5 + Math.random() * 6;
       this.sparks.push({
         x,
         y,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
-        size: isHeavy ? 3 + Math.random() * 3 : 2 + Math.random() * 2,
+        size: isHeavy ? 3 + Math.random() * 3.5 : 2 + Math.random() * 2,
         life: 0,
-        maxLife: isHeavy ? 20 + Math.random() * 10 : 12 + Math.random() * 8,
+        maxLife: isHeavy ? 22 + Math.random() * 12 : 14 + Math.random() * 8,
         color: baseColor
       });
     }
   }
 
-  // Update loop (called 60 FPS)
   public update() {
-    // Impact hit freeze frame
+    // 1. Impact Hit-Freeze
     if (this.freezeFrames > 0) {
       this.freezeFrames--;
       return;
+    }
+
+    if (this.impactFlashFrames > 0) {
+      this.impactFlashFrames--;
     }
 
     if (this.announcementFrames > 0) {
       this.announcementFrames--;
     }
 
-    // Round timer
+    // 2. Round Timer
     if (!this.isRoundOver && this.announcementFrames <= 30) {
       this.timerFrames++;
       if (this.timerFrames >= 60) {
@@ -114,7 +172,7 @@ export class Arena {
       }
     }
 
-    // Auto-turn facing towards each other
+    // 3. Facing orientation
     if (this.player.canAct() && this.ghost.canAct() && !this.isRoundOver) {
       if (this.player.x < this.ghost.x) {
         this.player.facing = 1;
@@ -125,35 +183,105 @@ export class Arena {
       }
     }
 
-    // Update characters
+    // 4. Update Fighters
     this.player.update(this.width);
     this.ghost.update(this.width);
 
-    // Update Sparks
+    // 5. Spawn Afterimages on Fast Actions (Jump Kick, Heavy Kick)
+    if (this.player.state === 'JUMP_KICK' || (this.player.state === 'HEAVY_KICK' && this.player.stateTime < 8)) {
+      if (this.player.animFrame % 2 === 0) {
+        this.afterimages.push({
+          x: this.player.x,
+          y: this.player.y,
+          facing: this.player.facing,
+          state: this.player.state,
+          color: this.player.color,
+          alpha: 0.6
+        });
+      }
+    }
+
+    if (this.ghost.state === 'JUMP_KICK' || (this.ghost.state === 'HEAVY_KICK' && this.ghost.stateTime < 8)) {
+      if (this.ghost.animFrame % 2 === 0) {
+        this.afterimages.push({
+          x: this.ghost.x,
+          y: this.ghost.y,
+          facing: this.ghost.facing,
+          state: this.ghost.state,
+          color: this.ghost.color,
+          alpha: 0.6
+        });
+      }
+    }
+
+    // Update Afterimages
+    for (let i = this.afterimages.length - 1; i >= 0; i--) {
+      this.afterimages[i].alpha -= 0.07;
+      if (this.afterimages[i].alpha <= 0) {
+        this.afterimages.splice(i, 1);
+      }
+    }
+
+    // 6. Update Sparks
     for (let i = this.sparks.length - 1; i >= 0; i--) {
       const p = this.sparks[i];
       p.x += p.vx;
       p.y += p.vy;
-      p.vy += 0.2; // slight gravity
+      p.vy += 0.22;
       p.life++;
       if (p.life >= p.maxLife) {
         this.sparks.splice(i, 1);
       }
     }
 
-    // Camera shake dampening
+    // 7. Update Floating Damage Numbers
+    for (let i = this.damageNumbers.length - 1; i >= 0; i--) {
+      const d = this.damageNumbers[i];
+      d.y += d.vy;
+      d.vy += 0.15; // float decel
+      d.life++;
+      if (d.life >= d.maxLife) {
+        this.damageNumbers.splice(i, 1);
+      }
+    }
+
+    // 8. Dynamic Cinematic Camera Zoom & Tracking
+    const midX = (this.player.x + this.ghost.x) / 2;
+    const midY = (this.player.y + this.ghost.y) / 2 - 35;
+    const dist = Math.abs(this.player.x - this.ghost.x);
+
+    // Zoom in when fighters brawl up close
+    let desiredZoom = 1.0;
+    if (dist < 120) {
+      desiredZoom = 1.28; // dramatic close-up
+    } else if (dist < 220) {
+      desiredZoom = 1.15;
+    } else {
+      desiredZoom = 1.0;
+    }
+
+    // Smooth camera interpolation (lerp)
+    this.targetCameraX = midX;
+    this.targetCameraY = midY;
+    this.targetCameraZoom = desiredZoom;
+
+    this.cameraX += (this.targetCameraX - this.cameraX) * 0.12;
+    this.cameraY += (this.targetCameraY - this.cameraY) * 0.12;
+    this.cameraZoom += (this.targetCameraZoom - this.cameraZoom) * 0.08;
+
+    // Shake dampening
     if (this.screenShake > 0) {
-      this.screenShake *= 0.85;
+      this.screenShake *= 0.84;
       if (this.screenShake < 0.5) this.screenShake = 0;
     }
 
-    // Combat Hitbox collisions
+    // 9. Combat Hit Collisions
     if (!this.isRoundOver) {
-      this.checkHit(this.player, this.ghost);
-      this.checkHit(this.ghost, this.player);
+      this.checkHit(this.player, this.ghost, true);
+      this.checkHit(this.ghost, this.player, false);
     }
 
-    // Check Win/Loss conditions
+    // 10. Win/Loss Check
     if (!this.isRoundOver) {
       if (this.player.health <= 0) {
         this.endRound(this.ghost.name);
@@ -163,13 +291,12 @@ export class Arena {
     }
   }
 
-  private checkHit(attacker: Stickman, defender: Stickman) {
+  private checkHit(attacker: Stickman, defender: Stickman, isPlayerAttacker: boolean) {
     const hitbox = attacker.getHitbox();
     if (!hitbox) return;
 
     const hurtbox = defender.getHurtbox();
 
-    // AABB intersection check
     const isIntersecting = 
       hitbox.x < hurtbox.x + hurtbox.w &&
       hitbox.x + hitbox.w > hurtbox.x &&
@@ -178,7 +305,12 @@ export class Arena {
 
     if (isIntersecting && defender.state !== 'HIT_STUN' && defender.state !== 'KNOCKDOWN') {
       const result = defender.takeHit(hitbox);
-      attacker.comboCounter++;
+
+      if (isPlayerAttacker) {
+        this.playerCombo++;
+      } else {
+        this.ghostCombo++;
+      }
 
       const sparkX = (hitbox.x + hurtbox.x + hurtbox.w / 2) / 2;
       const sparkY = (hitbox.y + hurtbox.y + hurtbox.h / 2) / 2;
@@ -187,15 +319,21 @@ export class Arena {
 
       if (result.blocked) {
         sound.playBlock();
-        this.screenShake = 2;
+        this.spawnDamageNumber(sparkX, sparkY - 20, 'GUARD!', false, true);
+        this.screenShake = 3;
       } else {
+        const dmgText = `-${result.damageDealt}`;
+        this.spawnDamageNumber(sparkX, sparkY - 20, dmgText, hitbox.isHeavy, false);
+
         if (hitbox.isHeavy) {
           sound.playHeavyHit();
-          this.screenShake = 9;
-          this.freezeFrames = 4; // slow-mo freeze frame for crunch!
+          this.screenShake = 14;
+          this.freezeFrames = 6; // juicy hit-freeze!
+          this.impactFlashFrames = 2; // inverted impact flash!
         } else {
           sound.playJab();
-          this.screenShake = 3;
+          this.screenShake = 4;
+          this.freezeFrames = 2;
         }
       }
     }
@@ -206,39 +344,57 @@ export class Arena {
     this.isRoundOver = true;
     this.winner = winnerName;
     sound.playKO();
-    this.screenShake = 16;
-    this.freezeFrames = 15; // dramatic freeze
+    this.screenShake = 22;
+    this.freezeFrames = 20; // slow-mo freeze
+    this.impactFlashFrames = 4;
 
     this.announcementText = 'K.O.!';
     this.announcementSub = `${winnerName.toUpperCase()} WINS`;
-    this.announcementFrames = 120;
+    this.announcementFrames = 140;
 
     if (this.onRoundEnd) {
       setTimeout(() => {
         this.onRoundEnd?.(winnerName);
-      }, 1800);
+      }, 2000);
     }
   }
 
-  // --- 60 FPS Render Pipeline ---
+  // --- Render Pipeline ---
   public render() {
     this.ctx.save();
 
-    // Camera Shake
-    if (this.screenShake > 0) {
-      const shakeX = (Math.random() - 0.5) * this.screenShake;
-      const shakeY = (Math.random() - 0.5) * this.screenShake;
-      this.ctx.translate(shakeX, shakeY);
+    // Inverted Impact Flash (Anime / Xiao Xiao style)
+    if (this.impactFlashFrames > 0) {
+      this.ctx.fillStyle = '#ffffff';
+      this.ctx.fillRect(0, 0, this.width, this.height);
+      this.ctx.restore();
+      return;
     }
 
-    // 1. Stage Background (Classic Xiao Xiao 2004 aesthetic: Minimalist dark vector arena)
+    // Screen Shake Offset
+    let shakeX = 0;
+    let shakeY = 0;
+    if (this.screenShake > 0) {
+      shakeX = (Math.random() - 0.5) * this.screenShake;
+      shakeY = (Math.random() - 0.5) * this.screenShake;
+    }
+
+    // Dynamic Camera Transform (Center + Zoom + Shake)
+    this.ctx.translate(this.width / 2 + shakeX, this.height / 2 + shakeY);
+    this.ctx.scale(this.cameraZoom, this.cameraZoom);
+    this.ctx.translate(-this.cameraX, -this.cameraY);
+
+    // 1. Stage Background
     this.renderStage();
 
-    // 2. Render Fighters
+    // 2. Render Motion Afterimages
+    this.renderAfterimages();
+
+    // 3. Render Fighters
     this.player.render(this.ctx);
     this.ghost.render(this.ctx);
 
-    // 3. Render Sparks
+    // 4. Render Sparks
     for (const p of this.sparks) {
       const alpha = 1 - p.life / p.maxLife;
       this.ctx.fillStyle = p.color;
@@ -249,19 +405,52 @@ export class Arena {
     }
     this.ctx.globalAlpha = 1.0;
 
-    // 4. Render HUD (Health Bars, Round Counter, Timer)
+    // 5. Render Floating Damage Numbers
+    this.renderDamageNumbers();
+
+    // Restore Camera Transform before rendering static HUD
+    this.ctx.restore();
+
+    // 6. Static Screen HUD (Health Bars, Combo, Announcements)
     this.renderHUD();
 
-    // 5. Render Announcements ("ROUND 1", "FIGHT!", "K.O.!")
     if (this.announcementFrames > 0) {
       this.renderAnnouncements();
     }
+  }
 
-    this.ctx.restore();
+  private renderAfterimages() {
+    for (const img of this.afterimages) {
+      this.ctx.save();
+      this.ctx.globalAlpha = img.alpha;
+      this.ctx.strokeStyle = img.color;
+      this.ctx.lineWidth = 2.5;
+      this.ctx.beginPath();
+      // simplified ghost silhouette
+      this.ctx.arc(img.x, img.y - 88, 10, 0, Math.PI * 2);
+      this.ctx.moveTo(img.x, img.y - 76);
+      this.ctx.lineTo(img.x, img.y - 45);
+      this.ctx.stroke();
+      this.ctx.restore();
+    }
+  }
+
+  private renderDamageNumbers() {
+    for (const d of this.damageNumbers) {
+      const alpha = 1 - d.life / d.maxLife;
+      this.ctx.save();
+      this.ctx.globalAlpha = alpha;
+      this.ctx.fillStyle = d.color;
+      this.ctx.font = `bold ${Math.round(18 * d.scale)}px "Share Tech Mono", monospace`;
+      this.ctx.textAlign = 'center';
+      this.ctx.shadowColor = d.color;
+      this.ctx.shadowBlur = 8;
+      this.ctx.fillText(d.text, d.x, d.y);
+      this.ctx.restore();
+    }
   }
 
   private renderStage() {
-    // Gradient dark backdrop
     const grad = this.ctx.createLinearGradient(0, 0, 0, this.height);
     grad.addColorStop(0, '#0a0a14');
     grad.addColorStop(0.7, '#141424');
@@ -269,74 +458,66 @@ export class Arena {
     this.ctx.fillStyle = grad;
     this.ctx.fillRect(0, 0, this.width, this.height);
 
-    // Vector grid floor lines
-    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-    this.ctx.lineWidth = 1;
     const floorY = 410;
+    this.ctx.fillStyle = '#0f0f1c';
+    this.ctx.fillRect(-400, floorY, this.width + 800, this.height - floorY);
 
-    // Arena Floor
-    this.ctx.fillStyle = '#10101c';
-    this.ctx.fillRect(0, floorY, this.width, this.height - floorY);
-
+    // Neon Floor Rim
     this.ctx.beginPath();
-    this.ctx.moveTo(0, floorY);
-    this.ctx.lineTo(this.width, floorY);
-    this.ctx.strokeStyle = 'rgba(0, 255, 255, 0.3)';
-    this.ctx.lineWidth = 2;
+    this.ctx.moveTo(-400, floorY);
+    this.ctx.lineTo(this.width + 400, floorY);
+    this.ctx.strokeStyle = 'rgba(0, 255, 255, 0.4)';
+    this.ctx.lineWidth = 2.5;
     this.ctx.stroke();
 
-    // Perspective floor lines
-    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
-    for (let x = -200; x <= this.width + 200; x += 60) {
+    // Perspective Lines
+    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    for (let x = -400; x <= this.width + 400; x += 60) {
       this.ctx.beginPath();
       this.ctx.moveTo(x, floorY);
-      this.ctx.lineTo(x + (x - this.width / 2) * 0.4, this.height);
+      this.ctx.lineTo(x + (x - this.width / 2) * 0.5, this.height + 100);
       this.ctx.stroke();
     }
 
-    // Ghost of Flash vector watermark on the background wall
+    // Ghost of Flash vector watermark
     this.ctx.save();
-    this.ctx.font = 'italic bold 140px Arial Black';
-    this.ctx.fillStyle = 'rgba(255, 0, 100, 0.04)';
+    this.ctx.font = 'italic bold 160px Arial Black';
+    this.ctx.fillStyle = 'rgba(255, 0, 100, 0.05)';
     this.ctx.textAlign = 'center';
-    this.ctx.fillText('f', this.width / 2, floorY - 60);
+    this.ctx.fillText('f', this.width / 2, floorY - 50);
     this.ctx.restore();
   }
 
   private renderHUD() {
-    // Player Health Bar (Left)
-    const barWidth = 280;
-    const barHeight = 18;
+    const barWidth = 300;
+    const barHeight = 20;
     const barY = 24;
 
-    // Player Bar Background
-    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-    this.ctx.fillRect(40, barY, barWidth, barHeight);
-    this.ctx.strokeStyle = '#333';
-    this.ctx.strokeRect(40, barY, barWidth, barHeight);
+    // Player Health Bar (Left)
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    this.ctx.fillRect(36, barY, barWidth, barHeight);
+    this.ctx.strokeStyle = '#444';
+    this.ctx.strokeRect(36, barY, barWidth, barHeight);
 
-    // Player Current HP Fill
     const playerHpWidth = (this.player.health / this.player.maxHealth) * barWidth;
-    const playerGrad = this.ctx.createLinearGradient(40, 0, 40 + barWidth, 0);
+    const playerGrad = this.ctx.createLinearGradient(36, 0, 36 + barWidth, 0);
     playerGrad.addColorStop(0, '#00e5ff');
     playerGrad.addColorStop(1, '#00ff88');
     this.ctx.fillStyle = playerGrad;
-    this.ctx.fillRect(40, barY, playerHpWidth, barHeight);
+    this.ctx.fillRect(36, barY, playerHpWidth, barHeight);
 
-    // Player Label
     this.ctx.fillStyle = '#fff';
-    this.ctx.font = 'bold 12px "Share Tech Mono", monospace';
+    this.ctx.font = 'bold 13px "Share Tech Mono", monospace';
     this.ctx.textAlign = 'left';
-    this.ctx.fillText(`P1: ${this.player.name.toUpperCase()}`, 40, barY - 6);
+    this.ctx.fillText(`P1: ${this.player.name.toUpperCase()} [${Math.round(this.player.health)}%]`, 36, barY - 6);
 
     // Ghost Health Bar (Right)
-    const ghostBarX = this.width - 40 - barWidth;
-    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    const ghostBarX = this.width - 36 - barWidth;
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
     this.ctx.fillRect(ghostBarX, barY, barWidth, barHeight);
-    this.ctx.strokeStyle = '#333';
+    this.ctx.strokeStyle = '#444';
     this.ctx.strokeRect(ghostBarX, barY, barWidth, barHeight);
 
-    // Ghost Current HP Fill
     const ghostHpWidth = (this.ghost.health / this.ghost.maxHealth) * barWidth;
     const ghostGrad = this.ctx.createLinearGradient(ghostBarX, 0, ghostBarX + barWidth, 0);
     ghostGrad.addColorStop(0, '#ff00aa');
@@ -344,35 +525,44 @@ export class Arena {
     this.ctx.fillStyle = ghostGrad;
     this.ctx.fillRect(ghostBarX + (barWidth - ghostHpWidth), barY, ghostHpWidth, barHeight);
 
-    // Ghost Label
     this.ctx.fillStyle = '#ff75df';
-    this.ctx.font = 'bold 12px "Share Tech Mono", monospace';
+    this.ctx.font = 'bold 13px "Share Tech Mono", monospace';
     this.ctx.textAlign = 'right';
-    this.ctx.fillText('CPU: FLASH GHOST (GEMMA 3:4B)', this.width - 40, barY - 6);
+    this.ctx.fillText(`CPU: FLASH GHOST (GEMMA 3:4B) [${Math.round(this.ghost.health)}%]`, this.width - 36, barY - 6);
 
     // Center Round Timer
     this.ctx.fillStyle = '#ffd700';
-    this.ctx.font = 'bold 26px "Share Tech Mono", monospace';
+    this.ctx.font = 'bold 28px "Share Tech Mono", monospace';
     this.ctx.textAlign = 'center';
     this.ctx.fillText(`${this.roundTime}`, this.width / 2, barY + 18);
+
+    // Combo Counter Display
+    if (this.playerCombo > 1) {
+      this.ctx.fillStyle = '#00ffff';
+      this.ctx.font = 'bold 18px "Press Start 2P", monospace';
+      this.ctx.textAlign = 'left';
+      this.ctx.shadowColor = '#00ffff';
+      this.ctx.shadowBlur = 10;
+      this.ctx.fillText(`${this.playerCombo} HITS!`, 40, barY + 45);
+      this.ctx.shadowBlur = 0;
+    }
   }
 
   private renderAnnouncements() {
     this.ctx.save();
     this.ctx.textAlign = 'center';
 
-    // Shadow & Glow
     this.ctx.shadowColor = '#ff00aa';
-    this.ctx.shadowBlur = 20;
+    this.ctx.shadowBlur = 24;
 
     this.ctx.fillStyle = '#ffffff';
-    this.ctx.font = 'bold 46px "Press Start 2P", monospace';
+    this.ctx.font = 'bold 48px "Press Start 2P", monospace';
     this.ctx.fillText(this.announcementText, this.width / 2, this.height / 2 - 20);
 
-    this.ctx.shadowBlur = 10;
+    this.ctx.shadowBlur = 12;
     this.ctx.fillStyle = '#00ffff';
-    this.ctx.font = 'bold 18px "Share Tech Mono", monospace';
-    this.ctx.fillText(this.announcementSub, this.width / 2, this.height / 2 + 30);
+    this.ctx.font = 'bold 20px "Share Tech Mono", monospace';
+    this.ctx.fillText(this.announcementSub, this.width / 2, this.height / 2 + 32);
 
     this.ctx.restore();
   }
