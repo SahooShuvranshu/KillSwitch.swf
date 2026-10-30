@@ -1,13 +1,13 @@
 // ============================================================================
 // KillSwitch.swf — Ultra-Polished 60 FPS Combat Arena & Camera Engine
-// Alan Becker "Animator vs. Animation" Flash Workspace, Windows XP Desktop,
-// 2021 Kill-Switch Void, and Día de los Muertos Stages!
+// Dynamic multi-round scene rotation: Flash Studio Canvas, Windows XP Desktop,
+// ActionScript Matrix, 2021 Kill-Switch Void, and Día de los Muertos Stages!
 // ============================================================================
 
 import { Stickman, CharacterSkin } from './Stickman';
 import { sound } from './Audio';
 
-export type ArenaStage = 'animator' | 'desktop' | 'void' | 'ofrenda' | 'matrix';
+export type ArenaStage = 'animator' | 'desktop' | 'matrix' | 'void' | 'ofrenda';
 export type GameDifficulty = 'casual' | 'veteran' | 'nightmare';
 
 export interface SparkParticle {
@@ -50,14 +50,14 @@ export class Arena {
   public player: Stickman;
   public ghost: Stickman;
 
-  public stage: ArenaStage = 'animator'; // Default to Alan Becker's Flash Workspace!
+  public stage: ArenaStage = 'animator';
   public difficulty: GameDifficulty = 'veteran';
 
   public sparks: SparkParticle[] = [];
   public damageNumbers: DamageNumber[] = [];
   public afterimages: Afterimage[] = [];
 
-  // Alan Becker's Animator Mouse Cursor (wanders & tracks fighters)
+  // Studio Virtual Mouse Cursor (wanders & tracks fighters)
   private cursorX: number = 400;
   private cursorY: number = 180;
   private targetCursorX: number = 400;
@@ -89,7 +89,7 @@ export class Arena {
   public winner: string | null = null;
 
   public announcementText: string = 'ROUND 1';
-  public announcementSub: string = 'READY... FIGHT!';
+  public announcementSub: string = 'STAGE: FLASH STUDIO CANVAS';
   public announcementFrames: number = 90;
 
   public playerCombo: number = 0;
@@ -101,7 +101,7 @@ export class Arena {
 
   public onRoundEnd?: (winner: string) => void;
 
-  constructor(canvas: HTMLCanvasElement, playerName: string = 'The Second Coming', playerSkin: CharacterSkin = 'orange') {
+  constructor(canvas: HTMLCanvasElement, playerName: string = 'Apex Striker', playerSkin: CharacterSkin = 'orange') {
     this.canvas = canvas;
     const context = canvas.getContext('2d');
     if (!context) throw new Error('Failed to get 2D canvas context');
@@ -145,12 +145,38 @@ export class Arena {
     this.difficulty = diff;
   }
 
+  public getStageDisplayName(stage: ArenaStage): string {
+    switch (stage) {
+      case 'animator': return 'FLASH STUDIO CANVAS';
+      case 'desktop': return 'WINDOWS XP BLISS DESKTOP';
+      case 'matrix': return 'ACTIONSCRIPT CYBER MATRIX';
+      case 'void': return '2021 KILL-SWITCH VOID';
+      case 'ofrenda': return 'DÍA DE LOS MUERTOS ALTAR';
+      default: return (stage as string).toUpperCase();
+    }
+  }
+
   public startRound(roundNum: number) {
     this.roundNumber = roundNum;
     this.roundTime = 99;
     this.timerFrames = 0;
     this.isRoundOver = false;
     this.winner = null;
+
+    // SCENE AUTOMATICALLY ADVANCES IN EACH ROUND!
+    // Round 1: Flash Studio Canvas
+    // Round 2: Windows XP Bliss Desktop
+    // Round 3: ActionScript Cyber Matrix
+    // Round 4: 2021 Kill-Switch Void
+    // Round 5: Día de los Muertos Altar
+    const roundStages: ArenaStage[] = ['animator', 'desktop', 'matrix', 'void', 'ofrenda'];
+    this.stage = roundStages[(roundNum - 1) % roundStages.length];
+
+    // In Round 2+, the Ghost adapts and grows in boss stature!
+    if (this.ghost) {
+      this.ghost.scale = Math.min(1.30, 1.16 + (roundNum - 1) * 0.07);
+      this.ghost.thickness = Math.min(5.6, 4.8 + (roundNum - 1) * 0.3);
+    }
 
     this.player.reset(220);
     this.ghost.reset(580);
@@ -164,7 +190,7 @@ export class Arena {
     this.ghostCombo = 0;
 
     this.announcementText = `ROUND ${roundNum}`;
-    this.announcementSub = `STAGE: ${this.stage.toUpperCase()}`;
+    this.announcementSub = `STAGE: ${this.getStageDisplayName(this.stage)}`;
     this.announcementFrames = 90;
   }
 
@@ -523,7 +549,7 @@ export class Arena {
     }
   }
 
-  // --- Alan Becker Animator Mouse Cursor ---
+  // --- Virtual Animator Mouse Cursor ---
   private renderAnimatorCursor() {
     this.ctx.save();
     this.ctx.translate(this.cursorX, this.cursorY);
@@ -561,7 +587,7 @@ export class Arena {
     const floorY = this.height - 90;
 
     if (this.stage === 'animator') {
-      // Alan Becker "Animator vs. Animation" Flash Workspace
+      // Flash Studio Drawing Canvas
       // Clean white/light-gray drawing canvas with subtle vector grid
       this.ctx.fillStyle = '#f8f8fa';
       this.ctx.fillRect(-1500, -500, this.width + 3000, this.height + 1000);

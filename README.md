@@ -18,16 +18,18 @@ The Ghost is not a hardcoded script. It is powered locally by **Google Gemma 3 4
 
 ## 🎮 Features & Gameplay
 
-- **Alan Becker *Animator vs. Animation* Character Suite**:
-  - **The Second Coming (Orange)**: Wields the Animator's drawing stylus/brush prop during attacks.
-  - **The Chosen One**: Signature hollow-ring head with glowing cyan divine fire aura.
-  - **The Dark Lord**: Blood crimson hollow head with twin energy blades.
-  - **Green, Blue, Yellow**: Color-coded martial arts friends.
-  - **Xiao Xiao Classic**: White ink with flowing red headband.
-- **Authentic Animator Environments**:
-  - **The Animator's Flash Canvas (Default)**: Battle directly inside Macromedia Flash with the top Timeline ruler, keyframe tracks, red scrubbing playhead, left Flash Tools palette, and a **giant floating Animator mouse cursor (`↖`)** that tracks the fighters!
-  - **Windows XP Bliss Desktop**: Rolling green grass hills, azure sky, desktop icons, and blue taskbar serving as the floor.
-  - **2021 Kill-Switch Void** & **Día de los Muertos Altar**.
+- **Diverse Stickman Archetypes & Variable Statures**:
+  - **Apex Striker (Orange)**: Balanced athletic fighter wielding the artist stylus with calligraphy ink slash trails.
+  - **Plasma Ascetic**: Lithe martial artist with signature hollow-ring head and glowing cyan plasma aura.
+  - **Crimson Titan**: Towering heavyweight brawler (128% stature) with twin red energy blades.
+  - **Azure Speedster & Jade Acrobat**: Compact, agile rushers (85% stature) with rapid low-profile hops.
+  - **Xiao Xiao Grandmaster**: Classic martial artist with flowing red headband ribbons.
+- **Dynamic Multi-Round Scene Shifts (Scene Changes Every Round!)**:
+  - **Round 1 — Flash Studio Canvas**: White vector drawing stage with ruler, keyframes, and interactive tracking mouse cursor (`↖`).
+  - **Round 2 — Windows XP Bliss Desktop**: Rolling green hills, blue skies, desktop icons, and blue taskbar floor.
+  - **Round 3 — ActionScript Cyber Matrix**: Raining green bytecode streams and glowing digital floor.
+  - **Round 4 — 2021 Kill-Switch Void**: Obsidian neon abyss with the broken Flash puzzle icon.
+  - **Round 5 — Día de los Muertos Altar**: Golden marigold ofrenda with flickering candles.
 - **60 FPS Procedural Canvas Combat**: Dynamic cinematic camera zoom (1.0x to 1.28x), motion afterimages, inverted impact flash frames, floating damage numbers, combo counters, and slow-mo K.O. freeze-frames.
 - **Authentic Macromedia Flash MX Chrome**: Windows XP retro window chrome, CRT horizontal scanlines, phosphor glow, and an interactive 2021 kill-switch bypass flow.
 - **Zero-Dependency Procedural Web Audio**: 8-bit punches, heavy crunch kicks, metallic guard deflections, and mechanical terminal typewriter clicks synthesized live via Web Audio API.

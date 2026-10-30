@@ -34,7 +34,7 @@ class KillSwitchGame {
     this.canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
     if (!this.canvas) throw new Error('Game canvas element not found');
 
-    const defaultName = (document.getElementById('player-name-input') as HTMLInputElement)?.value || 'The Second Coming';
+    const defaultName = (document.getElementById('player-name-input') as HTMLInputElement)?.value || 'Apex Striker';
     this.arena = new Arena(this.canvas, defaultName, 'orange');
     this.telemetry = new TelemetryTracker(defaultName);
     this.aiController = new AIController(this.arena.ghost, this.arena.player, this.telemetry);
@@ -95,11 +95,13 @@ class KillSwitchGame {
       const diffSelect = document.getElementById('select-difficulty') as HTMLSelectElement;
 
       const skin = (skinSelect?.value as CharacterSkin) || 'orange';
+      const sizeSelect = document.getElementById('select-size') as HTMLSelectElement;
+      const sizeMultiplier = parseFloat(sizeSelect?.value || '1.0');
       const stage = (stageSelect?.value as ArenaStage) || 'animator';
       const difficulty = (diffSelect?.value as GameDifficulty) || 'veteran';
 
       this.arena.player.name = name;
-      this.arena.player.applySkin(skin);
+      this.arena.player.applySkin(skin, sizeMultiplier);
       this.arena.setStage(stage);
       this.arena.setDifficulty(difficulty);
       this.aiController.setDifficulty(difficulty);

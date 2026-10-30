@@ -33,20 +33,22 @@ The Ghost is not a pre-scripted dummy bot. It is powered locally by **Google Gem
 
 `KillSwitch.swf` combines early-2000s web nostalgia with modern browser tech and cutting-edge local edge AI:
 
-1. **60 FPS Procedural Stickman Combat Engine (Alan Becker & Xiao Xiao Style)**:
+1. **60 FPS Procedural Stickman Combat Engine & Variable Statures**:
    - Zero sprite sheets: Every limb, joint, and torso of the player and Flash Ghost is rendered procedurally with dynamic skeletal kinematics on an HTML5 `<canvas>`.
-   - Authentic Alan Becker *Animator vs. Animation* character suite:
-     - **The Second Coming (Orange)**: Wields the Animator's drawing stylus/brush prop during attacks.
-     - **The Chosen One**: Iconic hollow-ring head with cyan divine fire aura.
-     - **The Dark Lord**: Crimson hollow head with twin energy blades.
-     - **Green, Blue, Yellow**: Color-coded martial arts friends.
-     - **Xiao Xiao Classic**: White ink with flowing red headband.
+   - Distinct Fighter Archetypes & Variable Sizes:
+     - **Apex Striker (Orange)**: Athletic martial artist wielding the artist stylus with flowing calligraphy ink slash trails.
+     - **Plasma Ascetic**: Lithe martial artist with signature hollow-ring head and glowing cyan plasma aura.
+     - **Crimson Titan**: Towering heavyweight brawler (128% stature, heavy bone thickness) with twin crimson energy blades.
+     - **Azure Speedster & Jade Acrobat**: Compact, agile rushers (85% stature) with rapid low-profile hops.
+     - **Xiao Xiao Grandmaster**: Classic martial artist with flowing red headband ribbons.
    - Moveset & game juice: Dynamic camera zoom (1.0x to 1.28x), motion afterimages, inverted impact flash frames, floating damage numbers, combo counter, and slow-mo K.O. freeze-frames.
-2. **Authentic Animator Environments & Flash MX 2004 Window Chrome**:
-   - **The Animator's Flash Canvas**: Brawling directly inside Macromedia Flash with the top Timeline ruler, keyframe tracks, red scrubbing playhead, left Flash Tools palette, and a **giant floating Animator mouse cursor (`↖`)** actively tracking the action!
-   - **Windows XP Bliss Desktop**: Rolling green grass hills, azure sky, desktop icons, and blue taskbar serving as the floor.
-   - **2021 Kill-Switch Void** & **Día de los Muertos Altar**.
-   - CRT raster scanlines and phosphor bloom shaders overlaid on the canvas.
+2. **Automatic Multi-Round Scene Shifts & Flash MX 2004 Window Chrome**:
+   - **Scene Automatically Changes Every Round**:
+     - *Round 1*: **Flash Studio Canvas** — Brawling directly inside Macromedia Flash with the top Timeline ruler, keyframe tracks, red scrubbing playhead, left Tools palette, and a **giant floating virtual mouse cursor (`↖`)** actively tracking the fighters!
+     - *Round 2*: **Windows XP Bliss Desktop** — Rolling green grass hills, azure sky, retro desktop icons, and blue taskbar serving as the floor.
+     - *Round 3*: **ActionScript Cyber Matrix** — Raining green bytecode streams and glowing digital floor.
+     - *Round 4*: **2021 Kill-Switch Void** — Deep obsidian void with the broken Flash puzzle icon.
+     - *Round 5*: **Día de los Muertos Altar** — Marigold petals and flickering memorial candles.
    - Interactive 2021 time-bomb kill-switch bypass flow.
 3. **Procedural 8-Bit Web Audio Engine**:
    - No external `.mp3` or `.wav` files. All punches, whooshes, bone-crunch kicks, metallic guard deflections, and CRT terminal typewriter clicks are synthesized live in milliseconds using the browser's native `AudioContext`.
