@@ -91,7 +91,13 @@ export class AIController {
   }
 
   public update() {
-    if (!this.ghost.canAct() || this.ghost.health <= 0) return;
+    if (!this.ghost.canAct() || this.ghost.health <= 0 || this.player.health <= 0 || this.player.state === 'DEFEAT') {
+      this.ghost.stopMoving();
+      if (this.ghost.health > 0 && this.ghost.state !== 'VICTORY') {
+        this.ghost.setState('VICTORY');
+      }
+      return;
+    }
 
     if (this.parryCooldown > 0) this.parryCooldown--;
 

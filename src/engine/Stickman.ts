@@ -17,6 +17,7 @@ export type FighterState =
   | 'BLOCK' 
   | 'HIT_STUN' 
   | 'KNOCKDOWN' 
+  | 'DEFEAT'
   | 'VICTORY';
 
 export type CharacterSkin = 
@@ -269,6 +270,9 @@ export class Stickman {
 
   public canAct(): boolean {
     return (
+      this.health > 0 &&
+      this.state !== 'DEFEAT' &&
+      this.state !== 'VICTORY' &&
       this.state !== 'HIT_STUN' &&
       this.state !== 'KNOCKDOWN' &&
       this.state !== 'JAB' &&
@@ -293,6 +297,33 @@ export class Stickman {
       this.glitchOffset = (Math.random() - 0.5) * 8;
     } else {
       this.glitchOffset = 0;
+    }
+
+    // --- Defeat State Physics (Airborne Arc, Floor Bounce, Flat Rest) ---
+    if (this.state === 'DEFEAT') {
+      if (!this.isGrounded) {
+        this.vy += 0.88;
+      }
+      this.x += this.vx;
+      this.y += this.vy;
+
+      if (this.y >= this.groundY) {
+        this.y = this.groundY;
+        if (Math.abs(this.vy) > 3.0) {
+          this.vy = -this.vy * 0.35;
+          this.vx *= 0.5;
+        } else {
+          this.vy = 0;
+          this.vx = 0;
+          this.isGrounded = true;
+        }
+      }
+
+      // Clamp within arena boundaries
+      const padding = 40;
+      if (this.x < padding) this.x = padding;
+      else if (this.x > arenaWidth - padding) this.x = arenaWidth - padding;
+      return; // Stay down permanently in DEFEAT pose!
     }
 
     // Snappy grounded gravity
@@ -412,21 +443,32 @@ export class Stickman {
       const blockedDamage = Math.max(1, Math.round(hitbox.damage * 0.15));
       this.health = Math.max(0, this.health - blockedDamage);
       this.vx = hitbox.knockbackX * 0.35;
-      this.flashFrames = 4;
+      this.flashFrames = 1; // Subtle 1-frame guard highlight
       return { damageDealt: blockedDamage, blocked: true };
     }
 
     this.health = Math.max(0, this.health - hitbox.damage);
+
+    // If health drops to 0: Trigger Cinematic Defeat Animation!
+    if (this.health <= 0) {
+      this.setState('DEFEAT');
+      this.vx = -this.facing * 7.5;
+      this.vy = -7.5;
+      this.isGrounded = false;
+      this.flashFrames = 2; // Subtle 2-frame hit accent, no blinding flash
+      return { damageDealt: hitbox.damage, blocked: false };
+    }
+
     this.vx = hitbox.knockbackX;
     this.vy = hitbox.knockbackY;
-    this.flashFrames = 10;
+    this.flashFrames = hitbox.isHeavy ? 2 : 1; // Greatly reduced flash duration
 
-    if (hitbox.isHeavy || this.health <= 0) {
-      this.hitStunFrames = 26;
+    if (hitbox.isHeavy) {
+      this.hitStunFrames = 22;
       this.setState('HIT_STUN');
       this.isGrounded = false;
     } else {
-      this.hitStunFrames = 13;
+      this.hitStunFrames = 11;
       this.setState('HIT_STUN');
     }
 
@@ -456,18 +498,16 @@ export class Stickman {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
+    // Toned-Down Flash: Maintains stickman body color with a crisp, subtle glow
+    ctx.strokeStyle = this.color;
     if (this.flashFrames > 0) {
-      ctx.strokeStyle = '#ffffff';
       ctx.shadowColor = '#ffffff';
-      ctx.shadowBlur = 14 * s;
+      ctx.shadowBlur = 4 * s;
+    } else if (this.auraColor && this.state !== 'DEFEAT') {
+      ctx.shadowColor = this.auraColor;
+      ctx.shadowBlur = 10 * s;
     } else {
-      ctx.strokeStyle = this.color;
-      if (this.auraColor) {
-        ctx.shadowColor = this.auraColor;
-        ctx.shadowBlur = 12 * s;
-      } else {
-        ctx.shadowBlur = 0;
-      }
+      ctx.shadowBlur = 0;
     }
 
     const f = this.facing;
@@ -580,7 +620,7 @@ export class Stickman {
       ctx.fillStyle = eyeColor;
       ctx.lineWidth = 2.0 * s;
 
-      if (this.state === 'HIT_STUN') {
+      if (this.state === 'HIT_STUN' || this.state === 'KNOCKDOWN' || this.state === 'DEFEAT') {
         // Shock / Knockout Eyes (X X)
         ctx.beginPath();
         // Eye 1

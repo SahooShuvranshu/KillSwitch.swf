@@ -275,6 +275,49 @@ export const POSE_KNOCKDOWN: KeyframePose[] = [
   }
 ];
 
+// 12. DEFEAT: 5-Frame High-Arc Whiplash, Floor Bounce & Permanent Grounded Rest
+export const POSE_DEFEAT: KeyframePose[] = [
+  { // 0: Apex impact whiplash in air
+    headX: -30, headY: -82, neckX: -20, neckY: -72, pelvisX: -8, pelvisY: -50,
+    leftHandX: -34, leftHandY: -78, rightHandX: -18, rightHandY: -82,
+    leftFootX: 10, leftFootY: -36, rightFootX: 26, rightFootY: -44
+  },
+  { // 1: Descending mid-air spin
+    headX: -36, headY: -58, neckX: -26, neckY: -50, pelvisX: -10, pelvisY: -34,
+    leftHandX: -38, leftHandY: -54, rightHandX: -20, rightHandY: -56,
+    leftFootX: 16, leftFootY: -22, rightFootX: 30, rightFootY: -26
+  },
+  { // 2: Floor impact slam
+    headX: -40, headY: -22, neckX: -28, neckY: -18, pelvisX: -10, pelvisY: -12,
+    leftHandX: -36, leftHandY: -22, rightHandX: -18, rightHandY: -22,
+    leftFootX: 18, leftFootY: -8, rightFootX: 32, rightFootY: -10
+  },
+  { // 3: Floor bounce micro-recoil
+    headX: -38, headY: -28, neckX: -26, neckY: -22, pelvisX: -8, pelvisY: -16,
+    leftHandX: -34, leftHandY: -26, rightHandX: -16, rightHandY: -26,
+    leftFootX: 16, leftFootY: -12, rightFootX: 28, rightFootY: -14
+  },
+  { // 4: Final flat grounded sprawl (permanent K.O.)
+    headX: -44, headY: -12, neckX: -30, neckY: -10, pelvisX: -12, pelvisY: -8,
+    leftHandX: -40, leftHandY: -10, rightHandX: -18, rightHandY: -10,
+    leftFootX: 18, leftFootY: 0, rightFootX: 34, rightFootY: 0
+  }
+];
+
+// 13. VICTORY: Traditional Martial Arts Bow & Stance
+export const POSE_VICTORY: KeyframePose[] = [
+  {
+    headX: 0, headY: -88, neckX: 0, neckY: -76, pelvisX: 0, pelvisY: -45,
+    leftHandX: 6, leftHandY: -72, rightHandX: 4, rightHandY: -72,
+    leftFootX: -12, leftFootY: 0, rightFootX: 12, rightFootY: 0
+  },
+  {
+    headX: 0, headY: -89, neckX: 0, neckY: -77, pelvisX: 0, pelvisY: -45,
+    leftHandX: 8, leftHandY: -74, rightHandX: 4, rightHandY: -74,
+    leftFootX: -12, leftFootY: 0, rightFootX: 12, rightFootY: 0
+  }
+];
+
 // Helper to retrieve the current frame pose without memory allocations
 export function getPoseForState(state: string, stateTime: number, animFrame: number): KeyframePose {
   switch (state) {
@@ -300,6 +343,10 @@ export function getPoseForState(state: string, stateTime: number, animFrame: num
       return POSE_HIT_STUN[Math.min(POSE_HIT_STUN.length - 1, Math.floor(stateTime / 5))];
     case 'KNOCKDOWN':
       return POSE_KNOCKDOWN[Math.min(POSE_KNOCKDOWN.length - 1, Math.floor(stateTime / 8))];
+    case 'DEFEAT':
+      return POSE_DEFEAT[Math.min(POSE_DEFEAT.length - 1, Math.floor(stateTime / 7))];
+    case 'VICTORY':
+      return POSE_VICTORY[Math.floor(animFrame / 15) % POSE_VICTORY.length];
     default:
       return POSE_IDLE[0];
   }

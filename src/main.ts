@@ -158,13 +158,20 @@ class KillSwitchGame {
       this.startCombat(this.currentRound);
     });
 
-    // 6. Game Over Retry
+    // 6. Game Over Retry & Navigation
     const btnRestartGauntlet = document.getElementById('btn-restart-gauntlet');
+    const btnGoMenu = document.getElementById('btn-go-menu');
+
     btnRestartGauntlet?.addEventListener('click', () => {
       sound.playBypass();
       gemmaGhost.resetMemory();
+      this.arena.playerTotalDamage = 0;
       this.hideAllScreens();
       this.startCombat(1);
+    });
+
+    btnGoMenu?.addEventListener('click', () => {
+      this.showScreen('game-menu-screen');
     });
 
     // Menubar interactive features
@@ -482,28 +489,32 @@ class KillSwitchGame {
 
         const goRounds = document.getElementById('go-rounds-survived');
         const goDefeatedBy = document.getElementById('go-defeated-by');
+        const goTotalDamage = document.getElementById('go-total-damage');
         const goFatalHabit = document.getElementById('go-fatal-habit');
         const goQuote = document.getElementById('go-quote');
         const goSummary = document.getElementById('game-over-summary');
 
         if (goRounds) goRounds.innerText = `${this.currentRound - 1}`;
         if (goDefeatedBy) goDefeatedBy.innerText = `${this.arena.ghost.name} (Round ${this.currentRound})`;
+        if (goTotalDamage) goTotalDamage.innerText = `${this.arena.playerTotalDamage} HP`;
         if (goFatalHabit) {
           goFatalHabit.innerText = summary.habits.aerialRatio > 0.4
-            ? 'PREDICTABLE AERIAL DIVES'
-            : (summary.habits.favoriteCombo !== 'None' ? summary.habits.favoriteCombo : 'AGGRESSIVE RUSH');
+            ? `AERIAL DIVE SPAM (${Math.round(summary.habits.aerialRatio * 100)}%)`
+            : (summary.habits.favoriteCombo !== 'None' ? summary.habits.favoriteCombo : 'PREDICTABLE OPENINGS');
         }
 
         if (goSummary) {
-          goSummary.innerText = `You fought valiantly through ${this.currentRound - 1} round(s). ${this.arena.ghost.name} adapted to your rhythm and executed the final strike.`;
+          goSummary.innerText = `You conquered ${this.currentRound - 1} round(s). ${this.arena.ghost.name} adapted to your combat rhythm and executed the final strike.`;
         }
 
         if (goQuote) {
           const opponentName = this.arena.ghost.name;
+          const opening = summary.habits.openingMove;
+          const combo = summary.habits.favoriteCombo !== 'None' ? summary.habits.favoriteCombo : 'dive-kick approaches';
           const quotes = [
-            `"${opponentName} analyzed your timing and intercepted your ActionScript execution." — Gemma 3:4B`,
-            `"Your habits became your grave. In the 2021 time-bomb, only pure code survives." — Gemma 3:4B`,
-            `"Even Xiao Xiao could not out-adapt a learning neural ghost. Resurrect and try again." — Gemma 3:4B`
+            `"${opponentName} detected your ${opening} opening and timed a lethal counter. The Ghost now possesses your ActionScript bytecode." — Gemma 3:4B`,
+            `"Your reliance on ${combo} became your tombstone. In the 2021 time-bomb, predictable fighters get garbage-collected." — Gemma 3:4B`,
+            `"Even classic martial artists cannot survive an evolving neural adversary. Insert coin and try again." — Gemma 3:4B`
           ];
           goQuote.innerText = quotes[(this.currentRound) % quotes.length];
         }

@@ -210,39 +210,52 @@
             </div>
           </div>
 
-          <!-- 5. Game Over Screen (When AI defeats the player) -->
+          <!-- 5. Game Over Screen (Retro Arcade Final Defeat Screen) -->
           <div id="game-over-screen" class="retro-screen hidden">
             <div class="game-over-card">
               <div class="game-over-header">
                 <span class="skull-badge">💀</span>
-                <h1>THE MACHINE PREVAILED</h1>
+                <h1 class="game-over-title">G A M E &nbsp; O V E R</h1>
               </div>
               <p class="game-over-sub" id="game-over-summary">
-                The evolving AI memorized your habits and struck the fatal blow.
+                ActionScript 2.0 execution terminated. The Ghost memorized your martial arts habits.
               </p>
+
+              <!-- Detailed Autopsy & Match Telemetry Grid -->
               <div class="game-over-stats">
                 <div class="stat-pill">
-                  <span class="stat-label">ROUNDS SURVIVED</span>
+                  <span class="stat-label">ROUNDS CLEARED</span>
                   <span class="stat-val" id="go-rounds-survived">0</span>
                 </div>
                 <div class="stat-pill">
-                  <span class="stat-label">DEFEATED BY</span>
-                  <span class="stat-val" id="go-defeated-by">CRIMSON TITAN</span>
+                  <span class="stat-label">FINAL EXECUTIONER</span>
+                  <span class="stat-val" id="go-defeated-by">SHADOW RECON</span>
+                </div>
+                <div class="stat-pill">
+                  <span class="stat-label">TOTAL DAMAGE DEALT</span>
+                  <span class="stat-val" id="go-total-damage">0 HP</span>
                 </div>
                 <div class="stat-pill">
                   <span class="stat-label">FATAL HABIT EXPLOITED</span>
                   <span class="stat-val" id="go-fatal-habit">SPAMMING JUMP-KICKS</span>
                 </div>
               </div>
-              <div class="game-over-quote-box">
-                <p id="go-quote">"Your ActionScript memory has been garbage-collected." — Gemma 3:4B</p>
+
+              <!-- Gemma 3:4B Obituary Terminal -->
+              <div class="game-over-terminal">
+                <div class="terminal-tag">&gt; GOOGLE GEMMA 3:4B TACTICAL AUTOPSY LOG:</div>
+                <p id="go-quote" class="typewriter-text">"Your ActionScript memory has been garbage-collected." — Gemma 3:4B</p>
               </div>
+
               <div class="button-row">
                 <button id="btn-restart-gauntlet" class="flash-btn primary-btn pulse-btn">
-                  🔄 RETRY INFINITE GAUNTLET
+                  ⚔️ INSERT COIN / RETRY GAUNTLET ▶
                 </button>
                 <button id="btn-go-ofrenda" class="flash-btn secondary-btn">
                   🕯️ VISIT FLASH OFRENDA
+                </button>
+                <button id="btn-go-menu" class="flash-btn secondary-btn">
+                  🏠 RETURN TO MENU
                 </button>
               </div>
             </div>

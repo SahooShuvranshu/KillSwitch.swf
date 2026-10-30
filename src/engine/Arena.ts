@@ -216,6 +216,7 @@ export class Arena {
 
   public playerCombo: number = 0;
   public ghostCombo: number = 0;
+  public playerTotalDamage: number = 0;
 
   // Gemma Neural Read & Move Prediction Banner
   public tacticalBannerText: string | null = null;
@@ -547,8 +548,10 @@ export class Arena {
     // Win/Loss
     if (!this.isRoundOver) {
       if (this.player.health <= 0) {
+        this.ghost.setState('VICTORY');
         this.endRound(this.ghost.name);
       } else if (this.ghost.health <= 0) {
+        this.player.setState('VICTORY');
         this.endRound(this.player.name);
       }
     }
@@ -566,11 +569,14 @@ export class Arena {
       hitbox.y < hurtbox.y + hurtbox.h &&
       hitbox.y + hitbox.h > hurtbox.y;
 
-    if (isIntersecting && defender.state !== 'HIT_STUN' && defender.state !== 'KNOCKDOWN') {
+    if (isIntersecting && defender.state !== 'HIT_STUN' && defender.state !== 'KNOCKDOWN' && defender.state !== 'DEFEAT') {
       const result = defender.takeHit(hitbox);
 
       if (isPlayerAttacker) {
         this.playerCombo++;
+        if (!result.blocked) {
+          this.playerTotalDamage += result.damageDealt;
+        }
       } else {
         this.ghostCombo++;
       }
@@ -590,13 +596,17 @@ export class Arena {
 
         if (hitbox.isHeavy) {
           sound.playHeavyHit();
-          this.screenShake = 14;
-          this.freezeFrames = 6;
-          this.impactFlashFrames = 2;
+          this.screenShake = 10;
+          this.freezeFrames = 4;
         } else {
           sound.playJab();
-          this.screenShake = 4;
+          this.screenShake = 3;
           this.freezeFrames = 2;
+        }
+
+        // If this hit defeated the opponent:
+        if (defender.health <= 0) {
+          attacker.setState('VICTORY');
         }
       }
     }
@@ -607,9 +617,9 @@ export class Arena {
     this.isRoundOver = true;
     this.winner = winnerName;
     sound.playKO();
-    this.screenShake = 22;
-    this.freezeFrames = 20;
-    this.impactFlashFrames = 4;
+    this.screenShake = 16;
+    this.freezeFrames = 12;
+    this.impactFlashFrames = 2; // Subtle 2-frame soft bloom (not solid white)
 
     this.announcementText = 'K.O.!';
     this.announcementSub = `${winnerName.toUpperCase()} WINS`;
@@ -618,7 +628,7 @@ export class Arena {
     if (this.onRoundEnd) {
       setTimeout(() => {
         this.onRoundEnd?.(winnerName);
-      }, 2000);
+      }, 2200);
     }
   }
 
@@ -645,13 +655,6 @@ export class Arena {
   public render() {
     this.resize();
     this.ctx.save();
-
-    if (this.impactFlashFrames > 0) {
-      this.ctx.fillStyle = '#ffffff';
-      this.ctx.fillRect(0, 0, this.width, this.height);
-      this.ctx.restore();
-      return;
-    }
 
     let shakeX = 0;
     let shakeY = 0;
@@ -698,6 +701,13 @@ export class Arena {
 
     if (this.announcementFrames > 0) {
       this.renderAnnouncements();
+    }
+
+    // Soft K.O. lens bloom (Gentle 0.12 alpha, never blinding solid white)
+    if (this.impactFlashFrames > 0) {
+      this.impactFlashFrames--;
+      this.ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+      this.ctx.fillRect(0, 0, this.width, this.height);
     }
   }
 
