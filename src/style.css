@@ -1,0 +1,650 @@
+/* ==========================================================================
+   KillSwitch.swf — Retro Macromedia Flash Player 10.3 & CRT Styling
+   ========================================================================== */
+
+:root {
+  --flash-bg: #ece9d8;
+  --flash-border-light: #ffffff;
+  --flash-border-dark: #716f64;
+  --flash-title-blue: #0a246a;
+  --flash-title-blue-light: #a6caf0;
+  --crt-green: #00ff66;
+  --crt-amber: #ffb000;
+  --crt-cyan: #00ffff;
+  --ofrenda-orange: #ff7700;
+  --ofrenda-gold: #ffd700;
+  --ghost-purple: #b537f2;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+body {
+  background-color: #1a1a24;
+  background-image: 
+    radial-gradient(circle at 50% 50%, #252538 0%, #0d0d14 100%),
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 100% 100%, 20px 20px, 20px 20px;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Tahoma', 'Segoe UI', sans-serif;
+  color: #222;
+  overflow: hidden;
+}
+
+#desktop-container {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ==========================================================================
+   Macromedia Flash Window Frame
+   ========================================================================== */
+
+.flash-window {
+  width: 820px;
+  background: var(--flash-bg);
+  border: 2px solid;
+  border-color: var(--flash-border-light) var(--flash-border-dark) var(--flash-border-dark) var(--flash-border-light);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 0 0 0 1px #000;
+  border-radius: 4px 4px 0 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Title Bar */
+.window-titlebar {
+  background: linear-gradient(90deg, var(--flash-title-blue) 0%, var(--flash-title-blue-light) 100%);
+  color: #fff;
+  padding: 3px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: bold;
+  height: 26px;
+}
+
+.titlebar-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.flash-icon {
+  background: #ff0000;
+  color: #fff;
+  font-family: 'Arial Black', sans-serif;
+  font-size: 11px;
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  font-style: italic;
+}
+
+.window-controls {
+  display: flex;
+  gap: 2px;
+}
+
+.win-btn {
+  background: var(--flash-bg);
+  border: 1px solid;
+  border-color: var(--flash-border-light) var(--flash-border-dark) var(--flash-border-dark) var(--flash-border-light);
+  width: 18px;
+  height: 18px;
+  font-size: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+}
+
+.win-btn:active {
+  border-color: var(--flash-border-dark) var(--flash-border-light) var(--flash-border-light) var(--flash-border-dark);
+}
+
+.win-btn.win-close:hover {
+  background: #e81123;
+  color: #fff;
+}
+
+/* Menu Bar */
+.window-menubar {
+  background: var(--flash-bg);
+  display: flex;
+  padding: 2px 6px;
+  font-size: 11px;
+  border-bottom: 1px solid #999;
+  gap: 12px;
+}
+
+.menu-item {
+  cursor: pointer;
+  padding: 2px 6px;
+}
+
+.menu-item:hover {
+  background: #0a246a;
+  color: #fff;
+}
+
+/* Viewport & CRT Layering */
+.viewport-wrapper {
+  position: relative;
+  width: 800px;
+  height: 500px;
+  margin: 6px auto;
+  background: #050508;
+  border: 2px solid;
+  border-color: var(--flash-border-dark) var(--flash-border-light) var(--flash-border-light) var(--flash-border-dark);
+  overflow: hidden;
+}
+
+#game-canvas {
+  width: 800px;
+  height: 500px;
+  display: block;
+}
+
+/* CRT Scanline Effect */
+.crt-scanlines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+  background-size: 100% 3px, 3px 100%;
+  z-index: 20;
+}
+
+.crt-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.8), inset 0 0 10px rgba(0, 255, 100, 0.1);
+  z-index: 21;
+}
+
+/* Overlay Screen Management */
+#overlay-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.retro-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.3s ease;
+  pointer-events: auto;
+}
+
+.retro-screen.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.retro-screen.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ==========================================================================
+   Screen 1: The Infamous 2021 Kill Switch Dialog
+   ========================================================================== */
+
+#killswitch-screen {
+  background: rgba(10, 10, 18, 0.94);
+  backdrop-filter: blur(4px);
+}
+
+.killswitch-card {
+  width: 620px;
+  background: #fdfdfd;
+  border: 3px solid #cc0000;
+  border-radius: 6px;
+  padding: 24px 30px;
+  box-shadow: 0 10px 30px rgba(255, 0, 0, 0.3);
+  text-align: center;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  color: #111;
+  animation: subtleShake 4s infinite ease-in-out;
+}
+
+@keyframes subtleShake {
+  0%, 96%, 100% { transform: translate(0, 0); }
+  97% { transform: translate(-2px, 1px); }
+  98% { transform: translate(2px, -1px); }
+  99% { transform: translate(-1px, 2px); }
+}
+
+.flash-broken-logo {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 12px;
+  background: #d80000;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(216, 0, 0, 0.4);
+}
+
+.broken-f {
+  font-family: 'Arial Black', sans-serif;
+  font-size: 44px;
+  color: #fff;
+  font-style: italic;
+  transform: rotate(-10deg) skew(-5deg);
+}
+
+.bomb-badge {
+  position: absolute;
+  bottom: -6px;
+  right: -6px;
+  font-size: 24px;
+}
+
+.killswitch-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #cc0000;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+
+.killswitch-sub {
+  font-size: 13px;
+  color: #444;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.killswitch-lore-box {
+  background: #111;
+  border: 1px solid #444;
+  border-radius: 4px;
+  padding: 10px 14px;
+  text-align: left;
+  margin-bottom: 18px;
+}
+
+.killswitch-lore-box code {
+  font-family: 'Share Tech Mono', 'Courier New', monospace;
+  font-size: 11px;
+  color: #ff5555;
+  line-height: 1.6;
+}
+
+.player-input-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.player-input-row label {
+  font-size: 12px;
+  font-weight: bold;
+  color: #333;
+}
+
+.player-input-row input {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 14px;
+  padding: 6px 12px;
+  border: 2px solid #555;
+  border-radius: 4px;
+  background: #f0f0f0;
+  width: 180px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.button-row {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.flash-btn {
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px 18px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: none;
+}
+
+.primary-btn {
+  background: linear-gradient(180deg, #ff4d4d 0%, #cc0000 100%);
+  color: #fff;
+  border: 1px solid #880000;
+  box-shadow: 0 4px 10px rgba(204, 0, 0, 0.4);
+}
+
+.primary-btn:hover {
+  background: linear-gradient(180deg, #ff6666 0%, #e60000 100%);
+  transform: translateY(-1px);
+}
+
+.secondary-btn {
+  background: linear-gradient(180deg, #ff9900 0%, #cc6600 100%);
+  color: #fff;
+  border: 1px solid #994d00;
+  box-shadow: 0 4px 10px rgba(204, 102, 0, 0.3);
+}
+
+.secondary-btn:hover {
+  background: linear-gradient(180deg, #ffa826 0%, #e67300 100%);
+  transform: translateY(-1px);
+}
+
+.killswitch-footer {
+  font-size: 10px;
+  color: #888;
+  border-top: 1px solid #eee;
+  padding-top: 10px;
+  margin-top: 8px;
+}
+
+/* ==========================================================================
+   Screen 2: Gemma Inter-Round Lore Roast & Adaptation Screen
+   ========================================================================== */
+
+#roast-screen {
+  background: rgba(5, 5, 12, 0.95);
+}
+
+.roast-box {
+  width: 660px;
+  background: #090910;
+  border: 2px solid var(--ghost-purple);
+  box-shadow: 0 0 30px rgba(181, 55, 242, 0.3);
+  border-radius: 6px;
+  padding: 24px;
+  color: #eee;
+}
+
+.roast-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(181, 55, 242, 0.4);
+  padding-bottom: 10px;
+  margin-bottom: 16px;
+}
+
+.roast-speaker {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  color: #d175ff;
+  letter-spacing: 0.5px;
+}
+
+.roast-round {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  color: var(--crt-cyan);
+  background: rgba(0, 255, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+.roast-terminal {
+  background: #020204;
+  border: 1px solid #222;
+  border-radius: 4px;
+  padding: 16px 20px;
+  min-height: 90px;
+  margin-bottom: 20px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--crt-green);
+  text-shadow: 0 0 5px rgba(0, 255, 102, 0.6);
+  display: flex;
+  align-items: flex-start;
+}
+
+.blinking-cursor {
+  animation: blink 0.8s infinite;
+  color: var(--crt-green);
+  margin-left: 4px;
+}
+
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.adaptation-meters {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #111118;
+  padding: 14px 18px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  border: 1px solid #222;
+}
+
+.meter-col {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  color: #aaa;
+}
+
+.meter-bar {
+  width: 320px;
+  height: 12px;
+  background: #222;
+  border-radius: 2px;
+  overflow: hidden;
+  border: 1px solid #333;
+}
+
+.meter-bar div {
+  height: 100%;
+  background: linear-gradient(90deg, #ff4400 0%, #ff0055 100%);
+  transition: width 1s ease-in-out;
+}
+
+.roast-action {
+  text-align: center;
+}
+
+.pulse-btn {
+  animation: pulse 1.5s infinite alternate;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 0, 85, 0.4); }
+  100% { transform: scale(1.03); box-shadow: 0 0 25px rgba(255, 0, 85, 0.8); }
+}
+
+/* ==========================================================================
+   Screen 3: Flash Cemetery / Día de los Muertos Altar
+   ========================================================================== */
+
+#cemetery-screen {
+  background: rgba(12, 8, 16, 0.96);
+}
+
+.cemetery-container {
+  width: 720px;
+  background: #15101a;
+  border: 2px solid var(--ofrenda-orange);
+  box-shadow: 0 0 35px rgba(255, 119, 0, 0.25);
+  border-radius: 6px;
+  padding: 20px;
+  color: #fff;
+  text-align: center;
+}
+
+.cemetery-header h2 {
+  font-family: 'VT323', monospace;
+  font-size: 28px;
+  color: var(--ofrenda-gold);
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+  margin-bottom: 4px;
+}
+
+.cemetery-header p {
+  font-size: 12px;
+  color: #bbb;
+  margin-bottom: 16px;
+}
+
+.graves-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.grave-card {
+  background: #201826;
+  border: 1px solid #3a2a44;
+  border-radius: 6px;
+  padding: 12px 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.grave-card:hover {
+  background: #332042;
+  border-color: var(--ofrenda-orange);
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(255, 119, 0, 0.3);
+}
+
+.grave-card.active {
+  background: #421c35;
+  border-color: var(--ofrenda-gold);
+  box-shadow: 0 0 18px rgba(255, 215, 0, 0.5);
+}
+
+.grave-icon {
+  font-size: 26px;
+  margin-bottom: 6px;
+}
+
+.grave-name {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.grave-years {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: #999;
+  margin-bottom: 6px;
+}
+
+.candle {
+  font-size: 16px;
+  animation: candleFlicker 1.8s infinite ease-in-out alternate;
+}
+
+@keyframes candleFlicker {
+  0% { transform: scale(1); filter: drop-shadow(0 0 2px #ffaa00); }
+  50% { transform: scale(1.15) rotate(2deg); filter: drop-shadow(0 0 6px #ff7700); }
+  100% { transform: scale(0.95) rotate(-2deg); filter: drop-shadow(0 0 3px #ffcc00); }
+}
+
+.calaverita-display {
+  background: #0a070e;
+  border: 1px solid #3a2a44;
+  border-radius: 4px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  text-align: left;
+  min-height: 110px;
+}
+
+.calaverita-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  color: var(--ofrenda-gold);
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
+}
+
+.calaverita-body {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #ffd299;
+}
+
+.cemetery-actions {
+  text-align: center;
+}
+
+/* ==========================================================================
+   Window Status Bar
+   ========================================================================== */
+
+.window-statusbar {
+  background: var(--flash-bg);
+  border-top: 1px solid #999;
+  padding: 3px 6px;
+  display: flex;
+  font-size: 10px;
+  color: #333;
+  gap: 14px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.status-col {
+  border-right: 1px solid #ccc;
+  padding-right: 10px;
+}
+
+.status-col:last-child {
+  border-right: none;
+}

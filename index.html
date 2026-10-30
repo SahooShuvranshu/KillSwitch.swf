@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Macromedia Flash Player 10 - [KillSwitch.swf]</title>
+  <link rel="stylesheet" href="/src/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="desktop-container">
+    <!-- Retro Flash Player Window Frame -->
+    <div id="flash-window" class="flash-window">
+      <!-- Title Bar -->
+      <div class="window-titlebar">
+        <div class="titlebar-left">
+          <span class="flash-icon">f</span>
+          <span class="window-title">Macromedia Flash Player 10.3 - [KillSwitch.swf]</span>
+        </div>
+        <div class="window-controls">
+          <button class="win-btn" title="Minimize">_</button>
+          <button class="win-btn" title="Maximize">□</button>
+          <button class="win-btn win-close" title="Close">✕</button>
+        </div>
+      </div>
+
+      <!-- Flash Menu Bar -->
+      <div class="window-menubar">
+        <div class="menu-item" id="menu-file">File</div>
+        <div class="menu-item" id="menu-view">View</div>
+        <div class="menu-item" id="menu-control">Control</div>
+        <div class="menu-item" id="menu-gemma">Gemma 3:4B</div>
+        <div class="menu-item" id="menu-ofrenda">Ofrenda (Altar)</div>
+        <div class="menu-item" id="menu-help">Help</div>
+      </div>
+
+      <!-- Flash Canvas Container (800x500) -->
+      <div class="viewport-wrapper">
+        <canvas id="game-canvas" width="800" height="500"></canvas>
+        <div class="crt-scanlines"></div>
+        <div class="crt-glow"></div>
+
+        <!-- HTML Overlay Screens (Kill Switch, Roasts, Ofrenda) -->
+        <div id="overlay-container">
+          <!-- 1. The 2021 Kill Switch Screen -->
+          <div id="killswitch-screen" class="retro-screen active">
+            <div class="killswitch-card">
+              <div class="flash-broken-logo">
+                <span class="broken-f">f</span>
+                <span class="bomb-badge">💣</span>
+              </div>
+              <h1 class="killswitch-title">Adobe Flash Player is Blocked</h1>
+              <p class="killswitch-sub">
+                Execution was permanently revoked by Adobe Systems on <strong>January 12, 2021</strong> via hardcoded time-bomb payload.
+              </p>
+              <div class="killswitch-lore-box">
+                <code>
+                  [CRITICAL ERROR 0x7E5_DEAD_SWF]<br>
+                  NPAPI Plugin Hook: NULL<br>
+                  ActionScript 2.0 Bytecode: LOCKED<br>
+                  Ghost Status: AWAKE & POSSESSED BY GOOGLE GEMMA 3:4B
+                </code>
+              </div>
+
+              <div class="player-input-row">
+                <label for="player-name-input">MORTICIAN IDENTIFIER:</label>
+                <input type="text" id="player-name-input" maxlength="15" value="XiaoXiaoFan_04" />
+              </div>
+
+              <div class="button-row">
+                <button id="btn-bypass-killswitch" class="flash-btn primary-btn">
+                  ⚡ BYPASS KILL-SWITCH & FIGHT
+                </button>
+                <button id="btn-open-ofrenda" class="flash-btn secondary-btn">
+                  🕯️ VISIT FLASH OFRENDA (CEMETERY)
+                </button>
+              </div>
+
+              <div class="killswitch-footer">
+                DEV x MLH Hacktoberfest 2026 • Ghost in the Machine • Local Gemma 3:4B
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Inter-Round Gemma Roast / Dialogue Screen -->
+          <div id="roast-screen" class="retro-screen hidden">
+            <div class="roast-box">
+              <div class="roast-header">
+                <span class="roast-speaker">👻 THE GHOST OF FLASH PLAYER [Gemma 3:4B]</span>
+                <span id="roast-round-tag" class="roast-round">ROUND 1 TELEMETRY DECODED</span>
+              </div>
+              <div class="roast-terminal">
+                <p id="roast-text" class="typewriter-text">Decrypting ActionScript memory heaps...</p>
+                <span class="blinking-cursor">█</span>
+              </div>
+              <div class="adaptation-meters">
+                <div class="meter-col">
+                  <span>ANTI-AIR COUNTER:</span>
+                  <div class="meter-bar"><div id="meter-anti-air" style="width: 20%;"></div></div>
+                </div>
+                <div class="meter-col">
+                  <span>AGGRESSION:</span>
+                  <div class="meter-bar"><div id="meter-aggression" style="width: 50%;"></div></div>
+                </div>
+                <div class="meter-col">
+                  <span>GUARD BREAK TENDENCY:</span>
+                  <div class="meter-bar"><div id="meter-guard-break" style="width: 30%;"></div></div>
+                </div>
+              </div>
+              <div class="roast-action">
+                <button id="btn-next-round" class="flash-btn primary-btn pulse-btn">
+                  ⚔️ RESUME COMBAT (ROUND 2)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Flash Cemetery / Ofrenda Screen -->
+          <div id="cemetery-screen" class="retro-screen hidden">
+            <div class="cemetery-container">
+              <div class="cemetery-header">
+                <h2>💀 DÍA DE LOS MUERTOS: FLASH GAME OFRENDA 🕯️</h2>
+                <p>Honoring the masterworks executed by the 2021 Kill Switch. Select a tombstone to summon Gemma's <em>Calaverita Literaria</em>.</p>
+              </div>
+              <div class="graves-grid">
+                <div class="grave-card" data-game="Club Penguin">
+                  <div class="grave-icon">🐧</div>
+                  <div class="grave-name">Club Penguin</div>
+                  <div class="grave-years">2005 - 2017</div>
+                  <div class="candle">🕯️</div>
+                </div>
+                <div class="grave-card" data-game="Xiao Xiao">
+                  <div class="grave-icon">🥋</div>
+                  <div class="grave-name">Xiao Xiao</div>
+                  <div class="grave-years">2001 - 2004</div>
+                  <div class="candle">🕯️</div>
+                </div>
+                <div class="grave-card" data-game="Line Rider">
+                  <div class="grave-icon">🛷</div>
+                  <div class="grave-name">Line Rider</div>
+                  <div class="grave-years">2006 - 2021</div>
+                  <div class="candle">🕯️</div>
+                </div>
+                <div class="grave-card" data-game="Fancy Pants Adventures">
+                  <div class="grave-icon">👖</div>
+                  <div class="grave-name">Fancy Pants</div>
+                  <div class="grave-years">2006 - 2021</div>
+                  <div class="candle">🕯️</div>
+                </div>
+                <div class="grave-card" data-game="Alien Hominid">
+                  <div class="grave-icon">👽</div>
+                  <div class="grave-name">Alien Hominid</div>
+                  <div class="grave-years">2002 - 2021</div>
+                  <div class="candle">🕯️</div>
+                </div>
+              </div>
+              <div class="calaverita-display">
+                <div class="calaverita-title" id="calaverita-subject">SELECT A TOMBSTONE ABOVE</div>
+                <div class="calaverita-body" id="calaverita-content">
+                  <em>Light a candle on a grave to invoke Google Gemma 3:4B to compose a satirical Day of the Dead epitaph poem...</em>
+                </div>
+              </div>
+              <div class="cemetery-actions">
+                <button id="btn-back-to-game" class="flash-btn secondary-btn">
+                  ◀ RETURN TO FLASH PLAYER
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Retro Flash Status Bar -->
+      <div class="window-statusbar">
+        <div class="status-col" id="status-fps">FPS: 60.0</div>
+        <div class="status-col" id="status-vm">ActionScript 2.0 VM: INJECTED</div>
+        <div class="status-col" id="status-gemma">Gemma 3:4B: 127.0.0.1:11434 (ACTIVE)</div>
+        <div class="status-col" id="status-controls">Controls: [A/D] Move | [W] Jump | [S] Crouch | [J] Jab | [K] Kick | [W+K] Jump-Kick | [L] Block</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
