@@ -202,6 +202,7 @@ export class Arena {
   }
 
   private endRound(winnerName: string) {
+    if (this.isRoundOver) return;
     this.isRoundOver = true;
     this.winner = winnerName;
     sound.playKO();

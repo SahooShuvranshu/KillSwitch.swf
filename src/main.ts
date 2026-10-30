@@ -40,9 +40,40 @@ class KillSwitchGame {
     this.cemetery = new CemeteryManager();
 
     this.setupUIEvents();
+    this.setupWindowControls();
     this.setupInputListeners();
     this.setupRoundEndPipeline();
     this.startRenderLoop();
+  }
+
+  // --- Window Titlebar Controls (Maximize, Close, Minimize) ---
+  private setupWindowControls() {
+    const flashWindow = document.getElementById('flash-window');
+    const btnMax = document.getElementById('btn-win-max');
+    const btnClose = document.getElementById('btn-win-close');
+    const btnMin = document.getElementById('btn-win-min');
+
+    btnMax?.addEventListener('click', () => {
+      if (flashWindow) {
+        flashWindow.classList.toggle('fullscreen');
+        const isFull = flashWindow.classList.contains('fullscreen');
+        btnMax.innerText = isFull ? '❐' : '□';
+        btnMax.title = isFull ? 'Restore Window' : 'Maximize Fullscreen';
+      }
+    });
+
+    btnClose?.addEventListener('click', () => {
+      this.showScreen('killswitch-screen');
+      this.isRunning = false;
+      this.arena.startRound(1);
+    });
+
+    btnMin?.addEventListener('click', () => {
+      if (flashWindow?.classList.contains('fullscreen')) {
+        flashWindow.classList.remove('fullscreen');
+        if (btnMax) btnMax.innerText = '□';
+      }
+    });
   }
 
   // --- UI Event Listeners ---
@@ -83,21 +114,22 @@ class KillSwitchGame {
       this.startCombat(this.currentRound);
     });
 
-    // Menubar interactive placeholders
+    // Menubar interactive features
     document.getElementById('menu-file')?.addEventListener('click', () => {
       alert('Macromedia Flash Player 10.3\nFile: KillSwitch.swf\nStatus: RESURRECTED FROM 2021 TIME-BOMB');
     });
     document.getElementById('menu-view')?.addEventListener('click', () => {
-      alert('View Mode: 100% Vector Canvas (60.0 FPS Standard)');
+      const flashWindow = document.getElementById('flash-window');
+      flashWindow?.classList.toggle('fullscreen');
     });
     document.getElementById('menu-control')?.addEventListener('click', () => {
-      alert('Control: Rewind [Ctrl+R] | Play [Enter] | Step [Ctrl+Right]');
+      alert('Controls:\n[A/D] Move | [W] Jump | [S] Crouch\n[J] Jab | [K] Heavy Kick | [W+K] Flying Jump-Kick | [L] Guard\nMaximize: Click [□] top-right');
     });
     document.getElementById('menu-gemma')?.addEventListener('click', () => {
-      alert('Gemma 3:4B Status:\nEndpoint: 127.0.0.1:11434\nModel: gemma3:4b\nRole: Vengeful Flash Player Ghost & Combat Memory Tuner');
+      alert('Google Gemma 3:4B Status:\nEndpoint: 127.0.0.1:11434 (Local Ollama)\nModel: gemma3:4b\nArchitecture: System-One Structured Decision Mode + Generative Lore Persona');
     });
     document.getElementById('menu-help')?.addEventListener('click', () => {
-      alert('KillSwitch.swf Help:\nUse [A/D] to move, [W] to jump, [S] to crouch.\n[J] Light Jab, [K] Heavy Kick, [W+K] Flying Jump-Kick, [L] Guard.\nPowered by Google Gemma 3:4B.');
+      alert('KillSwitch.swf Help:\nDuel the Ghost of Flash Player!\nGemma 3:4B analyzes your fighting habits in Round 1 and tunes anti-air counters and guard breaks in Round 2.');
     });
   }
 
@@ -123,8 +155,20 @@ class KillSwitchGame {
   // --- Keyboard Input Handling ---
   private setupInputListeners() {
     window.addEventListener('keydown', (e) => {
+      // BUG FIX: Do NOT capture fighting game hotkeys when user is typing in text inputs!
+      const targetTag = (e.target as HTMLElement)?.tagName;
+      if (targetTag === 'INPUT' || targetTag === 'TEXTAREA') {
+        return;
+      }
+
       if (this.keysHeld[e.code]) return; // prevent duplicate auto-repeat
       this.keysHeld[e.code] = true;
+
+      // Fullscreen shortcut (F11 or Alt+Enter or 'F' key)
+      if (e.code === 'KeyF' && !this.isRunning) {
+        document.getElementById('flash-window')?.classList.toggle('fullscreen');
+        return;
+      }
 
       if (!this.isRunning || this.arena.isRoundOver) return;
 
@@ -170,6 +214,11 @@ class KillSwitchGame {
     });
 
     window.addEventListener('keyup', (e) => {
+      const targetTag = (e.target as HTMLElement)?.tagName;
+      if (targetTag === 'INPUT' || targetTag === 'TEXTAREA') {
+        return;
+      }
+
       this.keysHeld[e.code] = false;
 
       if (!this.isRunning || this.arena.isRoundOver) return;
