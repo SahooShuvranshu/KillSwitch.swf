@@ -4,26 +4,60 @@
 
 ![KillSwitch.swf — The Ghost in the Canvas](docs/cover-image.png)
 
+### 🏆 DatrixLabs Hack Day & MLH Hacktoberfest 2026 Week 4: "Ghost in the Machine"
+**Targeting Strictly: Best Use of Gemma Track**
+
+<!-- Primary Status Badges -->
 [![Live Showcase](https://img.shields.io/badge/Live%20Showcase-GitHub%20Pages-00F0FF?style=for-the-badge&logo=githubpages&logoColor=black)](https://sahooshuvranshu.github.io/KillSwitch.swf/)
 [![Google Gemma](https://img.shields.io/badge/AI%20Core-Google%20Gemma%203%3A4B-FF4500?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/gemma)
-[![Reinforcement Learning](https://img.shields.io/badge/Layer%201-Q--Learning%20Matrix-00FF88?style=for-the-badge)](https://sahooshuvranshu.github.io/KillSwitch.swf/)
-[![Frame Rate](https://img.shields.io/badge/Performance-60%20FPS%20Locked-FFD700?style=for-the-badge)](https://sahooshuvranshu.github.io/KillSwitch.swf/)
+[![Layer 1 AI](https://img.shields.io/badge/Layer%201-Q--Learning%20Matrix-00FF88?style=for-the-badge)](docs/learning-results.md)
+[![Performance](https://img.shields.io/badge/Engine-60%20FPS%20Locked-FFD700?style=for-the-badge)](https://sahooshuvranshu.github.io/KillSwitch.swf/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-A855F7?style=for-the-badge)](LICENSE)
 
-**An authentic 60 FPS HTML5 Canvas stickman resurrection game trapped inside a broken Macromedia Flash Player 10.3 desktop window.**  
+<!-- Technical & Architecture Badges -->
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.5-3178C6?style=flat-square&logo=typescript&logoColor=white)](tsconfig.json)
+[![Vite](https://img.shields.io/badge/Vite-5.4-646CFF?style=flat-square&logo=vite&logoColor=white)](vite.config.ts)
+[![HTML5 Canvas](https://img.shields.io/badge/Renderer-HTML5%20Canvas-E34F26?style=flat-square&logo=html5&logoColor=white)](src/main.ts)
+[![Web Audio API](https://img.shields.io/badge/Audio-Procedural%20Web%20Audio%20Synth-00E5FF?style=flat-square)](src/engine/Audio.ts)
+[![Zero External Sprites](https://img.shields.io/badge/Assets-Zero%20Sprites%20(Pure%20IK)-brightgreen?style=flat-square)](src/engine/Stickman.ts)
+[![100% Offline](https://img.shields.io/badge/Privacy-100%25%20Offline%20(Zero%20Cloud%20APIs)-success?style=flat-square)](SUBMISSION.md)
+[![Calibration](https://img.shields.io/badge/Calibration-900%20Rounds%20Verified-blueviolet?style=flat-square)](docs/difficulty-tuning.md)
+[![Automated Checks](https://img.shields.io/badge/Automated%20Tests-10%2F10%20Passing-success?style=flat-square)](docs/tests/)
+
+<br/>
+
+**An authentic 60 FPS HTML5 Canvas stickman resurrection fighting game trapped inside a broken Macromedia Flash Player 10.3 desktop window.**  
 *Bypass the 2021 time-bomb kill-switch to duel the vengeful Ghost of Flash Player, powered by a Dual-Layer AI architecture.*
 
-[🌐 Live Playable Showcase](https://sahooshuvranshu.github.io/KillSwitch.swf/) • [📊 900-Round Calibration](docs/difficulty-tuning.md) • [📈 1,800-Round Benchmark](docs/learning-results.md) • [📜 Submission Article](SUBMISSION.md)
+[🌐 Live Playable Showcase](https://sahooshuvranshu.github.io/KillSwitch.swf/) • [📊 900-Round Calibration](docs/difficulty-tuning.md) • [📈 1,800-Round Benchmark](docs/learning-results.md) • [📜 Submission Article](SUBMISSION.md) • [🚀 Quickstart](#-quickstart--local-setup)
 
 </div>
 
 ---
 
-### 🏆 Hackathon Submission & Team Attribution
-* **Event:** **DatrixLabs Hack Day** & **DEV x MLH Hacktoberfest 2026 Challenge: Week 4 ("Ghost in the Machine")**
-* **Track:** Strictly targeting **Best Use of Gemma** (`#hf26challenge`)
+## 📑 Table of Contents
+- [👥 Team Attribution](#-team-attribution--hackathon-track)
+- [💀 The Story: January 12, 2021](#-the-story-january-12-2021)
+- [🧠 Dual-Layer AI Architecture](#-dual-layer-ai-architecture)
+- [🔄 Combat Adaptation Sequence](#-combat-adaptation-sequence)
+- [🕹️ Combat State Machine & Error 0x7E5 Boss Rage](#-combat-state-machine--error-0x7e5-boss-rage)
+- [⚖️ 900-Round Human Difficulty Calibration](#-900-round-human-difficulty-calibration)
+- [🎨 Vector Kinematics & 8 Boss Archetypes](#-vector-kinematics--8-boss-archetypes)
+- [🎮 Controls & Martial Arts Moveset](#-controls--martial-arts-moveset)
+- [📊 Empirical Benchmarks (1,800 Rounds)](#-empirical-benchmarks-1800-rounds)
+- [🚀 Quickstart & Local Setup](#-quickstart--local-setup)
+- [🌐 GitHub Pages Deployment Guide](#-github-pages-deployment-guide)
+- [🌟 Why Open Innovation Matters](#-why-open-innovation-matters)
+- [📜 License](#-license)
+
+---
+
+## 👥 Team Attribution & Hackathon Track
+
+* **Hackathon:** **DatrixLabs Hack Day** & **DEV x MLH Hacktoberfest 2026 Challenge: Week 4 ("Ghost in the Machine")**
+* **Category:** Strictly targeting **Best Use of Gemma** (`#hf26challenge`, `#hacktoberfest`, `#gemma`)
 * **Team Members:**
-  * **Shuvranshu Sekhar Sahoo** ([@SahooShuvranshu](https://github.com/SahooShuvranshu)) — *Lead Engine Architect, Combat Kinematics & Dual-Layer AI Controller*
+  * **Shuvranshu Sekhar Sahoo** ([@SahooShuvranshu](https://github.com/SahooShuvranshu)) — *Lead Engine Architect, Kinematics & Dual-Layer AI Controller*
   * **Pruthiraj Lenka** — *AI Benchmark Architecture & Headless Difficulty Calibration*
   * **Suhani Priyadarshini** — *Telemetry Ingestion Pipeline & QA Automated Verification*
 
@@ -36,7 +70,7 @@
 
 ## 💀 The Story: January 12, 2021
 
-On January 12, 2021, Adobe triggered a hardcoded time-bomb kill-switch embedded deep inside the Flash Player runtime. Overnight, 25 years of internet history—from classic *Xiao Xiao* stickman martial arts cartoons to *Club Penguin* and *Line Rider*—were permanently bricked behind a silent, black warning icon.
+On January 12, 2021, Adobe triggered a hardcoded time-bomb kill-switch embedded deep inside the Flash Player runtime. Overnight, 25 years of internet history—from classic *Xiao Xiao* stickman martial arts cartoons and *Stick Death* to *Club Penguin* and *Line Rider*—were permanently bricked behind a silent, black warning icon.
 
 **`KillSwitch.swf`** resurrects that dead digital soul:
 * **The Setting:** You fight inside an authentic Macromedia Flash Player 10.3 window chrome, complete with timeline keyframes, a scrubbing playhead, and a live tracking OS cursor.
@@ -45,27 +79,94 @@ On January 12, 2021, Adobe triggered a hardcoded time-bomb kill-switch embedded 
 
 ---
 
-## 🧠 Dual-Layer AI Architecture: Q-Learning + Gemma 3:4B
+## 🧠 Dual-Layer AI Architecture
 
+```mermaid
+flowchart TD
+    subgraph L1["Layer 1: 60 FPS Real-Time Combat Engine (Client Canvas)"]
+        direction TB
+        PlayerInput["Player Inputs (WASD + JKUI / Space)"] --> Kinematics["2-Bone Inverse Kinematics Engine"]
+        Kinematics --> FrameQueue["60 FPS Deterministic Frame Queue"]
+        FrameQueue --> CombatTelemetry["Live Telemetry Tracker (Habits, Combos, Whiffs)"]
+        CombatTelemetry --> MarkovEngine["Markov Bigram Predictor: P(Next | Prev)"]
+        MarkovEngine --> QMatrix["Tabular Q-Learning Engine (Bellman Equation)"]
+        QMatrix --> ActionExec["Ghost Action Selection (10 Atomic Behaviors)"]
+        ActionExec --> CanvasRender["HTML5 Canvas 60 FPS Renderer + Web Audio Synth"]
+    end
+
+    subgraph L2["Layer 2: Inter-Round Tactical Cognition (Local Google Gemma 3:4B)"]
+        direction TB
+        RoundEnd["Round Over / K.O. Announcement"] --> TelemetryPayload["Aggregate Round Metrics JSON"]
+        TelemetryPayload --> OllamaClient["Local Ollama Service (127.0.0.1:11434)"]
+        OllamaClient --> GemmaModel["Google Gemma 3:4B (Vulkan Accelerated)"]
+        GemmaModel --> RoastMonologue["Streaming Sarcastic CRT Typewriter Roast"]
+        GemmaModel --> StateMachineParams["Extract Tactical Weights (antiAir, aggression, guardBreak)"]
+        StateMachineParams --> AIStateUpdate["Re-Weight AI State Machine for Round N+1"]
+    end
+
+    CanvasRender --> RoundEnd
+    AIStateUpdate --> QMatrix
 ```
-+-----------------------------------------------------------------------------------+
-| LAYER 1: 60 FPS REAL-TIME COMBAT (Q-Learning Reinforcement Engine & Markov Bigrams)|
-| - State Key: Bucket (close <75, mid 75-155, far) + Class (air/block/attack/idle)  |
-| - 10 Atomic Behaviors: EVADE, ANTI_AIR, WHIFF_PUNISH, GUARD_BREAK, PUNCH_CHAIN,   |
-|   KICK_CHAIN, UPPERCUT, FLYING_KNEE, JUMP_IN, RETREAT                             |
-| - Markov Bigram Predictor: Tracks P(NextMove | CurrentMove) in real-time          |
-| - Pre-trained on 1,500 simulated rounds across 5 bot styles (< 200 KB JSON)       |
-| - Execution Cost: 0.006 ms/frame (< 0.25 ms frame budget)                         |
-+-----------------------------------------------------------------------------------+
-                                          |
-                                          v (Round Over / K.O.)
-+-----------------------------------------------------------------------------------+
-| LAYER 2: INTER-ROUND STRATEGIC ADAPTATION (Local Google Gemma 3:4B via Ollama)    |
-| - Full telemetry analysis: aerial ratio, turtle ratio, Markov combo sequences      |
-| - Streaming CRT terminal roast monologue (spoken character-by-character)         |
-| - Tuning tactical parameters: antiAirPriority, aggression, guardBreakRate         |
-| - Signature Boss Mechanic: ActionScript 0x7E5 Time-Bomb Triple Teleport (<35% HP)|
-+-----------------------------------------------------------------------------------+
+
+---
+
+## 🔄 Combat Adaptation Sequence
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Player as Human Challenger
+    participant Engine as 60 FPS Combat Engine
+    participant QLearn as Q-Learning & Markov Predictor
+    participant Gemma as Local Google Gemma 3:4B (Ollama)
+    participant Ghost as The Flash Ghost AI
+
+    Player->>Engine: Combat Inputs (e.g., Jump -> Dive Kick spam)
+    Engine->>QLearn: Record bigram: Jump -> Dive Kick (P = 94%)
+    QLearn-->>Ghost: Execute Anti-Air Dragon Sweep intercept
+    Ghost->>Engine: K.O. Announcement (Round 1 Complete)
+    Engine->>Gemma: Stream Combat Telemetry JSON (14 Jump-Kicks, 2 Punches)
+    Gemma-->>Player: Character-by-character CRT Roast ("Still spamming Xiao Xiao jump-kicks?")
+    Gemma-->>Ghost: Tune antiAirPriority = 0.92, aggression = 0.85
+    Note over Ghost,Engine: Round 2 Begins with Primed Anti-Air Counter Strategy
+```
+
+---
+
+## 🕹️ Combat State Machine & Error 0x7E5 Boss Rage
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> WalkForward: Close Distance
+    Idle --> WalkBackward: Retreat / Reposition
+    Idle --> Jump: Airborne Launch (v0 = -10.4)
+    Idle --> Crouch: Duck High Attacks
+    Idle --> LightPunch: J / Z (3-Hit Combo Chain)
+    Idle --> HeavyKick: K / X (Roundhouse Finisher)
+    Idle --> DodgeRoll: Space (I-Frames Active)
+    Idle --> ShieldBlock: Hold L / C (Absorb Damage)
+    
+    Jump --> JumpKick: Xiao Xiao Dive-Kick
+    Crouch --> LowSweep: S + K (Guard Break)
+    Idle --> Uppercut: U (Rising Anti-Air)
+    Idle --> FlyingKnee: I (Clinch Strike)
+
+    LightPunch --> HitStun: Enemy Counter Hit
+    HeavyKick --> HitStun: Enemy Counter Hit
+    HitStun --> Idle: Stun Recovered
+
+    state "Nightmare Boss Rage (< 35% HP)" as RageMode {
+        [*] --> Teleport1: Memory Overflow (Behind Player)
+        Teleport1 --> Teleport2: Stack Corruption (Overhead)
+        Teleport2 --> Teleport3: Time-Bomb Surprise Claw Strike
+        Teleport3 --> [*]: 6s Rage Cooldown
+    }
+
+    HitStun --> RageMode: HP <= 35% (Nightmare Mode Only)
+    RageMode --> Idle: Rage Execution Completed
+    HitStun --> Defeat: HP <= 0
+    Defeat --> [*]
 ```
 
 ---
@@ -91,11 +192,13 @@ To prevent the Ghost from feeling superhuman, we calibrated all 3 difficulty tie
 | **Empirical Ghost Win Rate** | **26.7%** (Target Met) | **47.3%** (Target Met) | **65.7%** (Target Met) |
 | **Average Ghost Damage Taken**| **88.6 HP** (Target 80+) | **70.6 HP** (Target 50-80) | **43.9 HP** (Target 30-50) |
 
+Full per-round telemetry is archived in [`docs/difficulty-tuning.md`](docs/difficulty-tuning.md) and [`docs/difficulty-raw.csv`](docs/difficulty-raw.csv).
+
 ---
 
-## 🎨 Vector Visual Overhaul & 8 Boss Archetypes
+## 🎨 Vector Kinematics & 8 Boss Archetypes
 
-`KillSwitch.swf` uses zero external bitmap sprites or video files:
+`KillSwitch.swf` uses zero external bitmap sprites, sprite sheets, or video textures:
 1. **Analytical 2-Bone Inverse Kinematics (`solveJoint`):** Closed-form cosine-law bone solvers calculate natural knee flexion and elbow articulation without limb popping.
 2. **8 Distinct Opponent Visual Archetypes:**
    - **White Ghost (Round 1):** Classic high-contrast Flash silhouette with dark knuckles.
@@ -110,7 +213,7 @@ To prevent the Ghost from feeling superhuman, we calibrated all 3 difficulty tie
 
 ---
 
-## 🕹️ Controls & Martial Arts Moveset
+## 🎮 Controls & Martial Arts Moveset
 
 | Action | Primary Keys | Alternate Keys | Technical Details |
 | :--- | :--- | :--- | :--- |
@@ -148,6 +251,8 @@ To prevent the Ghost from feeling superhuman, we calibrated all 3 difficulty tie
 | **Held-Out Mirror Bot** | 42.0% | **47.0%** (+5.0%) | 41.0% |
 | **Overall Average** | 56.2% | **70.5%** (+14.3%) | 65.3% |
 
+Raw benchmark logs and metrics are archived in [`docs/learning-results.md`](docs/learning-results.md) and [`docs/benchmark-raw.csv`](docs/benchmark-raw.csv).
+
 ---
 
 ## 🚀 Quickstart & Local Setup
@@ -161,18 +266,27 @@ To prevent the Ghost from feeling superhuman, we calibrated all 3 difficulty tie
 
 ### 2. Launch the Game
 ```bash
-# Clone the repository
+# 1. Clone the repository
 git clone https://github.com/SahooShuvranshu/KillSwitch.swf.git
 cd KillSwitch.swf
 
-# Install dependencies
+# 2. Install dependencies
 npm install
 
-# Start Vite dev server
+# 3. Start Vite dev server
 npm run dev
 ```
 
 Open `http://localhost:5173/` in your browser and click **⚡ BYPASS KILL-SWITCH & FIGHT**!
+
+### 3. Automated Verification Suites
+```bash
+# Test deterministic round flow and Ollama integration
+node docs/tests/test-round-flow.mjs
+
+# Run full 6-point robustness suite (localStorage corruption, hitstun lock, blur events)
+node docs/tests/test-robustness.mjs
+```
 
 ---
 
@@ -189,5 +303,16 @@ Open `http://localhost:5173/` in your browser and click **⚡ BYPASS KILL-SWITCH
 
 ---
 
+## 🌟 Why Open Innovation Matters
+
+When Adobe shut down Flash Player in 2021, 25 years of digital art, browser gaming history, and indie creator culture were extinguished with a single proprietary kill-switch. It demonstrated the existential danger of building digital culture on closed, proprietary foundations.
+
+`KillSwitch.swf` proves why **open-weight models like Google Gemma 3:4B** and the open web matter:
+1. **Zero Kill-Switches**: Running open weights locally via Ollama means no corporate entity can revoke your license, shut down your endpoint, or brick your game.
+2. **100% Offline & Private**: Telemetry and player combat habits never leave your local machine; inference runs at 60 FPS offline with zero cloud telemetry.
+3. **Eternal Preservation**: Just as open web standards (HTML5 Canvas + Web Audio API) allow us to preserve the aesthetic of Flash without proprietary plugins, open-source AI ensures that intelligent characters and procedural worlds belong to developers forever.
+
+---
+
 ## 📜 License
-MIT License • Created for DatrixLabs Hack Day & DEV x MLH Hacktoberfest 2026.
+MIT License • Created for **DatrixLabs Hack Day** & **DEV x MLH Hacktoberfest 2026**.
