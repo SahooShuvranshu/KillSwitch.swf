@@ -13,16 +13,14 @@ canonical_url: "https://sahooshuvranshu.github.io/KillSwitch.swf/"
 
 ![KillSwitch.swf — The Ghost in the Canvas](https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/main/docs/cover-image.png)
 
-### 🚀 Quick Links & Team Attribution
+### 🚀 Quick Links & Author Attribution
 - 🌐 **Live Playable Showcase Website:** [https://sahooshuvranshu.github.io/KillSwitch.swf/](https://sahooshuvranshu.github.io/KillSwitch.swf/)
 - 🔗 **GitHub Repository:** [https://github.com/SahooShuvranshu/KillSwitch.swf](https://github.com/SahooShuvranshu/KillSwitch.swf)
 - 📊 **900-Round Calibration Report:** [https://github.com/SahooShuvranshu/KillSwitch.swf/blob/main/docs/difficulty-tuning.md](https://github.com/SahooShuvranshu/KillSwitch.swf/blob/main/docs/difficulty-tuning.md)
 - 📈 **1,800-Round Learning Benchmark:** [https://github.com/SahooShuvranshu/KillSwitch.swf/blob/main/docs/learning-results.md](https://github.com/SahooShuvranshu/KillSwitch.swf/blob/main/docs/learning-results.md)
 
-#### 👥 Hacktoberfest 2026 Team Members
-- **Shuvranshu Sekhar Sahoo** ([@SahooShuvranshu](https://github.com/SahooShuvranshu)) — *Lead Engine Architect, Combat Kinematics & Dual-Layer AI Controller*
-- **Pruthiraj Lenka** ([@Pruthiraj2007](https://github.com/Pruthiraj2007)) — *AI Benchmark Architecture & Headless Difficulty Calibration*
-- **Suhani Priyadarshini** ([@suhanipriyadarshini24-arch](https://github.com/suhanipriyadarshini24-arch)) — *Telemetry Ingestion Pipeline & QA Automated Verification*
+#### 👤 Author & Developer (Solo Submission)
+- **Shuvranshu Sekhar Sahoo** ([@SahooShuvranshu](https://github.com/SahooShuvranshu)) — *Solo Creator, Engine Architect, Combat Kinematics & Dual-Layer AI Controller*
 
 ---
 
@@ -37,7 +35,7 @@ On January 12, 2021, Adobe triggered a hardcoded time-bomb kill-switch embedded 
 
 Almost overnight, twenty-five years of internet culture—from classic *Xiao Xiao* stickman martial arts cartoons and *Club Penguin* to *Line Rider* and *Alien Hominid*—were permanently bricked behind a silent, black warning icon. The plugin refused to load. The animations stopped. The music went silent.
 
-For this week's **"Ghost in the Machine"** challenge, our team wanted to resurrect that dead digital soul.
+For this week's **"Ghost in the Machine"** challenge, I wanted to resurrect that dead digital soul.
 
 Meet **`KillSwitch.swf`**: a 60 FPS HTML5 Canvas stickman fighting game trapped inside a cracked Macromedia Flash Player 10.3 desktop window. You play as a rogue stickman fighter who breaches the 2021 kill-switch dialog to duel the **Ghost of Flash Player** itself.
 
@@ -49,7 +47,7 @@ The Ghost is not a pre-scripted dummy bot. It is powered by a **Dual-Layer Adapt
 
 ---
 
-## 🎮 What We Built
+## 🎮 What I Built
 
 `KillSwitch.swf` combines early-2000s web nostalgia with modern browser tech and cutting-edge local edge AI:
 
@@ -161,7 +159,7 @@ When the Ghost's health drops below 35% in Nightmare mode, it enters an unhinged
 
 ## ⚖️ 900-Round Human Difficulty Re-Tuning & Calibration
 
-To ensure the Ghost challenges players without feeling cheap or superhuman, we calibrated all 3 difficulty tiers across **900 headless rounds** against 3 competent human-proxy bots (*Jump-Kick Spammer*, *Combo Specialist*, *Mixed Adaptive Fighter*):
+To ensure the Ghost challenges players without feeling cheap or superhuman, I calibrated all 3 difficulty tiers across **900 headless rounds** against 3 competent human-proxy bots (*Jump-Kick Spammer*, *Combo Specialist*, *Mixed Adaptive Fighter*):
 
 | Parameter | Casual (Target 25-35%) | Veteran (Target 45-55%) | Nightmare (Target 60-70%) |
 |---|---|---|---|
@@ -184,7 +182,7 @@ To ensure the Ghost challenges players without feeling cheap or superhuman, we c
 
 ## 📊 Empirical Benchmarks & Generalization Proof
 
-To scientifically validate that the Q-learning agent genuinely learns and adapts rather than exploiting hardcoded cheats, we executed a rigorous **1,800-round benchmark** across 6 distinct opponent archetypes:
+To scientifically validate that the Q-learning agent genuinely learns and adapts rather than exploiting hardcoded cheats, I executed a rigorous **1,800-round benchmark** across 6 distinct opponent archetypes:
 
 ![Empirical Benchmark Metrics](https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/main/docs/benchmark-metrics-chart.png)
 *Figure 4: Win rate comparison across 6 opponent archetypes.*
@@ -218,7 +216,7 @@ Flash Player died because it was **closed-source and proprietary**. A single cor
 
 1. **Zero Kill-Switches with Open Weights**: Because **Google Gemma 3 4B** is an open-weight model running locally through Ollama, no company can ever remotely shut down this game's intelligence. No API deprecation, no sudden price hike, and no Terms of Service change can revoke the Ghost's brain.
 2. **100% Offline & Sovereignty**: The game requires zero internet connection. In the middle of nowhere, with the Wi-Fi disabled and the lights out, Gemma still analyzes telemetry, writes calaveritas, and adapts to your fighting style at 60 FPS.
-3. **Open Standards vs. Proprietary Plugins**: By rewriting the Flash stickman experience in open HTML5 Canvas and native Web Audio API, we prove that open web standards and open AI models can preserve, resurrect, and elevate creative history forever.
+3. **Open Standards vs. Proprietary Plugins**: By rewriting the Flash stickman experience in open HTML5 Canvas and native Web Audio API, this project proves that open web standards and open AI models can preserve, resurrect, and elevate creative history forever.
 
 ---
 

@@ -52,14 +52,12 @@
 
 ---
 
-## 👥 Team Attribution & Hackathon Track
+## 👤 Author Attribution & Hackathon Track
 
 * **Hackathon:** **DEV x MLH Hacktoberfest 2026 Challenge: Week 4 ("Ghost in the Machine")**
 * **Category:** Strictly targeting **Best Use of Gemma** (`#hf26challenge`, `#hacktoberfest`, `#gemma`)
-* **Team Members:**
-  * **Shuvranshu Sekhar Sahoo** ([@SahooShuvranshu](https://github.com/SahooShuvranshu)) — *Lead Engine Architect, Kinematics & Dual-Layer AI Controller*
-  * **Pruthiraj Lenka** ([@Pruthiraj2007](https://github.com/Pruthiraj2007)) — *AI Benchmark Architecture & Headless Difficulty Calibration*
-  * **Suhani Priyadarshini** ([@suhanipriyadarshini24-arch](https://github.com/suhanipriyadarshini24-arch)) — *Telemetry Ingestion Pipeline & QA Automated Verification*
+* **Author / Developer (Solo Submission):**
+  * **Shuvranshu Sekhar Sahoo** ([@SahooShuvranshu](https://github.com/SahooShuvranshu)) — *Solo Creator, Lead Engine Architect, Kinematics & Dual-Layer AI Controller*
 
 ---
 
@@ -173,7 +171,7 @@ stateDiagram-v2
 
 ## ⚖️ 900-Round Human Difficulty Calibration
 
-To prevent the Ghost from feeling superhuman, we calibrated all 3 difficulty tiers across **900 headless simulation rounds** against 3 competent human-proxy bots (*Jump-Kick Spammer*, *Combo Specialist*, *Mixed Adaptive Fighter*):
+To prevent the Ghost from feeling superhuman, I calibrated all 3 difficulty tiers across **900 headless simulation rounds** against 3 competent human-proxy bots (*Jump-Kick Spammer*, *Combo Specialist*, *Mixed Adaptive Fighter*):
 
 | Parameter | Casual (Target 25-35%) | Veteran (Target 45-55%) | Nightmare (Target 60-70%) |
 |---|---|---|---|
