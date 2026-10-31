@@ -1,0 +1,90 @@
+{
+  "close_idle_0": {
+    "PUNCH_CHAIN": 7.529,
+    "UPPERCUT": 2.462,
+    "KICK_CHAIN": 0.818,
+    "EVADE": -0.048,
+    "FLYING_KNEE": 4.947,
+    "GUARD_BREAK": 1.328
+  },
+  "close_air_0": {
+    "UPPERCUT": 3.81
+  },
+  "close_air_1": {
+    "ANTI_AIR": 1.144
+  },
+  "mid_air_0": {
+    "ANTI_AIR": 7.992
+  },
+  "mid_idle_0": {
+    "KICK_CHAIN": -0.087,
+    "FLYING_KNEE": 8.938,
+    "JUMP_IN": -0.731,
+    "EVADE": -0.296
+  },
+  "close_idle_1": {
+    "PUNCH_CHAIN": 6.337,
+    "UPPERCUT": -0.293,
+    "EVADE": -0.298
+  },
+  "far_idle_0": {
+    "FLYING_KNEE": -0.578,
+    "JUMP_IN": -0.606,
+    "EVADE": -0.147
+  },
+  "far_air_0": {
+    "ANTI_AIR": 7.12
+  },
+  "close_block_0": {
+    "GUARD_BREAK": 0.973,
+    "PUNCH_CHAIN": 3.032,
+    "KICK_CHAIN": 0.609
+  },
+  "close_attack_0": {
+    "WHIFF_PUNISH": 2.971,
+    "FLYING_KNEE": -1.581,
+    "EVADE": -1.127,
+    "RETREAT": -1.064
+  },
+  "mid_attack_0": {
+    "WHIFF_PUNISH": 0.268,
+    "FLYING_KNEE": 4.022,
+    "EVADE": -0.22
+  },
+  "mid_idle_1": {
+    "JUMP_IN": -0.658,
+    "FLYING_KNEE": 6.609,
+    "KICK_CHAIN": -0.356,
+    "EVADE": -0.369
+  },
+  "mid_attack_1": {
+    "WHIFF_PUNISH": 3.498,
+    "FLYING_KNEE": -0.245,
+    "EVADE": -0.274,
+    "RETREAT": -0.328
+  },
+  "close_attack_1": {
+    "WHIFF_PUNISH": -0.749,
+    "FLYING_KNEE": -0.961,
+    "EVADE": -1.28,
+    "RETREAT": -0.45
+  },
+  "close_block_1": {
+    "GUARD_BREAK": 1.346,
+    "PUNCH_CHAIN": 0.196
+  },
+  "mid_block_0": {
+    "GUARD_BREAK": 1.425
+  },
+  "far_idle_1": {
+    "JUMP_IN": -0.263,
+    "FLYING_KNEE": -0.108,
+    "EVADE": -0.617
+  },
+  "mid_block_1": {
+    "PUNCH_CHAIN": -0.101
+  },
+  "far_air_1": {
+    "ANTI_AIR": 4.412
+  }
+}

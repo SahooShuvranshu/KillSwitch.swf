@@ -73,6 +73,8 @@ Formulate your spoken taunt and tactical adaptation:`;
 
     let accumulatedRaw = '';
     let parsedAdaptation: CombatAdaptation | null = null;
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => abortController.abort(), 20000);
 
     try {
       let targetUrl = this.endpoint;
@@ -83,10 +85,11 @@ Formulate your spoken taunt and tactical adaptation:`;
         system: systemPrompt,
         prompt: userPrompt,
         stream: true,
+        keep_alive: '30m',
         options: {
           temperature: 0.78,
           top_p: 0.9,
-          num_predict: 260
+          num_predict: 150
         }
       };
 
@@ -94,14 +97,16 @@ Formulate your spoken taunt and tactical adaptation:`;
         response = await fetch(targetUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(requestBody)
+          body: JSON.stringify(requestBody),
+          signal: abortController.signal
         });
       } catch {
         targetUrl = this.fallbackEndpoint;
         response = await fetch(targetUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(requestBody)
+          body: JSON.stringify(requestBody),
+          signal: abortController.signal
         });
       }
 
@@ -145,6 +150,8 @@ Formulate your spoken taunt and tactical adaptation:`;
       console.warn('Ollama streaming fallback engaged:', err);
       parsedAdaptation = this.generateProceduralFallback(currentTelemetry);
       onSpeechChunk(parsedAdaptation.roast);
+    } finally {
+      clearTimeout(timeoutId);
     }
 
     onAdaptation(parsedAdaptation);
@@ -152,78 +159,91 @@ Formulate your spoken taunt and tactical adaptation:`;
 
   // Extracts pure dialogue without JSON braces or keys
   private extractCleanDialogue(raw: string): string {
-    let text = raw;
-
-    // 1. If TALK: or SPEECH: header is found, extract only the natural speech
-    const talkMatch = text.match(/(?:TALK|SPEECH):\s*([\s\S]*?)(?=(?:TACTICS:|ADAPTATION:|```|\{|$))/i);
-    if (talkMatch && talkMatch[1].trim()) {
-      return talkMatch[1].replace(/["*{}\[\]]/g, '').replace(/\r?\n+/g, ' ').trim();
+    if (!raw || typeof raw !== 'string' || !raw.trim()) {
+      return 'ActionScript 2.0 telemetry analyzing...';
     }
+    try {
+      let text = raw.replace(/```[a-z]*\r?\n?/gi, '').replace(/```/g, '');
 
-    // 2. If model output JSON like {"roast": "..."} or {"speech": "..."}
-    const jsonFieldMatch = text.match(/"(?:roast|speech|dialogue|text)"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)/i);
-    if (jsonFieldMatch && jsonFieldMatch[1].trim()) {
-      return jsonFieldMatch[1].replace(/\\n/g, ' ').replace(/\\"/g, '"').trim();
+      // 1. If TALK: or SPEECH: header is found, extract only the natural speech
+      const talkMatch = text.match(/(?:TALK|SPEECH):\s*([\s\S]*?)(?=(?:TACTICS:|ADAPTATION:|\{|$))/i);
+      if (talkMatch && talkMatch[1].trim()) {
+        return talkMatch[1].replace(/["*{}\[\]]/g, '').replace(/\r?\n+/g, ' ').trim();
+      }
+
+      // 2. If model output JSON like {"roast": "..."} or {"speech": "..."}
+      const jsonFieldMatch = text.match(/"(?:roast|speech|dialogue|text)"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)/i);
+      if (jsonFieldMatch && jsonFieldMatch[1].trim()) {
+        return jsonFieldMatch[1].replace(/\\n/g, ' ').replace(/\\"/g, '"').trim();
+      }
+
+      // 3. Cut off everything starting at TACTICS:, ADAPTATION:, or {
+      const cutIndex = text.search(/(?:TACTICS:|ADAPTATION:|\{)/i);
+      if (cutIndex !== -1) {
+        text = text.substring(0, cutIndex);
+      }
+
+      // 4. Clean remaining punctuation / noise
+      text = text
+        .replace(/^[\s"':{}[\],]+/, '')
+        .replace(/["*{}\[\]]/g, '')
+        .replace(/antiAirPriority|aggression|guardBreakRate|counterTactic|roast/gi, '')
+        .replace(/\r?\n+/g, ' ')
+        .trim();
+
+      return text || 'ActionScript 2.0 telemetry analyzing...';
+    } catch {
+      return 'ActionScript 2.0 telemetry analyzing...';
     }
-
-    // 3. Cut off everything starting at TACTICS:, ADAPTATION:, ```, or {
-    const cutIndex = text.search(/(?:TACTICS:|ADAPTATION:|```|\{)/i);
-    if (cutIndex !== -1) {
-      text = text.substring(0, cutIndex);
-    }
-
-    // 4. Clean remaining punctuation / noise
-    text = text
-      .replace(/^[\s"':{}[\],]+/, '')
-      .replace(/["*{}\[\]]/g, '')
-      .replace(/antiAirPriority|aggression|guardBreakRate|counterTactic|roast/gi, '')
-      .replace(/\r?\n+/g, ' ')
-      .trim();
-
-    return text || 'ActionScript 2.0 telemetry analyzing...';
   }
 
   private extractAdaptation(text: string, telemetry: RoundTelemetry): CombatAdaptation {
-    // 1. Try key-value TACTICS: line
-    const tacticsMatch = text.match(/TACTICS:\s*([^\r\n]+)/i);
-    if (tacticsMatch) {
-      const line = tacticsMatch[1];
-      const getVal = (key: string, def: string) => {
-        const m = line.match(new RegExp(`${key}=([^;\\s]+)`, 'i'));
-        return m ? m[1].trim() : def;
-      };
-      const getNum = (key: string, def: number) => {
-        const m = line.match(new RegExp(`${key}=([0-9.]+)`, 'i'));
-        return m ? parseFloat(m[1]) : def;
-      };
-
-      const opening = getVal('opening', telemetry.habits?.openingMove || 'JUMP_KICK');
-      const counterRaw = getVal('counter', 'ANTI_AIR').toUpperCase();
-      const validCounters = ['ANTI_AIR', 'PARRY_PUNISH', 'GUARD_SHATTER', 'RUSHDOWN'];
-      const counter = (validCounters.includes(counterRaw) ? counterRaw : 'ANTI_AIR') as any;
-
-      const antiAir = Math.min(0.95, Math.max(0.1, getNum('antiAir', 0.65)));
-      const aggression = Math.min(0.95, Math.max(0.2, getNum('aggression', 0.70)));
-      const guardBreak = Math.min(0.95, Math.max(0.1, getNum('guardBreak', 0.45)));
-
-      const reasonMatch = line.match(/reason=([^;\r\n]+)/i);
-      const reason = reasonMatch ? reasonMatch[1].trim() : 'Analyzing combat habits.';
-
-      const cleanRoast = this.extractCleanDialogue(text);
-      return {
-        roast: cleanRoast || this.generateProceduralFallback(telemetry).roast,
-        predictedOpening: opening,
-        parryComboTrigger: telemetry.habits?.favoriteCombo?.split(' -> ')[0] || 'JAB',
-        counterTactic: counter,
-        antiAirPriority: antiAir,
-        aggression: aggression,
-        guardBreakRate: guardBreak,
-        tacticalAnalysis: reason
-      };
+    if (!text || typeof text !== 'string') {
+      return this.generateProceduralFallback(telemetry);
     }
-
-    // 2. Try JSON parsing fallback if Gemma output JSON format
     try {
+      // 1. Try key-value TACTICS: line
+      const cleanText = text.replace(/```[a-z]*\r?\n?/gi, '').replace(/```/g, '');
+      const tacticsMatch = cleanText.match(/TACTICS:\s*([^\r\n]+)/i);
+      if (tacticsMatch) {
+        const line = tacticsMatch[1];
+        const getVal = (key: string, def: string) => {
+          const m = line.match(new RegExp(`${key}=([^;\\s]+)`, 'i'));
+          return m ? m[1].trim() : def;
+        };
+        const getNum = (key: string, def: number) => {
+          const m = line.match(new RegExp(`${key}=([0-9.]+)`, 'i'));
+          return m ? parseFloat(m[1]) : def;
+        };
+
+        const opening = getVal('opening', telemetry.habits?.openingMove || 'JUMP_KICK');
+        const counterRaw = getVal('counter', 'ANTI_AIR').toUpperCase();
+        const counter: CombatAdaptation['counterTactic'] = 
+          (counterRaw === 'PARRY_PUNISH' || counterRaw === 'GUARD_SHATTER' || counterRaw === 'RUSHDOWN') 
+            ? counterRaw 
+            : 'ANTI_AIR';
+
+        const antiAir = Math.min(0.95, Math.max(0.1, getNum('antiAir', 0.65)));
+        const aggression = Math.min(0.95, Math.max(0.2, getNum('aggression', 0.70)));
+        const guardBreak = Math.min(0.95, Math.max(0.1, getNum('guardBreak', 0.45)));
+
+        const reasonMatch = line.match(/reason=([^;\r\n]+)/i);
+        const reason = reasonMatch ? reasonMatch[1].trim() : 'Analyzing combat habits.';
+
+        const cleanRoast = this.extractCleanDialogue(text);
+        return {
+          roast: cleanRoast || this.generateProceduralFallback(telemetry).roast,
+          predictedOpening: opening,
+          parryComboTrigger: telemetry.habits?.favoriteCombo?.split(' -> ')[0] || 'JAB',
+          counterTactic: counter,
+          antiAirPriority: antiAir,
+          aggression: aggression,
+          guardBreakRate: guardBreak,
+          tacticalAnalysis: reason
+        };
+      }
+
+      // 2. Try JSON parsing fallback if Gemma output JSON format
       const jsonMatch = text.match(/\{[\s\S]*?\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
@@ -246,7 +266,7 @@ Formulate your spoken taunt and tactical adaptation:`;
     return this.generateProceduralFallback(telemetry);
   }
 
-  private generateProceduralFallback(telemetry: RoundTelemetry): CombatAdaptation {
+  public generateProceduralFallback(telemetry: RoundTelemetry): CombatAdaptation {
     let roast = '';
     let antiAir = 0.35;
     let aggression = 0.55;

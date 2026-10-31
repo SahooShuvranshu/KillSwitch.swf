@@ -75,7 +75,7 @@ export class TelemetryTracker {
   }
 
   // Record player action and update learned transition probabilities
-  public recordPlayerMove(move: 'JAB' | 'HEAVY_KICK' | 'JUMP_KICK' | 'BLOCK' | 'JUMP') {
+  public recordPlayerMove(move: 'JAB' | 'HEAVY_KICK' | 'JUMP_KICK' | 'BLOCK' | 'JUMP' | 'UPPERCUT' | 'FLYING_KNEE' | 'LOW_SWEEP') {
     // 1. Detect opening move within first 2.5 seconds
     if (this.openingMove === 'NONE' && (Date.now() - this.startTime) < 2500) {
       this.openingMove = move;
@@ -97,9 +97,14 @@ export class TelemetryTracker {
 
     // Increment raw stats
     if (move === 'JUMP_KICK') this.jumpKicks++;
-    else if (move === 'JAB') this.punches++;
-    else if (move === 'HEAVY_KICK') this.heavyKicks++;
+    else if (move === 'JAB' || move === 'UPPERCUT') this.punches++;
+    else if (move === 'HEAVY_KICK' || move === 'FLYING_KNEE' || move === 'LOW_SWEEP') this.heavyKicks++;
     else if (move === 'BLOCK') this.blocksCount++;
+  }
+
+  public getLastMove(): string | null {
+    if (this.moveHistory.length === 0) return null;
+    return this.moveHistory[this.moveHistory.length - 1];
   }
 
   public recordJumpKick() {
@@ -123,8 +128,11 @@ export class TelemetryTracker {
   }
 
   // Real-time Next-Move Predictor: predicts what the player will do next
-  public predictNextMove(currentMove: string): { predicted: string; confidence: number } | null {
-    const nextTransitions = this.transitions[currentMove];
+  public predictNextMove(): { predicted: string; confidence: number } | null {
+    const lastMove = this.getLastMove();
+    if (!lastMove) return null;
+
+    const nextTransitions = this.transitions[lastMove];
     if (!nextTransitions) return null;
 
     let total = 0;

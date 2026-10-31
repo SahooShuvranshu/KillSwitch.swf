@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Macromedia Flash Player 10 - [KillSwitch.swf]</title>
   <link rel="stylesheet" href="/src/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -20,9 +21,9 @@
           <span class="window-title">Macromedia Flash Player 10.3 - [KillSwitch.swf]</span>
         </div>
         <div class="window-controls">
-          <button class="win-btn" id="btn-win-min" title="Minimize">_</button>
-          <button class="win-btn win-max" id="btn-win-max" title="Toggle Fullscreen">□</button>
-          <button class="win-btn win-close" id="btn-win-close" title="Close / Reset">✕</button>
+          <button class="win-btn" id="btn-win-min" tabindex="-1" title="Minimize">_</button>
+          <button class="win-btn win-max" id="btn-win-max" tabindex="-1" title="Toggle Fullscreen">□</button>
+          <button class="win-btn win-close" id="btn-win-close" tabindex="-1" title="Close / Reset">✕</button>
         </div>
       </div>
 
@@ -50,8 +51,8 @@
               <span class="plugin-icon">🧩</span>
               <span class="plugin-text">killswitch.swf wants to: <strong>Run Adobe Flash Player</strong></span>
               <div class="plugin-actions">
-                <button id="btn-allow-plugin" class="plugin-btn primary">Allow</button>
-                <button id="btn-block-plugin" class="plugin-btn secondary">Block</button>
+                <button id="btn-allow-plugin" class="plugin-btn primary" tabindex="-1">Allow</button>
+                <button id="btn-block-plugin" class="plugin-btn secondary" tabindex="-1">Block</button>
               </div>
             </div>
             <div class="unblock-box" id="unblock-box-trigger">
@@ -61,7 +62,7 @@
               </div>
               <h1 class="unblock-title">Adobe Flash Player is blocked</h1>
               <p class="unblock-desc">Click anywhere to enable and unblock Adobe Flash Player 10.3</p>
-              <button id="btn-unblock-flash" class="flash-btn primary-btn pulse-btn">
+              <button id="btn-unblock-flash" class="flash-btn primary-btn pulse-btn" tabindex="-1">
                 ⚡ CLICK TO UNBLOCK FLASH PLAYER
               </button>
               <div class="unblock-footer">NPAPI Flash Plugin • Resurrected by Local Gemma 3:4B</div>
@@ -92,7 +93,7 @@
                 </div>
               </div>
               <div class="intro-action">
-                <button id="btn-intro-continue" class="flash-btn primary-btn hidden">
+                <button id="btn-intro-continue" class="flash-btn primary-btn hidden" tabindex="-1">
                   ⚔️ ENTER THE GAUNTLET ▶
                 </button>
               </div>
@@ -117,6 +118,15 @@
                 </div>
               </div>
 
+              <div class="difficulty-select-group">
+                <label>AI DIFFICULTY TIER:</label>
+                <div class="diff-btn-row">
+                  <button type="button" id="btn-diff-casual" class="diff-btn" data-diff="casual" tabindex="-1">CASUAL</button>
+                  <button type="button" id="btn-diff-veteran" class="diff-btn active" data-diff="veteran" tabindex="-1">VETERAN</button>
+                  <button type="button" id="btn-diff-nightmare" class="diff-btn" data-diff="nightmare" tabindex="-1">NIGHTMARE</button>
+                </div>
+              </div>
+
               <div class="fighter-assigned-info">
                 <div class="assigned-avatar">🥋</div>
                 <div class="assigned-details">
@@ -127,11 +137,14 @@
               </div>
 
               <div class="button-row">
-                <button id="btn-start-infinite" class="flash-btn primary-btn pulse-btn">
+                <button id="btn-start-infinite" class="flash-btn primary-btn pulse-btn" tabindex="-1">
                   ⚔️ START INFINITE MATCH
                 </button>
-                <button id="btn-open-ofrenda" class="flash-btn secondary-btn">
+                <button id="btn-open-ofrenda" class="flash-btn secondary-btn" tabindex="-1">
                   🕯️ VISIT FLASH OFRENDA (MEMORIAL)
+                </button>
+                <button id="btn-reset-ai-memory" class="flash-btn secondary-btn" title="Clear persistent Q-table and learned habits" tabindex="-1">
+                  🔄 RESET AI MEMORY
                 </button>
               </div>
 
@@ -211,7 +224,7 @@
                 </div>
               </div>
               <div class="roast-action">
-                <button id="btn-next-round" class="flash-btn primary-btn pulse-btn">
+                <button id="btn-next-round" class="flash-btn primary-btn pulse-btn" tabindex="-1">
                   ⚔️ FACE NEXT OPPONENT ▶
                 </button>
               </div>
@@ -256,13 +269,13 @@
               </div>
 
               <div class="button-row">
-                <button id="btn-restart-gauntlet" class="flash-btn primary-btn pulse-btn">
+                <button id="btn-restart-gauntlet" class="flash-btn primary-btn pulse-btn" tabindex="-1">
                   ⚔️ INSERT COIN / RETRY GAUNTLET ▶
                 </button>
-                <button id="btn-go-ofrenda" class="flash-btn secondary-btn">
+                <button id="btn-go-ofrenda" class="flash-btn secondary-btn" tabindex="-1">
                   🕯️ VISIT FLASH OFRENDA
                 </button>
-                <button id="btn-go-menu" class="flash-btn secondary-btn">
+                <button id="btn-go-menu" class="flash-btn secondary-btn" tabindex="-1">
                   🏠 RETURN TO MENU
                 </button>
               </div>
@@ -315,7 +328,7 @@
                 </div>
               </div>
               <div class="cemetery-actions">
-                <button id="btn-back-to-game" class="flash-btn secondary-btn">
+                <button id="btn-back-to-game" class="flash-btn secondary-btn" tabindex="-1">
                   ◀ RETURN TO FLASH PLAYER
                 </button>
               </div>

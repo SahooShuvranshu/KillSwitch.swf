@@ -6,6 +6,7 @@
 import { Stickman } from './Stickman';
 import { CombatAdaptation } from '../ai/GemmaGhost';
 import { TelemetryTracker } from '../ai/Telemetry';
+import { BehaviorLearner } from '../ai/BehaviorLearner';
 import { GameDifficulty } from './Arena';
 import { sound } from './Audio';
 
@@ -13,6 +14,13 @@ export class AIController {
   private ghost: Stickman;
   private player: Stickman;
   private telemetry?: TelemetryTracker;
+
+  public learner: BehaviorLearner = new BehaviorLearner();
+  public useLearner: boolean = true;
+  public lastStateKey: string = '';
+  public lastBehavior: string = '';
+  public lastReward: number = 0;
+  public actionCountThisRound: number = 0;
 
   public difficulty: GameDifficulty = 'veteran';
   public roundNumber: number = 1;
@@ -36,6 +44,9 @@ export class AIController {
   private decisionTimer: number = 0;
   private parryCooldown: number = 0;
 
+  // Frame queue for tick-based delays (replacing setTimeout)
+  private queue: { frames: number; fn: () => void }[] = [];
+
   // Callback to display tactical prediction banner in Arena
   public onTacticalRead?: (readText: string) => void;
 
@@ -44,6 +55,10 @@ export class AIController {
     this.player = player;
     this.telemetry = telemetry;
     this.difficulty = difficulty;
+  }
+
+  public schedule(frames: number, fn: () => void) {
+    this.queue.push({ frames, fn });
   }
 
   public setTelemetry(telemetry: TelemetryTracker) {
@@ -59,6 +74,20 @@ export class AIController {
     this.isRageModeActive = false;
     this.rageAttackTimer = 0;
     this.actionCooldown = 0;
+    this.decisionTimer = 0;
+    this.parryCooldown = 0;
+    this.queue = [];
+    this.lastStateKey = '';
+    this.lastBehavior = '';
+    this.lastReward = 0;
+    this.actionCountThisRound = 0;
+
+    if (!this.ghost.canAct()) {
+      this.ghost.state = 'IDLE';
+      this.ghost.stateTime = 0;
+      this.ghost.hitStunFrames = 0;
+      this.ghost.blockStunFrames = 0;
+    }
   }
 
   // Update dynamic weights & learned counters from Gemma 3:4B analysis
@@ -91,11 +120,29 @@ export class AIController {
   }
 
   public update() {
-    if (!this.ghost.canAct() || this.ghost.health <= 0 || this.player.health <= 0 || this.player.state === 'DEFEAT') {
+    // Clear scheduled actions if ghost enters hitstun
+    if (this.ghost.state === 'HIT_STUN') {
+      this.queue = [];
+    }
+
+    // Tick frame queue (decrements each item and runs due ones)
+    for (let i = this.queue.length - 1; i >= 0; i--) {
+      this.queue[i].frames--;
+      if (this.queue[i].frames <= 0) {
+        const item = this.queue.splice(i, 1)[0];
+        item.fn();
+      }
+    }
+
+    if (this.player.health <= 0 || this.player.state === 'DEFEAT') {
       this.ghost.stopMoving();
       if (this.ghost.health > 0 && this.ghost.state !== 'VICTORY') {
         this.ghost.setState('VICTORY');
       }
+      return;
+    }
+
+    if (!this.ghost.canAct() || this.ghost.health <= 0) {
       return;
     }
 
@@ -156,7 +203,7 @@ export class AIController {
 
     // --- 1. Real-Time Move Prediction via Markov Sequence Model ---
     if (this.telemetry) {
-      const prediction = this.telemetry.predictNextMove(this.player.state);
+      const prediction = this.telemetry.predictNextMove();
       if (prediction && prediction.confidence >= 0.45 && this.parryCooldown <= 0) {
         if (prediction.predicted === 'HEAVY_KICK' && dist < 115) {
           this.onTacticalRead?.(`⚡ GEMMA READ: PREDICTED HEAVY KICK (${Math.round(prediction.confidence * 100)}%)`);
@@ -165,58 +212,18 @@ export class AIController {
           this.parryCooldown = Math.max(50, 90 - cdReduction * 3);
           this.actionCooldown = Math.max(6, 12 - cdReduction);
 
-          setTimeout(() => {
+          this.schedule(8, () => {
             if (this.ghost.canAct()) {
               this.ghost.block(false);
               this.ghost.uppercut(); // Counter-launch the heavy kick!
             }
-          }, 130);
+          });
           return;
         }
       }
     }
 
-    // --- 2. Reactive Anti-Air Counter (Punishes Aerial Dive Habits) ---
-    const isPlayerAirborne = this.player.state === 'JUMP' || this.player.state === 'JUMP_KICK';
-    if (isPlayerAirborne && dist < 170) {
-      if (Math.random() < antiAirRate) {
-        if (Math.random() < 0.60) {
-          // Explosive Rising Uppercut Launcher
-          this.onTacticalRead?.('⚡ GEMMA READ: ANTI-AIR UPPERCUT!');
-          this.ghost.uppercut();
-          this.actionCooldown = Math.max(10, 22 - cdReduction);
-          return;
-        } else {
-          // Flying Clinch Knee intercept
-          this.onTacticalRead?.('⚡ GEMMA READ: FLYING KNEE INTERCEPT!');
-          this.ghost.flyingKnee();
-          this.actionCooldown = Math.max(10, 22 - cdReduction);
-          return;
-        }
-      }
-    }
-
-    // --- 3. Whiff Punish: Strike when player misses attack & is recovering ---
-    const isPlayerWhiffing = (this.player.state === 'JAB' && this.player.stateTime > 6) ||
-                             (this.player.state === 'HEAVY_KICK' && this.player.stateTime > 12);
-    if (isPlayerWhiffing && dist < 115 && Math.random() < aggRate) {
-      this.onTacticalRead?.('⚡ GEMMA READ: WHIFF PUNISH!');
-      this.ghost.flyingKnee();
-      this.actionCooldown = Math.max(10, 20 - cdReduction);
-      return;
-    }
-
-    // --- 4. Guard-Break Counter (Punishes Turtling Habits with Low Shin Sweep) ---
-    if (this.player.state === 'BLOCK' && dist < 110) {
-      if (Math.random() < guardRate) {
-        this.onTacticalRead?.('⚡ GEMMA READ: LOW SWEEP GUARD-BREAK!');
-        this.ghost.lowSweep();
-        this.actionCooldown = Math.max(10, 20 - cdReduction);
-        return;
-      }
-    }
-
-    // --- 5. Defensive Reaction vs Incoming Attacks ---
+    // --- 2. Defensive Reaction vs Incoming Attacks ---
     const playerHitbox = this.player.getHitbox();
     if (playerHitbox && dist < 100) {
       const baseBlockChance = this.difficulty === 'casual' ? 0.30 : (this.difficulty === 'veteran' ? 0.60 : 0.85);
@@ -226,62 +233,168 @@ export class AIController {
           this.ghost.dodgeRoll(); // Evasive tumble
         } else {
           this.ghost.block(true);
-          setTimeout(() => this.ghost.block(false), 200);
+          this.schedule(12, () => this.ghost.block(false));
         }
         this.actionCooldown = Math.max(8, 16 - cdReduction);
         return;
       }
     }
 
-    // --- 6. Spacing, Pressure & Expanded Combo Strings ---
-    const closeDistance = 75;
-    const midDistance = 155;
+    // --- 3. Q-Learning Behavior Selection (State Key & Decision) ---
+    const distBucket = dist < 75 ? 'close' : (dist <= 155 ? 'mid' : 'far');
+    let playerClass = 'idle';
+    if (this.player.state === 'JUMP' || this.player.state === 'JUMP_KICK') {
+      playerClass = 'air';
+    } else if (this.player.state === 'BLOCK') {
+      playerClass = 'block';
+    } else if (
+      this.player.state === 'JAB' || 
+      this.player.state === 'CROSS_PUNCH' || 
+      this.player.state === 'PALM_BURST' || 
+      this.player.state === 'HEAVY_KICK' || 
+      this.player.state === 'AXE_KICK' || 
+      this.player.state === 'UPPERCUT' || 
+      this.player.state === 'FLYING_KNEE' || 
+      this.player.state === 'LOW_SWEEP'
+    ) {
+      playerClass = 'attack';
+    }
 
-    if (dist > midDistance) {
-      this.ghost.move(dir);
-    } else if (dist < closeDistance) {
-      if (Math.random() < aggRate) {
-        const roll = Math.random();
-        if (roll < 0.45) {
-          // 3-Hit Punch Chain (Jab -> Cross -> Palm)
-          this.ghost.jab();
-          setTimeout(() => {
-            if (this.ghost.canAct()) this.ghost.crossPunch();
-          }, 80);
-          setTimeout(() => {
-            if (this.ghost.canAct()) this.ghost.palmBurst();
-          }, 180);
-          this.actionCooldown = Math.max(12, 22 - cdReduction);
-        } else if (roll < 0.70) {
-          // 2-Hit Kick Chain (Roundhouse -> Axe Kick)
-          this.ghost.heavyKick();
-          setTimeout(() => {
-            if (this.ghost.canAct()) this.ghost.axeKick();
-          }, 110);
-          this.actionCooldown = Math.max(12, 22 - cdReduction);
-        } else if (roll < 0.88) {
-          // Rising Uppercut Launcher
+    const cornered = (this.ghost.x <= 95 || this.ghost.x >= 705) ? '1' : '0';
+    const stateKey = `${distBucket}_${playerClass}_${cornered}`;
+
+    const allowed: string[] = [];
+    if (playerClass === 'air') {
+      allowed.push('ANTI_AIR', 'UPPERCUT', 'FLYING_KNEE', 'EVADE', 'RETREAT');
+    } else if (playerClass === 'block') {
+      allowed.push('GUARD_BREAK', 'PUNCH_CHAIN', 'KICK_CHAIN', 'EVADE', 'RETREAT');
+    } else if (playerClass === 'attack') {
+      allowed.push('WHIFF_PUNISH', 'FLYING_KNEE', 'EVADE', 'RETREAT');
+    } else {
+      if (distBucket === 'close') {
+        allowed.push('PUNCH_CHAIN', 'KICK_CHAIN', 'UPPERCUT', 'FLYING_KNEE', 'GUARD_BREAK', 'EVADE', 'RETREAT');
+      } else if (distBucket === 'mid') {
+        allowed.push('JUMP_IN', 'FLYING_KNEE', 'KICK_CHAIN', 'EVADE', 'RETREAT');
+      } else {
+        allowed.push('JUMP_IN', 'FLYING_KNEE', 'RETREAT', 'EVADE');
+      }
+    }
+
+    let choice = this.useLearner ? this.learner.choose(stateKey, allowed) : '';
+    if (!choice || !allowed.includes(choice)) {
+      if (playerClass === 'air') {
+        choice = Math.random() < antiAirRate ? 'ANTI_AIR' : 'EVADE';
+      } else if (playerClass === 'block') {
+        choice = Math.random() < guardRate ? 'GUARD_BREAK' : 'PUNCH_CHAIN';
+      } else if (playerClass === 'attack') {
+        choice = Math.random() < 0.5 ? 'WHIFF_PUNISH' : 'EVADE';
+      } else {
+        if (distBucket === 'close') {
+          choice = Math.random() < aggRate ? 'PUNCH_CHAIN' : 'KICK_CHAIN';
+        } else if (distBucket === 'mid') {
+          choice = Math.random() < 0.6 ? 'FLYING_KNEE' : 'JUMP_IN';
+        } else {
+          choice = 'JUMP_IN';
+        }
+      }
+    }
+
+    this.lastStateKey = stateKey;
+    this.lastBehavior = choice;
+    this.actionCountThisRound++;
+
+    switch (choice) {
+      case 'ANTI_AIR':
+        this.onTacticalRead?.('⚡ AI LEARNER: ANTI-AIR COUNTER!');
+        if (Math.random() < 0.60) {
           this.ghost.uppercut();
-          this.actionCooldown = Math.max(12, 24 - cdReduction);
         } else {
           this.ghost.flyingKnee();
-          this.actionCooldown = Math.max(14, 26 - cdReduction);
         }
-      } else {
+        this.actionCooldown = Math.max(10, 22 - cdReduction);
+        break;
+
+      case 'WHIFF_PUNISH':
+        this.onTacticalRead?.('⚡ AI LEARNER: WHIFF PUNISH!');
+        this.ghost.flyingKnee();
+        this.actionCooldown = Math.max(10, 20 - cdReduction);
+        break;
+
+      case 'GUARD_BREAK':
+        this.onTacticalRead?.('⚡ AI LEARNER: LOW SWEEP GUARD-BREAK!');
+        this.ghost.lowSweep();
+        this.actionCooldown = Math.max(10, 20 - cdReduction);
+        break;
+
+      case 'PUNCH_CHAIN':
+        this.ghost.jab();
+        this.schedule(5, () => {
+          if (this.ghost.canAct()) this.ghost.crossPunch();
+        });
+        this.schedule(11, () => {
+          if (this.ghost.canAct()) this.ghost.palmBurst();
+        });
+        this.actionCooldown = Math.max(12, 22 - cdReduction);
+        break;
+
+      case 'KICK_CHAIN':
+        this.ghost.heavyKick();
+        this.schedule(7, () => {
+          if (this.ghost.canAct()) this.ghost.axeKick();
+        });
+        this.actionCooldown = Math.max(12, 22 - cdReduction);
+        break;
+
+      case 'UPPERCUT':
+        this.ghost.uppercut();
+        this.actionCooldown = Math.max(12, 24 - cdReduction);
+        break;
+
+      case 'FLYING_KNEE':
+        this.ghost.flyingKnee();
+        this.actionCooldown = Math.max(14, 26 - cdReduction);
+        break;
+
+      case 'JUMP_IN':
+        this.ghost.jump();
+        this.ghost.jumpKick();
+        this.actionCooldown = Math.max(14, 28 - cdReduction);
+        break;
+
+      case 'RETREAT':
         this.ghost.move(-dir);
+        break;
+
+      case 'EVADE':
+        this.ghost.dodgeRoll();
+        this.actionCooldown = Math.max(12, 22 - cdReduction);
+        break;
+    }
+
+    if (dist > 75 && choice !== 'RETREAT' && choice !== 'EVADE') {
+      this.ghost.move(dir);
+    }
+  }
+
+  public onHitResult(dealt: number, taken: number): void {
+    if (!this.lastStateKey || !this.lastBehavior) return;
+    const reward = (dealt - taken) / 10;
+    this.lastReward = reward;
+    if (this.useLearner) {
+      this.learner.update(this.lastStateKey, this.lastBehavior, reward);
+    }
+  }
+
+  public onRoundEnd(won: boolean): void {
+    if (this.lastStateKey && this.lastBehavior) {
+      const reward = won ? 5 : -5;
+      this.lastReward = reward;
+      if (this.useLearner) {
+        this.learner.update(this.lastStateKey, this.lastBehavior, reward);
       }
-    } else {
-      if (Math.random() < aggRate * 0.80) {
-        if (Math.random() < 0.35) {
-          this.ghost.jump();
-          this.ghost.jumpKick();
-          this.actionCooldown = Math.max(14, 28 - cdReduction);
-        } else {
-          this.ghost.move(dir);
-        }
-      } else {
-        this.ghost.stopMoving();
-      }
+    }
+    if (this.useLearner) {
+      this.learner.endRound();
     }
   }
 
@@ -303,8 +416,8 @@ export class AIController {
     this.ghost.x = this.player.x - 110 * this.player.facing;
     this.ghost.facing = this.player.facing;
 
-    // Step 2: Glitch Phase Overhead (140ms)
-    setTimeout(() => {
+    // Step 2: Glitch Phase Overhead (140ms -> 8 frames)
+    this.schedule(8, () => {
       if (!this.ghost.canAct() || this.ghost.health <= 0) return;
       this.onTacticalRead?.('⚠️ 0x7E5: TELEPORT [2/3] STACK CORRUPTION');
       this.ghost.flashFrames = 10;
@@ -313,10 +426,10 @@ export class AIController {
       this.ghost.x = this.player.x;
       this.ghost.y = this.ghost.groundY - 120;
       this.ghost.isGrounded = false;
-    }, 140);
+    });
 
-    // Step 3: Surprise Drop & Heavy Kick / Claw Strike Behind Player (280ms)
-    setTimeout(() => {
+    // Step 3: Surprise Drop & Heavy Kick / Claw Strike Behind Player (280ms -> 17 frames)
+    this.schedule(17, () => {
       if (!this.ghost.canAct() || this.ghost.health <= 0) return;
       this.onTacticalRead?.('⚠️ 0x7E5: TIME-BOMB SURPRISE CLAW EXECUTION!');
       this.ghost.flashFrames = 14;
@@ -327,6 +440,6 @@ export class AIController {
       this.ghost.facing = this.player.facing;
       sound.playBypass();
       this.ghost.heavyKick();
-    }, 280);
+    });
   }
 }

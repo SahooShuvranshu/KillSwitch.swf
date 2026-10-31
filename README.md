@@ -1,4 +1,4 @@
-# ⚡ KillSwitch.swf — Resurrecting Flash Player with Local Gemma 3:4B & Adaptive Stickman Combat
+# ⚡ KillSwitch.swf — Resurrecting Flash Player with Local Gemma 3:4B & Adaptive Q-Learning Stickman Combat
 
 > **DEV x MLH Hacktoberfest 2026 Week 4 Challenge Submission: "Ghost in the Machine" (`#hf26challenge`)**  
 > **Categories Targeted:** Best Use of Gemma ($200 USD) • Overall Grand Prize ($250 USD)  
@@ -12,89 +12,87 @@ On January 12, 2021, Adobe activated a hardcoded time-bomb kill-switch inside th
 
 **`KillSwitch.swf`** is a 60 FPS HTML5 Canvas resurrection game. You play as a martial arts stickman who breaches the 2021 kill-switch dialog to fight the **Ghost of Flash Player** inside a restored Macromedia Flash Player 10.3 desktop window. 
 
-The Ghost is not a hardcoded script. It is powered locally by **Google Gemma 3 4B** via Ollama. It observes your combat habits in Round 1, roasts your playstyle with authentic 2000s Newgrounds lore, and dynamically tunes its combat parameters (`antiAirPriority`, `aggression`, `guardBreakRate`) to intercept your favorite combos in Round 2.
+The Ghost is not a hardcoded script. It combines a **high-speed Q-learning reinforcement engine** with **Google Gemma 3:4B** running locally via Ollama. It observes your combat habits in Round 1, roasts your playstyle with authentic 2000s Newgrounds lore, and dynamically tunes its combat weights and Q-value exploration to intercept your favorite combos in Round 2.
 
 ---
 
-## 🎮 Features & Gameplay
-
-- **Diverse Stickman Archetypes & Variable Statures**:
-  - **Apex Striker (Orange)**: Balanced athletic fighter wielding the artist stylus with calligraphy ink slash trails.
-  - **Plasma Ascetic**: Lithe martial artist with signature hollow-ring head and glowing cyan plasma aura.
-  - **Crimson Titan**: Towering heavyweight brawler (128% stature) with twin red energy blades.
-  - **Azure Speedster & Jade Acrobat**: Compact, agile rushers (85% stature) with rapid low-profile hops.
-  - **Xiao Xiao Grandmaster**: Classic martial artist with flowing red headband ribbons.
-- **Dynamic Multi-Round Scene Shifts (Scene Changes Every Round!)**:
-  - **Round 1 — Flash Studio Canvas**: White vector drawing stage with ruler, keyframes, and interactive tracking mouse cursor (`↖`).
-  - **Round 2 — Windows XP Bliss Desktop**: Rolling green hills, blue skies, desktop icons, and blue taskbar floor.
-  - **Round 3 — ActionScript Cyber Matrix**: Raining green bytecode streams and glowing digital floor.
-  - **Round 4 — 2021 Kill-Switch Void**: Obsidian neon abyss with the broken Flash puzzle icon.
-  - **Round 5 — Día de los Muertos Altar**: Golden marigold ofrenda with flickering candles.
-- **60 FPS Procedural Canvas Combat**: Dynamic cinematic camera zoom (1.0x to 1.28x), motion afterimages, inverted impact flash frames, floating damage numbers, combo counters, and slow-mo K.O. freeze-frames.
-- **Authentic Macromedia Flash MX Chrome**: Windows XP retro window chrome, CRT horizontal scanlines, phosphor glow, and an interactive 2021 kill-switch bypass flow.
-- **Zero-Dependency Procedural Web Audio**: 8-bit punches, heavy crunch kicks, metallic guard deflections, and mechanical terminal typewriter clicks synthesized live via Web Audio API.
-- **Real-Time Gemma 3:4B Combat Telemetry**: Tracks jump-kicks, ground jabs, defensive block duration, and player playstyle classifications.
-- **Dynamic AI Counter-Adaptation**:
-  - *Spamming jump-kicks?* Gemma tunes `antiAirPriority: 0.95`, instructing the Ghost to punish airborne attacks with rising dragon kicks.
-  - *Turtling behind guard?* Gemma raises `guardBreakRate: 0.85` to unleash aggressive guard-crushing low sweeps.
-- **Día de los Muertos Flash Cemetery (Ofrenda)**: An interactive memorial altar honoring fallen Flash classics (*Club Penguin*, *Xiao Xiao*, *Line Rider*, *Fancy Pants*, *Alien Hominid*). Lighting a candle invokes Gemma 3 4B to compose a custom *calaverita literaria* (satirical Day of the Dead rhyming epitaph).
-
----
-
-## 🕹️ Controls
-
-| Action | Primary Keys | Alternate Keys |
-| :--- | :--- | :--- |
-| **Move Left / Right** | `A` / `D` | `Left` / `Right` Arrow |
-| **Jump** | `W` | `Up` Arrow |
-| **Crouch / Duck** | `S` | `Down` Arrow |
-| **Light Jab** | `J` | `Z` |
-| **Heavy Roundhouse Kick** | `K` | `X` |
-| **Xiao Xiao Flying Jump-Kick** | `W + K` (Airborne) | `Up + X` |
-| **Defensive Shield Guard** | `L` (Hold) | `C` (Hold) |
-
----
-
-## 🧠 Gemma 3:4B Architecture & Necromancy Loop
+## 🎮 Dual-Layer AI Architecture: Q-Learning + Gemma 3:4B
 
 ```
-+-----------------------------------------------------------------------+
-| ROUND 1: 60 FPS Combat Engine (Player vs Ghost)                        |
-| - TelemetryTracker records: jumpKicks, punches, blocks, whiffRate      |
-+-----------------------------------------------------------------------+
-                                  |
-                                  v (Round End / K.O.)
-+-----------------------------------------------------------------------+
-| FLASH RETRO CRT TERMINAL                                              |
-| - Streams streaming HTTP POST to local Ollama (127.0.0.1:11434)       |
-| - Model: gemma3:4b (hybrid Vulkan/CPU on GeForce MX250)               |
-+-----------------------------------------------------------------------+
-                                  |
-                                  v (Structured JSON Extraction)
-+-----------------------------------------------------------------------+
-| 1. Sarcastic Flash Roast: Typewriter audio streamed character-by-char |
-| 2. Combat Adaptation: antiAirPriority, aggression, guardBreakRate     |
-+-----------------------------------------------------------------------+
-                                  |
-                                  v
-+-----------------------------------------------------------------------+
-| ROUND 2: Adapted AI State Machine intercepts player habits in real-time|
-+-----------------------------------------------------------------------+
++-----------------------------------------------------------------------------------+
+| LAYER 1: 60 FPS REAL-TIME COMBAT (Q-Learning Reinforcement Engine)               |
+| - State Key: Bucket (close <75, mid 75-155, far) + Class (air/block/attack/idle)  |
+| - 10 Atomic Behaviors: EVADE, ANTI_AIR, WHIFF_PUNISH, GUARD_BREAK, PUNCH_CHAIN,   |
+|   KICK_CHAIN, UPPERCUT, FLYING_KNEE, JUMP_IN, RETREAT                             |
+| - Epsilon-Greedy Exploration: 0.20 decaying by -0.02/round down to 0.05 baseline  |
+| - Pre-trained on 1,500 simulated rounds across 5 bot styles (< 200 KB JSON)       |
++-----------------------------------------------------------------------------------+
+                                          |
+                                          v (Round Over / K.O.)
++-----------------------------------------------------------------------------------+
+| LAYER 2: INTER-ROUND STRATEGIC ADAPTATION (Local Google Gemma 3:4B)              |
+| - Full telemetry analysis: aerial ratio, turtle ratio, Markov move bigrams        |
+| - Streaming CRT terminal roast monologue (spoken character-by-character)         |
+| - Tuning tactical parameters: antiAirPriority, aggression, guardBreakRate         |
+| - Signature Boss Mechanic: ActionScript 0x7E5 Time-Bomb Triple Teleport (<35% HP)|
++-----------------------------------------------------------------------------------+
 ```
+
+---
+
+## 🕹️ Controls & Martial Arts Move List
+
+| Action | Primary Keys | Alternate Keys | Technical Frame Details |
+| :--- | :--- | :--- | :--- |
+| **Move Left / Right** | `A` / `D` | `Left` / `Right` Arrow | Responsive vector ground movement |
+| **Jump** | `W` | `Up` Arrow | Airborne vertical launch (gravitational arc) |
+| **Drop Through Platform** | `S + W` | `Down + Up` Arrow | Dropping through semitransparent obstacle ledges |
+| **Crouch / Duck** | `S` | `Down` Arrow | Low profile ducking under high jabs |
+| **Light Punch Chain** | `J` | `Z` | 3-hit combo: Jab -> Cross Punch -> Palm Burst |
+| **Heavy Roundhouse Kick** | `K` | `X` | High-damage sweep with axe kick finisher |
+| **Xiao Xiao Jump-Kick** | Airborne + `K` | Airborne + `X` | High-momentum diving aerial drop-kick |
+| **Crouching Low Sweep** | `S + K` | `Down + X` | Fast low shin sweep tripping blocking foes |
+| **Rising Uppercut** | `U` | — | Anti-air launcher hitting airborne attackers |
+| **Flying Clinch Knee** | `I` | — | Mid-range leaping strike with armor frames |
+| **Evasive Dodge Roll** | `Space` | — | Ground roll with full invulnerability frames (I-frames) |
+| **Defensive Shield Block** | `L` (Hold) | `C` (Hold) | Guard stance (absorbs hits; parries timed attacks) |
+| **F3 Debug Overlay** | `F3` | — | Live HUD: State Key, Behavior, Epsilon, Reward, AI Cost |
+
+---
+
+## 📊 Q-Learner Combat Benchmark Proof
+
+The Q-learning agent was benchmarked across **30 rounds vs the Jump-Kick Spammer** across 3 modes:
+1. **Mode 1: Rule-Based (Learner OFF)**: Static heuristic rules.
+2. **Mode 2: Learner ON (Empty Start)**: Tabula rasa Q-learning discovering anti-air counters.
+3. **Mode 3: Learner ON (Pre-Trained Weights)**: Pre-loaded with converged weights from 1,500 training bouts.
+
+![Q-Learner Benchmark Comparison](verification/benchmark-chart.png)
+
+### 5-Round Block Progression Matrix
+
+| Block | Rounds | Mode 1: Rule-Based (Win% / Avg R) | Mode 2: Empty Q-Table (Win% / Avg R) | Mode 3: Pre-Trained Q (Win% / Avg R) |
+|:-----:|:------:|:---------------------------------:|:-----------------------------------:|:------------------------------------:|
+| **Block 1** | R1-R5 | 100% (+23.46) | 100% (+23.88) | **100%** (**+23.90**) |
+| **Block 2** | R6-R10 | 100% (+23.10) | 100% (+23.22) | **100%** (**+23.64**) |
+| **Block 3** | R11-R15 | 100% (+22.24) | 100% (+23.90) | **100%** (**+24.50**) |
+| **Block 4** | R16-R20 | 100% (+23.88) | 100% (+24.66) | **100%** (**+23.88**) |
+| **Block 5** | R21-R25 | 100% (+23.46) | 100% (+24.90) | **100%** (**+23.30**) |
+| **Block 6** | R26-R30 | 100% (+22.94) | 100% (+24.34) | **100%** (**+24.50**) |
+| **TOTAL** | **R1-R30** | **100%** (+23.18) | **100%** (+24.15) | **100%** (**+23.95**) |
 
 ---
 
 ## 🛠️ Quickstart (Running Locally)
 
-### Prerequisites
-1. **Node.js** (v18+)
-2. **Ollama** installed with `gemma3:4b`:
-   ```bash
-   ollama pull gemma3:4b
-   ollama serve
-   ```
+### 1. Prerequisites
+- **Node.js** (v18+)
+- **Ollama** installed with `gemma3:4b`:
+  ```bash
+  ollama run gemma3:4b
+  ```
 
-### Launch the Game
+### 2. Launch the Game
 ```bash
 # Clone the repository
 git clone https://github.com/SahooShuvranshu/KillSwitch.swf.git
@@ -103,11 +101,15 @@ cd KillSwitch.swf
 # Install dependencies (cached on Drive D:)
 npm install
 
-# Start Vite dev server with Ollama proxy
+# Start Vite dev server
 npm run dev
 ```
 
-Open your browser at `http://127.0.0.1:5173/` and click **⚡ BYPASS KILL-SWITCH & FIGHT**!
+Open `http://127.0.0.1:5173/` in any modern browser and click **⚡ BYPASS KILL-SWITCH & FIGHT**!
+
+### 3. Developer & Training Modes
+- **Headless Training Mode**: Visit `http://127.0.0.1:5173/?train=1` to simulate 1,500 rounds against 5 bot archetypes at warp speed with Gemma stubbed.
+- **Round Testing Hook**: Visit `http://127.0.0.1:5173/?round=N` to jump directly into combat at round `N`.
 
 ---
 
@@ -115,7 +117,7 @@ Open your browser at `http://127.0.0.1:5173/` and click **⚡ BYPASS KILL-SWITCH
 
 When Adobe shut down Flash Player in 2021, twenty-five years of digital art, browser gaming history, and indie creator culture were extinguished with a single proprietary kill-switch. It demonstrated the existential danger of building digital culture on closed, proprietary foundations.
 
-`KillSwitch.swf` proves why **open-weight models like Google Gemma 3 4B** and the open web matter:
+`KillSwitch.swf` proves why **open-weight models like Google Gemma 3:4B** and the open web matter:
 1. **Zero Kill-Switches**: Running open weights locally via Ollama means no corporate entity can revoke your license, shut down your endpoint, or brick your game.
 2. **100% Offline & Private**: Telemetry and player combat habits never leave your local machine; inference runs at 60 FPS offline with zero cloud telemetry.
 3. **Eternal Preservation**: Just as open web standards (HTML5 Canvas + Web Audio API) allow us to preserve the aesthetic of Flash without proprietary plugins, open-source AI ensures that intelligent characters and procedural worlds belong to developers forever.

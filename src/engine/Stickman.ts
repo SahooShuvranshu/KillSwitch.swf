@@ -240,7 +240,11 @@ export class Stickman {
     this.vx = 0;
     this.vy = 0;
     this.health = this.maxHealth;
-    this.setState('IDLE');
+    this.state = 'IDLE';
+    this.stateTime = 0;
+    this.animFrame = 0;
+    this.comboStep = 0;
+    this.cancelWindowOpen = false;
     this.isGrounded = true;
     this.facing = this.isAI ? -1 : 1;
     this.flashFrames = 0;

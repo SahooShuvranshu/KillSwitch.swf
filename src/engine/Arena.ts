@@ -7,6 +7,7 @@
 import { Stickman, CharacterSkin } from './Stickman';
 import { sound } from './Audio';
 import { ArenaObstacle } from './Obstacle';
+import type { AIController } from './AIController';
 
 export type ArenaStage = 'animator' | 'desktop' | 'matrix' | 'void' | 'ofrenda';
 export type GameDifficulty = 'casual' | 'veteran' | 'nightmare';
@@ -221,11 +222,14 @@ export class Arena {
 
   // Interactive Stage Obstacles & Platforms
   public obstacles: ArenaObstacle[] = [];
+  private playerHitObsId: string | null = null;
+  private ghostHitObsId: string | null = null;
 
   // Gemma Neural Read & Move Prediction Banner
   public tacticalBannerText: string | null = null;
   public tacticalBannerFrames: number = 0;
 
+  public aiController?: AIController;
   public onRoundEnd?: (winner: string) => void;
 
   constructor(canvas: HTMLCanvasElement, playerName: string = 'Apex Striker', playerSkin: CharacterSkin = 'black') {
@@ -372,7 +376,21 @@ export class Arena {
     this.player.applySkin('black');
     this.player.reset(220);
     this.ghost.reset(580);
+    this.ghost.state = 'IDLE';
+    this.ghost.stateTime = 0;
+    this.ghost.animFrame = 0;
+    this.ghost.hitStunFrames = 0;
+    this.ghost.blockStunFrames = 0;
+    this.ghost.vx = 0;
+    this.ghost.vy = 0;
+    this.ghost.isGrounded = true;
+    this.ghost.comboStep = 0;
+    this.ghost.cancelWindowOpen = false;
+    this.ghost.flashFrames = 0;
+    this.ghost.glitchOffset = 0;
+    this.ghost.dropThroughTimer = 0;
     this.ghost.health = this.ghost.maxHealth;
+    this.ghost.auraColor = archetype.auraColor ?? null;
     this.player.facing = 1;
     this.ghost.facing = -1;
 
@@ -598,6 +616,8 @@ export class Arena {
     if (!this.isRoundOver) {
       this.checkHit(this.player, this.ghost, true);
       this.checkHit(this.ghost, this.player, false);
+      this.checkObstacleHit(this.player, true);
+      this.checkObstacleHit(this.ghost, false);
     }
 
     // Win/Loss
@@ -632,8 +652,10 @@ export class Arena {
         if (!result.blocked) {
           this.playerTotalDamage += result.damageDealt;
         }
+        this.aiController?.onHitResult(0, result.damageDealt);
       } else {
         this.ghostCombo++;
+        this.aiController?.onHitResult(result.damageDealt, 0);
       }
 
       const sparkX = (hitbox.x + hurtbox.x + hurtbox.w / 2) / 2;
@@ -667,6 +689,47 @@ export class Arena {
     }
   }
 
+  private checkObstacleHit(attacker: Stickman, isPlayerAttacker: boolean) {
+    const hitbox = attacker.getHitbox();
+    if (!hitbox) {
+      if (isPlayerAttacker) this.playerHitObsId = null;
+      else this.ghostHitObsId = null;
+      return;
+    }
+
+    const currentHitId = isPlayerAttacker ? this.playerHitObsId : this.ghostHitObsId;
+
+    for (const obs of this.obstacles) {
+      if (!obs.isDestructible || obs.hp <= 0) continue;
+      if (currentHitId === obs.id) continue;
+
+      const isIntersecting =
+        hitbox.x < obs.x + obs.w &&
+        hitbox.x + hitbox.w > obs.x &&
+        hitbox.y < obs.y + obs.h &&
+        hitbox.y + hitbox.h > obs.y - 40;
+
+      if (isIntersecting) {
+        if (isPlayerAttacker) this.playerHitObsId = obs.id;
+        else this.ghostHitObsId = obs.id;
+
+        obs.takeHit(hitbox.damage);
+        const sparkX = (hitbox.x + obs.x + obs.w / 2) / 2;
+        const sparkY = (hitbox.y + obs.y + obs.h / 2) / 2;
+        this.spawnHitSparks(sparkX, sparkY, hitbox.isHeavy, false);
+        this.spawnDamageNumber(sparkX, sparkY - 15, `-${hitbox.damage}`, hitbox.isHeavy, false);
+
+        if (hitbox.isHeavy) {
+          sound.playHeavyHit();
+          this.screenShake = 6;
+        } else {
+          sound.playJab();
+          this.screenShake = 2;
+        }
+      }
+    }
+  }
+
   private endRound(winnerName: string) {
     if (this.isRoundOver) return;
     this.isRoundOver = true;
@@ -675,6 +738,9 @@ export class Arena {
     this.screenShake = 16;
     this.freezeFrames = 12;
     this.impactFlashFrames = 2; // Subtle 2-frame soft bloom (not solid white)
+
+    const ghostWon = winnerName === this.ghost.name;
+    this.aiController?.onRoundEnd(ghostWon);
 
     this.announcementText = 'K.O.!';
     this.announcementSub = `${winnerName.toUpperCase()} WINS`;
