@@ -75,7 +75,7 @@ The Week 4 challenge brings together **Halloween (Ghost in the Machine)** and **
 
 {% embed https://github.com/SahooShuvranshu/KillSwitch.swf %}
 
-* **Solo Creator & Engine Architect:** **Shuvranshu Sekhar Sahoo** ([@SahooShuvranshu](https://github.com/SahooShuvranshu))
+* **Author & Engine Architect:** **Shuvranshu Sekhar Sahoo** ([@SahooShuvranshu](https://github.com/SahooShuvranshu))
 * **License:** Open Source under the [MIT License](https://github.com/SahooShuvranshu/KillSwitch.swf/blob/main/LICENSE)
 * **Tech Stack:** TypeScript · HTML5 Canvas (2D IK) · Web Audio API · Vite · Local Google Gemma 3:4B via Ollama · Tabular Q-Learning
 

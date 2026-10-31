@@ -56,8 +56,8 @@
 
 * **Hackathon:** **DEV x MLH Hacktoberfest 2026 Challenge: Week 4 ("Ghost in the Machine")**
 * **Category:** Strictly targeting **Best Use of Gemma** (`#hf26challenge`, `#hacktoberfest`, `#gemma`)
-* **Author / Developer (Solo Submission):**
-  * **Shuvranshu Sekhar Sahoo** ([@SahooShuvranshu](https://github.com/SahooShuvranshu)) — *Solo Creator, Lead Engine Architect, Kinematics & Dual-Layer AI Controller*
+* **Author & Lead Architect:**
+  * **Shuvranshu Sekhar Sahoo** ([@SahooShuvranshu](https://github.com/SahooShuvranshu)) — *Lead Engine Architect, Kinematics & Dual-Layer AI Controller*
 
 ---
 
