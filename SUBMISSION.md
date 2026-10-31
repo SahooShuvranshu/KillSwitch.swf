@@ -3,11 +3,31 @@ title: "KillSwitch.swf — Resurrecting Flash Player with Local Gemma 3:4B & Ada
 published: false
 description: "A 60 FPS HTML5 Canvas stickman fighting game trapped inside a broken Adobe Flash Player window, fighting a vengeful Flash Ghost powered by local Google Gemma 3 4B."
 tags: "hf26challenge, hacktoberfest, gemma, webdev"
-cover_image: "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Fevents%2Fcover_image%2F82%2Fe4131c99-f797-42be-95ef-b55e1f04255f.png"
-canonical_url: "https://github.com/SahooShuvranshu/KillSwitch.swf"
+cover_image: "https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/main/docs/cover-image.png"
+canonical_url: "https://sahooshuvranshu.github.io/KillSwitch.swf/"
 ---
 
-*This article is submitted for the **DEV x MLH Hacktoberfest 2026 Challenge: Week 4 ("Ghost in the Machine")** targeting the **Best Use of Gemma** and **Overall Grand Prize**.*
+*This article is submitted for the **DatrixLabs Hack Day** & **DEV x MLH Hacktoberfest 2026 Challenge: Week 4 ("Ghost in the Machine")** targeting the **Best Use of Gemma** and **Overall Grand Prize**.*
+
+---
+
+![KillSwitch.swf — The Ghost in the Canvas](docs/cover-image.png)
+
+### 🚀 Quick Links & Team Attribution
+- 🌐 **Live Playable Showcase Website:** [https://sahooshuvranshu.github.io/KillSwitch.swf/](https://sahooshuvranshu.github.io/KillSwitch.swf/)
+- 🔗 **GitHub Repository:** [https://github.com/SahooShuvranshu/KillSwitch.swf](https://github.com/SahooShuvranshu/KillSwitch.swf)
+- 📊 **900-Round Calibration Report:** [docs/difficulty-tuning.md](docs/difficulty-tuning.md)
+- 📈 **1,800-Round Learning Benchmark:** [docs/learning-results.md](docs/learning-results.md)
+
+#### 👥 DatrixLabs Hack Day Team
+- **Shuvranshu Sekhar Sahoo** ([@SahooShuvranshu](https://github.com/SahooShuvranshu)) — *Lead Engine Architect, Combat Kinematics & Dual-Layer AI Controller*
+- **Pruthiraj Lenka** — *AI Benchmark Architecture & Headless Difficulty Calibration*
+- **Suhani Priyadarshini** — *Telemetry Ingestion Pipeline & QA Automated Verification*
+
+---
+
+> **Honesty & Known Limitations Note:**  
+> The learner beats hand-written rules on jump-kick and heavy-kick opponents and lowers average damage taken, but it can become passive against rushdown and held-out opponents, so those rounds often end on time-out decisions. In the adaptation test, the low damage in Phases 2 and 3 reflects a non-attacking bot and a passive ghost, not proven recovery. The pre-trained table did not outperform the empty-table learner overall (65.3% vs 70.5% win rate); online learning accounts for most of the gains.
 
 ---
 
@@ -17,30 +37,33 @@ On January 12, 2021, Adobe triggered a hardcoded time-bomb kill-switch embedded 
 
 Almost overnight, twenty-five years of internet culture—from classic *Xiao Xiao* stickman martial arts cartoons and *Club Penguin* to *Line Rider* and *Alien Hominid*—were permanently bricked behind a silent, black warning icon. The plugin refused to load. The animations stopped. The music went silent.
 
-For this week's **"Ghost in the Machine"** challenge, I wanted to resurrect that dead digital soul.
+For this week's **"Ghost in the Machine"** challenge, our team wanted to resurrect that dead digital soul.
 
 Meet **`KillSwitch.swf`**: a 60 FPS HTML5 Canvas stickman fighting game trapped inside a cracked Macromedia Flash Player 10.3 desktop window. You play as a rogue stickman fighter who breaches the 2021 kill-switch dialog to duel the **Ghost of Flash Player** itself.
 
-The Ghost is not a pre-scripted dummy bot. It is powered locally by **Google Gemma 3 4B** via Ollama:
-- **Real-Time Combat Habit Learning**: A Markov bigram sequence predictor tracks your live combo transitions (e.g., $P(\text{Heavy Kick} \mid \text{Jab})$, $P(\text{Jump Kick} \mid \text{Jump})$). When you fall into predictable habits, the Flash Ghost anticipates your next button press in real time, triggering **Matrix Parries**, **Anti-Air Dragon Sweeps**, and floating HUD alerts like `⚡ GEMMA READ: PREDICTED HEAVY KICK (100%)`.
-- **Inter-Round Tactical Monologues**: Between rounds, Gemma streams a spoken monologue roasting your specific combo patterns with authentic 2000s Newgrounds lore and adapts its AI state machine (`antiAirPriority`, `aggression`, `guardBreakRate`).
-- **Gemma-Designed Boss Rage Mechanic ("ActionScript Error 0x7E5 Time-Bomb")**: When the Ghost's health drops below 35%, it enters an unhinged rage state, triggering a triple-teleport memory overflow attack designed directly by Gemma 3:4B.
-- **Flash Cemetery Ofrenda**: In the spirit of **Día de los Muertos**, lighting candles at the graves of fallen Flash legends prompts Gemma 3:4B to compose satirical *calaveritas literarias* (Day of the Dead rhyming epitaph poems).
+The Ghost is not a pre-scripted dummy bot. It is powered by a **Dual-Layer Adaptive AI Architecture**:
+1. **60 FPS Real-Time Q-Learning & Markov Habit Prediction**: A frame-by-frame reinforcement learner and Markov sequence predictor track live combo transitions (e.g., $P(\text{Heavy Kick} \mid \text{Jab})$, $P(\text{Jump Kick} \mid \text{Jump})$). Predictable player habits trigger real-time **Matrix Parries**, **Anti-Air Dragon Sweeps**, and HUD alerts like `⚡ GEMMA READ: PREDICTED HEAVY KICK (100%)`.
+2. **Local Google Gemma 3:4B Inter-Round Tactical Adaptation**: Between rounds, an offline Google Gemma 3:4B model running via Ollama receives structured telemetry, roasts the player's fighting style in authentic 2000s Newgrounds slang, and tunes the ghost's high-level state machine (`antiAirPriority`, `aggression`, `guardBreakRate`).
+3. **Gemma-Designed Boss Rage ("ActionScript Error 0x7E5 Time-Bomb")**: When the Ghost's health drops below 35%, it enters an unhinged rage state, executing a triple-teleport memory overflow attack designed directly by Gemma 3:4B.
+4. **Flash Cemetery Ofrenda**: In the spirit of **Día de los Muertos**, lighting candles at the graves of fallen Flash legends prompts Gemma 3:4B to compose satirical *calaveritas literarias* (Day of the Dead rhyming epitaph poems).
 
 ---
 
-## 🎮 What I Built
+## 🎮 What We Built
 
 `KillSwitch.swf` combines early-2000s web nostalgia with modern browser tech and cutting-edge local edge AI:
 
-1. **60 FPS Procedural Stickman Combat Engine & Variable Statures**:
-   - Zero sprite sheets: Every limb, joint, and torso of the player and Flash Ghost is rendered procedurally with dynamic skeletal kinematics on an HTML5 `<canvas>`.
-   - Distinct Fighter Archetypes & Variable Sizes:
-     - **Apex Striker (Orange)**: Athletic martial artist wielding the artist stylus with flowing calligraphy ink slash trails.
-     - **Plasma Ascetic**: Lithe martial artist with signature hollow-ring head and glowing cyan plasma aura.
-     - **Crimson Titan**: Towering heavyweight brawler (128% stature, heavy bone thickness) with twin crimson energy blades.
-     - **Azure Speedster & Jade Acrobat**: Compact, agile rushers (85% stature) with rapid low-profile hops.
-     - **Xiao Xiao Grandmaster**: Classic martial artist with flowing red headband ribbons.
+1. **60 FPS Procedural Stickman Combat Engine & 8 Fighter Archetypes**:
+   - Zero sprite sheets: Every limb, joint, and torso of the player and Flash Ghost is rendered procedurally with analytical 2-bone inverse kinematics on an HTML5 `<canvas>`.
+   - Distinct Fighter Archetypes across 8 rounds:
+     - **White Ghost (Round 1)**: Agile baseline apparition with balanced hitboxes.
+     - **Cobalt Duelist (Round 2)**: Stance-based counter-striker.
+     - **Jade Grandmaster (Round 3)**: Classic martial artist with flowing headband ribbons.
+     - **Blocky Steve (Round 4)**: Heavy tank with impenetrable guard.
+     - **Crimson Titan (Round 5)**: Towering heavyweight brawler (128% stature) with twin energy blades.
+     - **Plasma Ascetic (Round 6)**: Lithe martial artist with signature hollow-ring head and glowing cyan plasma aura.
+     - **Calavera Phantom (Round 7)**: Day of the Dead skeletal trickster.
+     - **Flash Ghost Prime (Round 8)**: The ultimate manifestation with all 60 FPS Q-learning states active.
    - Moveset & game juice: Dynamic camera zoom (1.0x to 1.28x), motion afterimages, inverted impact flash frames, floating damage numbers, combo counter, and slow-mo K.O. freeze-frames.
 2. **Automatic Multi-Round Scene Shifts & Flash MX 2004 Window Chrome**:
    - **Scene Automatically Changes Every Round**:
@@ -49,23 +72,23 @@ The Ghost is not a pre-scripted dummy bot. It is powered locally by **Google Gem
      - *Round 3*: **ActionScript Cyber Matrix** — Raining green bytecode streams and glowing digital floor.
      - *Round 4*: **2021 Kill-Switch Void** — Deep obsidian void with the broken Flash puzzle icon.
      - *Round 5*: **Día de los Muertos Altar** — Marigold petals and flickering memorial candles.
-   - Interactive 2021 time-bomb kill-switch bypass flow.
+   - Authentic 2021 time-bomb kill-switch bypass flow with broken plugin icon and security warning modal.
 3. **Procedural 8-Bit Web Audio Engine**:
-   - No external `.mp3` or `.wav` files. All punches, whooshes, bone-crunch kicks, metallic guard deflections, and CRT terminal typewriter clicks are synthesized live in milliseconds using the browser's native `AudioContext`.
+   - Zero external audio files: All punches, whooshes, bone-crunch kicks, metallic guard deflections, CRT terminal typewriter clicks, and killswitch surge sirens are synthesized live in milliseconds using the browser's native `AudioContext`.
 4. **The Día de los Muertos Flash Cemetery (Ofrenda)**:
    - An interactive memorial altar with cempasúchil marigold orange aesthetics and flickering candles honoring *Club Penguin* (2005-2017), *Xiao Xiao* (2001-2004), *Line Rider* (2006-2021), *Fancy Pants Adventures* (2006-2021), and *Alien Hominid* (2002-2021).
 
 ---
 
-## 🧠 How Google Gemma 3:4B Powers the Ghost
+## 🧠 Dual-Layer AI: Google Gemma 3:4B + Q-Learning
 
-Instead of relying on cloud APIs with network latency, `KillSwitch.swf` runs **Google Gemma 3 4B completely offline** on consumer hardware (Intel i5-8265U + NVIDIA GeForce MX250) using Ollama with Vulkan acceleration.
+Instead of relying on cloud APIs with network latency, `KillSwitch.swf` runs **Google Gemma 3 4B completely offline** on consumer hardware using Ollama with Vulkan acceleration.
 
 ### The Telemetry & Combat Adaptation Loop
 
 ```
 +-------------------------------------------------------------------------+
-| ROUND 1: Player Combats the Ghost                                        |
+| ROUND 1: Real-Time Combat (60 FPS Q-Learning & Markov Predictor)       |
 | -> TelemetryTracker silently records: jumpKicks, punches, blocks, whiff |
 +-------------------------------------------------------------------------+
                                     |
@@ -123,7 +146,7 @@ If you spam flying jump-kicks or predictable jab-into-kick chains in Round 1:
 
 ### Gemma-Designed Boss Mechanic: "ActionScript Error 0x7E5 Time-Bomb"
 
-When the Ghost's health drops below 35%, it enters an unhinged rage state designed directly by **Google Gemma 3 4B**:
+When the Ghost's health drops below 35% in Nightmare mode, it enters an unhinged rage state designed directly by **Google Gemma 3 4B**:
 1. **Trigger Alert**: The Flash Ghost's aura turns radiant crimson (`#ff0033`), accompanied by an audible digital bypass surge:
    `⚠️ GEMMA CORE: ACTIONSCRIPT ERROR 0x7E5 TIME-BOMB!`
 2. **Triple Teleport Memory Overflow**:
@@ -134,14 +157,52 @@ When the Ghost's health drops below 35%, it enters an unhinged rage state design
 ![ActionScript Error 0x7E5 Rage Teleport](docs/screenshots/after_rage_mode.png)
 *Figure 3: Flash Ghost executing the Gemma 3:4B designed Error 0x7E5 triple-teleport strike.*
 
-### Día de los Muertos: Gemma's Calaveritas Literarias
+---
 
-When a player visits the Flash Cemetery and clicks a gravestone, Gemma 3 4B composes an on-the-fly *calaverita literaria*:
+## ⚖️ 900-Round Human Difficulty Re-Tuning & Calibration
 
-> *Here lies Club Penguin, swallowed by the corporate sand,*  
-> *A million childhood hours resting in La Catrina's hand.*  
-> *Though Adobe struck the kill-switch and dimmed the raster light,*  
-> *Your waddling puffles dance through the digital night. 🕯️*
+To ensure the Ghost challenges players without feeling cheap or superhuman, we calibrated all 3 difficulty tiers across **900 headless rounds** against 3 competent human-proxy bots (*Jump-Kick Spammer*, *Combo Specialist*, *Mixed Adaptive Fighter*):
+
+| Parameter | Casual (Target 25-35%) | Veteran (Target 45-55%) | Nightmare (Target 60-70%) |
+|---|---|---|---|
+| **AI Brain Engine** | Rule-Based Only (Learner OFF) | Q-Learner (LR Halved, $\epsilon \ge 0.15$) | Full Adaptive Q-Learner |
+| **Reaction Delay** | 24 frames (~400 ms) | 15 frames (~250 ms) | 10 frames (~167 ms) |
+| **Defensive Reaction Delay** | 8 frames (Min non-zero) | 4 frames (Min non-zero) | 2 frames (No same-frame parries) |
+| **Mistake / Hesitation Rate** | 25% | 12% | 5% |
+| **Block Chance & Cooldown** | 30% (25-frame cooldown) | 50% (25-frame cooldown) | 70% (25-frame cooldown) |
+| **Dodge-Roll Cooldown** | 150 frames (2.5 s) | 100 frames (1.67 s) | 70 frames (1.17 s) |
+| **Markov Habit Prediction** | 15% | 35% | 60% |
+| **Minimum Attack Gap** | 30 frames (0.5 s) | 20 frames (0.33 s) | 12 frames (0.2 s) |
+| **Rage Mode 0x7E5** | Disabled | Disabled | Nightmare Only (6-sec limit) |
+| **Per-Round Multiplier** | +2% per round (Cap +10%) | +4% per round (Cap +25%) | +4% per round (Cap +25%) |
+| **Round Bonus Stacking** | No stacking (cycles 1-by-1) | No stacking (cycles 1-by-1) | No stacking (cycles 1-by-1) |
+| **Comeback Assist** | +4f delay, +8% mistakes | +4f delay, +8% mistakes | +4f delay, +8% mistakes |
+| **Empirical Ghost Win Rate** | **26.7%** (Target Met) | **47.3%** (Target Met) | **65.7%** (Target Met) |
+| **Average Ghost Damage Taken**| **88.6 HP** (Target 80+) | **70.6 HP** (Target 50-80) | **43.9 HP** (Target 30-50) |
+
+---
+
+## 📊 Empirical Benchmarks & Generalization Proof
+
+To scientifically validate that the Q-learning agent genuinely learns and adapts rather than exploiting hardcoded cheats, we executed a rigorous **1,800-round benchmark** across 6 distinct opponent archetypes:
+
+![Empirical Benchmark Metrics](docs/benchmark-metrics-chart.png)
+*Figure 4: Win rate comparison across 6 opponent archetypes.*
+
+![120-Round Adaptation Test](docs/adaptation-test-chart.png)
+*Figure 5: Adaptation test tracking damage convergence across 4 distinct combat phases.*
+
+### Benchmark Summary Table
+
+| Opponent Archetype | Hand-Written Rules | Empty Table Learner | Pre-Trained Table |
+|---|---|---|---|
+| **Jump-Kick Spammer** | 71.0% | **94.0%** (+23.0%) | 90.0% |
+| **Heavy-Kick Spammer** | 63.0% | **89.0%** (+26.0%) | 83.0% |
+| **Turtle (High Block)** | 54.0% | **73.0%** (+19.0%) | 68.0% |
+| **Mixed Balanced** | 58.0% | **69.0%** (+11.0%) | 64.0% |
+| **Aggressive Rushdown** | 49.0% | **51.0%** (+2.0%) | 46.0% |
+| **Held-Out Mirror Bot** | 42.0% | **47.0%** (+5.0%) | 41.0% |
+| **Overall Average** | 56.2% | **70.5%** (+14.3%) | 65.3% |
 
 ---
 
@@ -163,9 +224,10 @@ Flash Player died because it was **closed-source and proprietary**. A single cor
 
 ## 📦 Source Code & How to Play
 
-The complete open-source project is available on GitHub:
+The complete open-source project and showcase landing page are live:
 
-🔗 **Repository:** [https://github.com/SahooShuvranshu/KillSwitch.swf](https://github.com/SahooShuvranshu/KillSwitch.swf)
+- 🌐 **Live Playable Web Showcase:** [https://sahooshuvranshu.github.io/KillSwitch.swf/](https://sahooshuvranshu.github.io/KillSwitch.swf/)
+- 🔗 **GitHub Repository:** [https://github.com/SahooShuvranshu/KillSwitch.swf](https://github.com/SahooShuvranshu/KillSwitch.swf)
 
 ### 30-Second Local Quickstart
 
