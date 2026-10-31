@@ -3,7 +3,7 @@ title: "Adobe killed Flash in 2021. So I trapped its vengeful ghost in a 60 FPS 
 published: false
 description: "A 60 FPS HTML5 Canvas stickman fighting game trapped inside a broken Adobe Flash Player window, fighting a vengeful Flash Ghost powered by local Google Gemma 3:4B."
 tags: "hf26challenge, hacktoberfest, gemma, webdev"
-cover_image: "https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/d2c26d1/docs/cover-image.png"
+cover_image: "https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/0dcf846/docs/cover-image.png"
 canonical_url: "https://sahooshuvranshu.github.io/KillSwitch.swf/"
 ---
 
@@ -11,7 +11,7 @@ canonical_url: "https://sahooshuvranshu.github.io/KillSwitch.swf/"
 
 ---
 
-![KillSwitch.swf — The Ghost in the Canvas](https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/d2c26d1/docs/cover-image.png)
+![KillSwitch.swf — The Ghost in the Canvas](https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/0dcf846/docs/cover-image.png)
 
 ## What I Built
 
@@ -58,16 +58,28 @@ The Week 4 challenge brings together **Halloween (Ghost in the Machine)** and **
 ### Walkthrough & Screenshots
 
 #### 1. Real-Time Telemetry & Habit Reading (F3 Overlay)
-![Learned Habits & Gemma Tactical Telemetry](https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/main/docs/screenshots/after_f3_overlay.png)
+![Learned Habits & Gemma Tactical Telemetry](https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/0dcf846/docs/screenshots/after_f3_overlay.png)
 *Figure 1: Pressing F3 toggles the live telemetry inspector. Gemma 3:4B analyzes player combo habits, Markov transition probabilities, and locks in anti-air counters between rounds.*
 
-#### 2. Round 2 Tactical Counter Stance
-![Round 2 Counter Stance](https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/main/docs/screenshots/after_fight.png)
-*Figure 2: The Flash Ghost in Round 2, executing an anti-air duck-under counter after reading predictable airborne spam.*
+#### 2. Windows XP Bliss Stage — Aerial Combat & Parry Shield
+![Round 2 Counter Stance](https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/0dcf846/docs/screenshots/after_fight.png)
+*Figure 2: The Player executing an aerial flying kick with dynamic calligraphy brush trails against Cobalt Duelist's reactive parry shield on the Windows XP Bliss desktop stage.*
 
-#### 3. ActionScript Error 0x7E5 Boss Rage
-![ActionScript Error 0x7E5 Rage Teleport](https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/main/docs/screenshots/after_rage_mode.png)
-*Figure 3: Flash Ghost executing the Gemma 3:4B designed Error 0x7E5 triple-teleport memory overflow attack.*
+#### 3. Inter-Round CRT Typewriter Roast & Telemetry Terminal
+![Inter-Round CRT Roast Terminal](https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/0dcf846/docs/screenshots/after_roast.png)
+*Figure 3: Between rounds, local Gemma 3:4B inspects combat habits, generates a 2000s Newgrounds-style typewriter roast, and dynamically recalibrates the Ghost's aggression and guard-break meters.*
+
+#### 4. ActionScript Error 0x7E5 Boss Rage in Cyber Matrix
+![ActionScript Error 0x7E5 Rage Teleport](https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/0dcf846/docs/screenshots/after_rage_mode.png)
+*Figure 4: Flash Ghost executing the Gemma 3:4B designed Error 0x7E5 triple-teleport memory overflow attack across the ActionScript Bytecode Matrix.*
+
+#### 5. Día de los Muertos Flash Cemetery & Real-Time Calaverita
+![Día de los Muertos Flash Cemetery](https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/0dcf846/docs/screenshots/after_cemetery.png)
+*Figure 5: The Flash Cemetery (Ofrenda). Lighting candles for fallen Flash classics (Club Penguin, Xiao Xiao, Line Rider) triggers Gemma 3:4B to compose satirical Day of the Dead poems.*
+
+#### 6. Arcade Menu & Adaptive Difficulty Calibration
+![Arcade Menu & Difficulty Select](https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/0dcf846/docs/screenshots/after_menu.png)
+*Figure 6: Arcade setup modal offering Casual, Veteran, and Nightmare calibrations, challenger name profiling, and instant access to the digital ofrenda.*
 
 ---
 
@@ -202,11 +214,11 @@ To scientifically guarantee that the game feels challenging rather than unfair, 
 
 To validate that the adaptive agent genuinely generalizes rather than overfitting to familiar loops, I conducted a **1,800-round benchmark** across 6 distinct opponent archetypes (including a held-out `MIRROR_COUNTER` bot never seen during training):
 
-![Empirical Benchmark Metrics](https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/main/docs/benchmark-metrics-chart.png)
-*Figure 4: Win rate comparison across 6 opponent archetypes.*
+![Empirical Benchmark Metrics](https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/0dcf846/docs/benchmark-metrics-chart.png)
+*Figure 7: Win rate comparison across 6 opponent archetypes.*
 
-![120-Round Adaptation Test](https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/main/docs/adaptation-test-chart.png)
-*Figure 5: Adaptation test tracking damage convergence across 4 distinct combat phases.*
+![120-Round Adaptation Test](https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/0dcf846/docs/adaptation-test-chart.png)
+*Figure 8: Adaptation test tracking damage convergence across 4 distinct combat phases.*
 
 | Opponent Archetype | Hand-Written Rules | Empty Table Learner | Pre-Trained Table |
 |---|---|---|---|
