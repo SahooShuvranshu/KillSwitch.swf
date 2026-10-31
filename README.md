@@ -4,7 +4,7 @@
 > **Categories Targeted:** Best Use of Gemma ($200 USD) • Overall Grand Prize ($250 USD)  
 > **Built by:** Shuvranshu Sekhar Sahoo ([@sahooshuvranshu](https://dev.to/sahooshuvranshu))
 
-![KillSwitch.swf Combat Showcase](docs/screenshots/round1_combat.png)
+![KillSwitch.swf Combat Showcase](docs/screenshots/after_fight.png)
 
 ---
 
@@ -19,6 +19,8 @@ The Ghost is not a hardcoded script. It combines a **high-speed Q-learning reinf
 ---
 
 ## 🎮 Dual-Layer AI Architecture: Q-Learning + Gemma 3:4B
+
+> **Known limitations:** The learner beats the hand-written rules on jump-kick and heavy-kick opponents and lowers average damage taken, but it can become passive against rushdown and held-out opponents, so those rounds often end on time-out decisions. In the adaptation test, the low damage in Phases 2 and 3 reflects a non-attacking bot and a passive ghost, not proven recovery. The pre-trained table did not outperform the empty-table learner overall (65.3% vs 70.5% win rate); online learning accounts for most of the gains.
 
 ```
 +-----------------------------------------------------------------------------------+
@@ -100,7 +102,7 @@ The Ghost is not a hardcoded script. It combines a **high-speed Q-learning reinf
 
 The Q-learning agent was evaluated across **1,800 rounds against 6 competent adversary archetypes at Nightmare Difficulty** (reaction delay = 1 frame, block chance = 85%), plus a **120-round continuous adaptation test** with sudden adversary style switches.
 
-![Empirical Benchmark Metrics](verification/benchmark-metrics-chart.png)
+![Empirical Benchmark Metrics](docs/benchmark-metrics-chart.png)
 
 ### 1. Overall Performance Across All 6 Bot Styles (600 Rounds / Condition)
 
@@ -117,12 +119,12 @@ A 6th held-out bot style (`MIRROR_COUNTER`)—which was **never present in train
 
 ### 3. Sequential Adaptation Test (120 Rounds across 3 Abrupt Style Switches)
 
-![Sequential Style Switch Adaptation Curve](verification/adaptation-test-chart.png)
+![Sequential Style Switch Adaptation Curve](docs/adaptation-test-chart.png)
 
 - **Phase 1 (R1–R40 Jump-Kick Spammer):** Damage taken stabilizes at 27.3 HP as anti-air launcher intercepts dominate.
 - **Phase 2 (R41–R80 Turtle / Sweep Bait):** Recalibrates within **6 rounds** to low-sweep guard breaks (`GUARD_BREAK`).
 - **Phase 3 (R81–R120 Combo Rushdown):** Recalibrates within **7 rounds** to whiff-punishing flying knees and evasive rolls.
-- Full per-round data and 5-round block progressions are documented in [`verification/learning-results.md`](file:///D:/Projects/Hacktober%20Fest%202026/KillSwitch.swf/verification/learning-results.md) and [`verification/benchmark-raw.csv`](file:///D:/Projects/Hacktober%20Fest%202026/KillSwitch.swf/verification/benchmark-raw.csv).
+- Full per-round data and 5-round block progressions are documented in [`docs/learning-results.md`](docs/learning-results.md) and [`docs/benchmark-raw.csv`](docs/benchmark-raw.csv).
 
 ---
 
