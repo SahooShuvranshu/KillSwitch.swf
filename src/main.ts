@@ -78,8 +78,8 @@ class KillSwitchGame {
     this.loadSavedAIMemory();
     this.startRenderLoop();
 
-    window.__game = this;
     if (import.meta.env.DEV) {
+      window.__game = this;
       window.__setGhostLowHealth = () => {
         if (this.arena?.ghost) {
           this.arena.ghost.health = 5;
@@ -229,6 +229,13 @@ class KillSwitchGame {
         (e.currentTarget as HTMLElement)?.blur();
       });
     });
+
+    const mobileNotice = document.getElementById('mobile-keyboard-notice');
+    document.getElementById('btn-dismiss-mobile-notice')?.addEventListener('click', () => {
+      mobileNotice?.setAttribute('hidden', '');
+    });
+
+    this.canvas.addEventListener('click', () => this.canvas.focus());
 
     // 1. Unblock Flash Triggers
     const btnUnblockFlash = document.getElementById('btn-unblock-flash');
@@ -664,6 +671,7 @@ class KillSwitchGame {
     this.flowState = 'FIGHTING';
     this.isRunning = true;
     this.hideAllScreens();
+    this.canvas.focus();
     this.arena.startRound(roundNum);
     this.aiController.setRound(roundNum);
     this.telemetry.startRound(roundNum);

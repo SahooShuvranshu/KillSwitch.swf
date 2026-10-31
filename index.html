@@ -125,7 +125,11 @@
 
           <!-- Flash Canvas Container (800x500) -->
           <div class="viewport-wrapper">
-            <canvas id="game-canvas" width="800" height="500"></canvas>
+            <canvas id="game-canvas" width="800" height="500" tabindex="0"></canvas>
+            <aside id="mobile-keyboard-notice" class="mobile-keyboard-notice" role="status">
+              <span>Best on desktop with a keyboard. Watch the demo video: <a href="[VIDEO_URL]">VIDEO_URL</a></span>
+              <button id="btn-dismiss-mobile-notice" type="button" aria-label="Dismiss mobile notice" tabindex="-1">×</button>
+            </aside>
             <div class="crt-scanlines"></div>
             <div class="crt-glow"></div>
 
@@ -907,6 +911,6 @@
     </div>
   </footer>
 
-  <script type="module" crossorigin src="./assets/index-CM6vMhU8.js"></script>
+  <script type="module" crossorigin src="./assets/index-BKSZzzrc.js"></script>
 </body>
 </html>
