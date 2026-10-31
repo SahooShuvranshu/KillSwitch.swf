@@ -7,7 +7,7 @@ cover_image: "https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/m
 canonical_url: "https://sahooshuvranshu.github.io/KillSwitch.swf/"
 ---
 
-*This article is submitted for the **DatrixLabs Hack Day** & **DEV x MLH Hacktoberfest 2026 Challenge: Week 4 ("Ghost in the Machine")** targeting the **Best Use of Gemma** and **Overall Grand Prize**.*
+*This article is submitted for the **DatrixLabs Hack Day** & **DEV x MLH Hacktoberfest 2026 Challenge: Week 4 ("Ghost in the Machine")** targeting strictly the **Best Use of Gemma** category.*
 
 ---
 
