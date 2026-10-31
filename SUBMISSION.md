@@ -3,7 +3,7 @@ title: "Adobe killed Flash in 2021. So I trapped its vengeful ghost in a 60 FPS 
 published: false
 description: "A 60 FPS HTML5 Canvas stickman fighting game trapped inside a broken Adobe Flash Player window, fighting a vengeful Flash Ghost powered by local Google Gemma 3:4B."
 tags: "hf26challenge, hacktoberfest, gemma, webdev"
-cover_image: "https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/main/docs/cover-image.png"
+cover_image: "https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/d2c26d1/docs/cover-image.png"
 canonical_url: "https://sahooshuvranshu.github.io/KillSwitch.swf/"
 ---
 
@@ -11,7 +11,7 @@ canonical_url: "https://sahooshuvranshu.github.io/KillSwitch.swf/"
 
 ---
 
-![KillSwitch.swf — The Ghost in the Canvas](https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/main/docs/cover-image.png)
+![KillSwitch.swf — The Ghost in the Canvas](https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/d2c26d1/docs/cover-image.png)
 
 ## What I Built
 
