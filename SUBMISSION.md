@@ -214,9 +214,9 @@ To scientifically guarantee that the game feels challenging rather than unfair, 
 
 ---
 
-### 📊 Empirical Benchmarks & Generalization Proof
+### 📊 Empirical Benchmarks & Held-Out Evaluation
 
-To validate that the adaptive agent genuinely generalizes rather than overfitting to familiar loops, I conducted a **1,800-round benchmark** across 6 distinct opponent archetypes (including a held-out `MIRROR_COUNTER` bot never seen during training):
+I conducted a **1,800-round benchmark** across 6 distinct opponent archetypes, including a held-out `MIRROR_COUNTER` bot never seen during training. The held-out result is a damage-survival finding, not a win-rate generalization claim: the pre-trained table took 74.2% less damage than the rule-based AI but won no more fights (32% vs 32%).
 
 ![Empirical Benchmark Metrics](https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/0dcf846/docs/benchmark-metrics-chart.png)
 *Figure 7: Win rate comparison across 6 opponent archetypes.*
@@ -235,7 +235,7 @@ To validate that the adaptive agent genuinely generalizes rather than overfittin
 | **Overall Average** | 56.2% | **70.5%** (+14.3%) | 65.3% |
 
 > **Honesty & Known Limitations Note:**  
-> The learner decisively beats hand-written rules on jump-kick and heavy-kick opponents and lowers average damage taken, but it can become passive against rushdown and held-out opponents, so those rounds often end on time-out decisions. In the adaptation test, the low damage in Phases 2 and 3 reflects a non-attacking bot and a passive ghost, not proven recovery. The pre-trained table did not outperform the empty-table learner overall (65.3% vs 70.5% win rate); online learning accounts for most of the gains.
+> The learner beats hand-written rules on jump-kick and heavy-kick opponents and lowers average damage taken, but it can become passive against rushdown and held-out opponents, so those rounds often end on time-out decisions. The 83.8% damage cut against `COMBO` came with frequent time-outs and a 6% win rate. In the adaptation test, the low damage in Phases 2 and 3 reflects a non-attacking bot and a passive ghost, not proven recovery. The pre-trained table did not outperform the empty-table learner overall (65.3% vs 70.5% win rate); online learning accounts for most of the gains.
 
 ---
 

@@ -24,15 +24,15 @@ Unlike earlier tests with passive punch-bag bots, all 6 adversaries operate at *
 ### Key Objective Results:
 1. **Pre-Trained Weights vs. Baseline:**
    - **Overall Win Rate:** Learner ON (Pre-Trained) achieves **65.3% ± 1.9%** overall win rate across all 600 rounds, compared to **53.7% ± 2.0%** for Learner OFF (Rule-Based) and **70.5% ± 1.9%** for Learner ON (Empty Q-Table).
-   - **Massive Damage Reduction:** Pre-trained Q-table dramatically suppresses damage taken: cutting damage from **88.3 HP down to 14.3 HP** (an 83.8% reduction) against rushdown combos, and from **50.0 HP down to 39.1 HP** against random mix-ups.
+   - **Damage Reduction With a Timeout Tradeoff:** Pre-trained Q-table cuts damage from **88.3 HP down to 14.3 HP** (an 83.8% reduction) against rushdown combos, but it often ran out the clock (6% win rate); it also reduces random-mix-up damage from **50.0 HP down to 39.1 HP**.
    - **Decisive Aerial Domination:** Against competent jump-kickers, pre-trained win rate nearly doubled from **44% to 85%**, cutting round duration from 24.9s to 16.0s.
 2. **Generalization on Held-Out Opponent (`MIRROR_COUNTER`):**
-   - Against the held-out tactical counter-bot, the Rule-Based baseline was battered, suffering **165.8 HP damage taken** and surviving with just **14.2 HP** (32% win rate).
-   - The Pre-Trained Q-Table achieved the same 32% win rate but slashed damage taken by **74.2%** down to **42.7 HP**, maintaining **137.3 HP remaining** on average.
+   - Against the held-out tactical counter-bot, the Rule-Based baseline took **165.8 HP damage** and had a 32% win rate.
+   - The Pre-Trained Q-Table took **74.2% less damage** (**42.7 HP**) but won no more fights (32% vs 32%), retaining **137.3 HP** on average.
 3. **The Defensive Timeout Tradeoff on `COMBO`:**
    - While the learner successfully solved damage avoidance against the rushdown combo bot (dropping damage taken from 88.3 HP to 14.3 HP), it over-indexed on `EVADE` and `RETREAT`. This pushed round durations to 28.7s (near the 30s timeout cap), causing the ghost to lose decisions when it held slightly less HP than the undamaged bot (6% win rate vs 22% for baseline).
 4. **Adaptation Curve (Sequential Style Switches):**
-   - Across 120 rounds with abrupt shifts at Round 40 and Round 80, the online learner absorbed an initial damage spike upon each switch, but consistently re-converged to a low-damage policy within 6 to 8 rounds.
+   - Across 120 rounds with abrupt shifts at Round 40 and Round 80, low damage after the switches partly reflects a non-attacking bot and a defensive ghost; these results do not prove recovery within a fixed number of rounds.
 
 ---
 
@@ -140,12 +140,12 @@ The adaptation test evaluated online recovery when the opponent abruptly shifts 
 - **Phase 2: Rounds 41–80 (Turtle Spacing & Sweep Bait):**
   - Average Damage Taken: **1.2 ± 0.5 HP**
   - Switch Spike: At Round 41, damage spiked to **0 HP** as the adversary stopped jumping and held guard.
-  - Recovery Window: Recalibrated within **6 rounds** (by Round 47, damage dropped back to **7 HP**).
+  - Interpretation: low damage in this phase partly reflects the bot stopping attacks and the ghost playing defensively; it does not establish a six-round recovery window.
   - Dominant Learned Policy: `close_block_0 -> GUARD_BREAK` (low sweep trips blocking foes) and `RETREAT`.
 - **Phase 3: Rounds 81–120 (Combo Rushdown Brawler):**
   - Average Damage Taken: **6.5 ± 4.5 HP**
   - Switch Spike: At Round 81, damage spiked to **0 HP** under relentless jab-cross pressure.
-  - Recovery Window: Recalibrated within **7 rounds** (by Round 88, damage dropped back to **0 HP**).
+  - Interpretation: low damage in this phase partly reflects the bot stopping attacks and the ghost playing defensively; it does not establish a seven-round recovery window.
   - Dominant Learned Policy: `close_attack_0 -> WHIFF_PUNISH` (flying knee armor frames) and `EVADE` (dodge-rolling behind the combo).
 
 ---

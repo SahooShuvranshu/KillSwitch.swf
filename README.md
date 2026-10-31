@@ -280,6 +280,8 @@ Full per-round telemetry is archived in [`docs/difficulty-tuning.md`](docs/diffi
 
 Raw benchmark logs and metrics are archived in [`docs/learning-results.md`](docs/learning-results.md) and [`docs/benchmark-raw.csv`](docs/benchmark-raw.csv).
 
+> **Known limitations:** On the held-out `MIRROR_COUNTER` style, the pre-trained table took 74.2% less damage than the rule-based AI but won no more fights (32% vs 32%). Its 83.8% damage cut against `COMBO` came with frequent time-outs and a 6% win rate. The adaptation test's low damage after style switches is partly explained by a non-attacking bot and defensive ghost behavior, not proven recovery.
+
 ---
 
 ## 🚀 Quickstart & Local Setup
@@ -336,7 +338,7 @@ When Adobe shut down Flash Player in 2021, 25 years of digital art, browser gami
 
 `KillSwitch.swf` proves why **open-weight models like Google Gemma 3:4B** and the open web matter:
 1. **Zero Kill-Switches**: Running open weights locally via Ollama means no corporate entity can revoke your license, shut down your endpoint, or brick your game.
-2. **100% Offline & Private**: Telemetry and player combat habits never leave your local machine; inference runs at 60 FPS offline with zero cloud telemetry.
+2. **Local-first & Private**: Telemetry and player combat habits remain in the browser; local Gemma inference is optional, while the game falls back to procedural commentary when Ollama is unavailable.
 3. **Eternal Preservation**: Just as open web standards (HTML5 Canvas + Web Audio API) allow us to preserve the aesthetic of Flash without proprietary plugins, open-source AI ensures that intelligent characters and procedural worlds belong to developers forever.
 
 ---
