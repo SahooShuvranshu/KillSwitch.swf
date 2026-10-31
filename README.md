@@ -29,14 +29,14 @@
 **An authentic 60 FPS HTML5 Canvas stickman resurrection fighting game trapped inside a broken Macromedia Flash Player 10.3 desktop window.**  
 *Bypass the 2021 time-bomb kill-switch to duel the vengeful Ghost of Flash Player, powered by a Dual-Layer AI architecture.*
 
-[🌐 Live Playable Showcase](https://sahooshuvranshu.github.io/KillSwitch.swf/) • [📊 900-Round Calibration](docs/difficulty-tuning.md) • [📈 1,800-Round Benchmark](docs/learning-results.md) • [📜 Submission Article](SUBMISSION.md) • [🚀 Quickstart](#-quickstart--local-setup)
+[🌐 Live Playable Showcase](https://sahooshuvranshu.github.io/KillSwitch.swf/) • [📊 900-Round Calibration](docs/difficulty-tuning.md) • [📈 1,800-Round Benchmark](docs/learning-results.md) • [📜 DEV Submission Article](SUBMISSION.md) • [🚀 Quickstart](#-quickstart--local-setup)
 
 </div>
 
 ---
 
 ## 📑 Table of Contents
-- [👥 Team Attribution](#-team-attribution--hackathon-track)
+- [👤 Author Attribution](#-author-attribution--hackathon-track)
 - [💀 The Story: January 12, 2021](#-the-story-january-12-2021)
 - [🧠 Dual-Layer AI Architecture](#-dual-layer-ai-architecture)
 - [🔄 Combat Adaptation Sequence](#-combat-adaptation-sequence)
@@ -297,7 +297,7 @@ node docs/tests/test-robustness.mjs
 > In your repository settings:
 > 1. Go to **Settings ➔ Pages**.
 > 2. Under **Build and deployment ➔ Source**, select **`GitHub Actions`** (Do NOT choose *"Deploy from a branch"*).
-> 3. Our included workflow ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)) automatically runs `npm ci && npm run build` and publishes the compiled `dist/` directory to GitHub Pages seamlessly on every push to `main`!
+> 3. The included workflow ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)) automatically runs `npm ci && npm run build` and publishes the compiled `dist/` directory to GitHub Pages seamlessly on every push to `main`!
 
 ---
 
@@ -313,4 +313,4 @@ When Adobe shut down Flash Player in 2021, 25 years of digital art, browser gami
 ---
 
 ## 📜 License
-MIT License • Created for **DEV x MLH Hacktoberfest 2026**.
+MIT License • Created for **DEV x MLH Hacktoberfest 2026** by [Shuvranshu Sekhar Sahoo](https://github.com/SahooShuvranshu).
