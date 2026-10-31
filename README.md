@@ -4,6 +4,8 @@
 > **Categories Targeted:** Best Use of Gemma ($200 USD) • Overall Grand Prize ($250 USD)  
 > **Built by:** Shuvranshu Sekhar Sahoo ([@sahooshuvranshu](https://dev.to/sahooshuvranshu))
 
+![KillSwitch.swf Combat Showcase](docs/screenshots/round1_combat.png)
+
 ---
 
 ## 💀 The Story: January 12, 2021

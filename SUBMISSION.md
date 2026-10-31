@@ -115,10 +115,10 @@ If you spam flying jump-kicks or predictable jab-into-kick chains in Round 1:
 - In Round 2, the AI immediately predicts your habits in real time. Whenever you jump, it ducks under and launches a rising dragon kick to knock you out of the sky, flashing a live combat alert:
   `⚡ GEMMA READ: ANTI-AIR INTERCEPT!`
 
-![Learned Habits & Gemma Tactical Telemetry](screenshot_learned_habits.png)
+![Learned Habits & Gemma Tactical Telemetry](docs/screenshots/screenshot_learned_habits.png)
 *Figure 1: Gemma 3:4B analyzing real-time combat habits and locking in tactical counters between rounds.*
 
-![Round 2 Counter Stance](screenshot_round2_counter.png)
+![Round 2 Counter Stance](docs/screenshots/screenshot_round2_counter.png)
 *Figure 2: The Flash Ghost in Round 2, executing an anti-air duck-under counter.*
 
 ### Gemma-Designed Boss Mechanic: "ActionScript Error 0x7E5 Time-Bomb"
@@ -131,7 +131,7 @@ When the Ghost's health drops below 35%, it enters an unhinged rage state design
    - **Step 2 (140ms)**: Glitches 120px directly overhead into the ceiling (`⚠️ 0x7E5: TELEPORT [2/3] STACK CORRUPTION`).
    - **Step 3 (280ms)**: Drops down directly behind the player's back and unleashes an unblockable heavy claw strike (`⚠️ 0x7E5: TIME-BOMB SURPRISE CLAW EXECUTION!`).
 
-![ActionScript Error 0x7E5 Rage Teleport](screenshot_rage_teleport.png)
+![ActionScript Error 0x7E5 Rage Teleport](docs/screenshots/screenshot_rage_teleport.png)
 *Figure 3: Flash Ghost executing the Gemma 3:4B designed Error 0x7E5 triple-teleport strike.*
 
 ### Día de los Muertos: Gemma's Calaveritas Literarias
