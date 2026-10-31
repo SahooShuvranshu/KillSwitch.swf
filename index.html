@@ -911,6 +911,9 @@
     </div>
   </footer>
 
-  <script type="module" crossorigin src="./assets/index-BKSZzzrc.js"></script>
+  <script type="module">
+    const isLocalDev = location.hostname === '127.0.0.1' || location.hostname === 'localhost';
+    import(isLocalDev ? '/src/main.ts' : './assets/index-BKSZzzrc.js');
+  </script>
 </body>
 </html>

@@ -26,7 +26,7 @@ async function main() {
     });
 
     await page.goto('http://127.0.0.1:5173/?round=1', { waitUntil: 'domcontentloaded' });
-    await wait(600);
+    await page.waitForFunction(() => Boolean(window.__game), { timeout: 5000 });
 
     const memorySafe = await page.evaluate(() => {
       const g = window.__game;

@@ -878,7 +878,13 @@ class KillSwitchGame {
 }
 
 // Initialize game on DOM load
-window.addEventListener('DOMContentLoaded', () => {
+const bootstrap = () => {
   new KillSwitchGame();
   initShowcase();
-});
+};
+
+if (document.readyState === 'loading') {
+  window.addEventListener('DOMContentLoaded', bootstrap, { once: true });
+} else {
+  bootstrap();
+}
