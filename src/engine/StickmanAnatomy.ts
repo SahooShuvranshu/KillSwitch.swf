@@ -1,29 +1,19 @@
 // ============================================================================
 // KillSwitch.swf — StickmanAnatomy.ts
-// High-Fidelity Anatomical Skeletal Model & Stylized Fighter Skins
-// Replaces primitive single-vertex lines with real anatomical articulation:
-// - Clavicle / Shoulder Span (14px) separating the arms
-// - Dynamic Curving Spine with Solar Plexus
-// - Pelvic Hip Bar (12px) separating the legs
-// - Articulated Dual-Joint Limbs (Elbow & Knee Accent Pivots)
-// - Martial Arts Knuckle Wraps / Clenched Fists / Open Palm Strikes
-// - Flat Planted Foot Soles with Angled Toes
-// - Zero Weapons: Pure Hand-to-Hand Martial Arts
-// - Player: 100% Pure Pitch Black Hero (#000000)
-// - AI: Starts as Pure White Ghost (#ffffff), morphs into stylized archetypes
-// - Wildcard Easter Egg: Blocky Voxel "Steve"
+// High-Fidelity Anatomical Vector Skeletal Model & Stylized Fighter Skins
+// 60 FPS Procedural Canvas Rendering • Zero External Assets • Authentic Vector Lines
 // ============================================================================
 
 import { KeyframePose } from './StickmanPoses';
 
 export type FighterArchetype = 
-  | 'player_black'     // Player: 100% Pure Pitch Black Stickman
+  | 'player_black'     // Player: 100% Pure Pitch Black Hero (#000000)
   | 'ghost_white'      // Round 1 AI: Pure White Minimalist Ghost Stickman
-  | 'cobalt_striker'   // Round 2 AI: Electric Cyan Speedster
-  | 'jade_grandmaster' // Round 3 AI: Emerald Acrobat
-  | 'crimson_titan'    // Round 4 AI: Heavyweight Berserker (Heavy lines, no weapons)
+  | 'cobalt_striker'   // Round 2 AI: Electric Cyan Speedster (Lean Kickboxer)
+  | 'jade_grandmaster' // Round 3 AI: Emerald Acrobat (Low Horse Stance & Sash)
+  | 'crimson_titan'    // Round 4 AI: Heavyweight Berserker (Heavy Lines, Broad Shoulders)
   | 'steve_easter_egg' // Wildcard Easter Egg: Minecraft Blocky Voxel Steve
-  | 'plasma_ascetic'   // Round 5 AI: Void Monk with Cyan Flame Eyes
+  | 'plasma_ascetic'   // Round 5 AI: Void Monk with Hollow Ring Head & Halo
   | 'calavera_phantom' // Round 6 AI: Day of the Dead Sugar Skull Warrior
   | 'flash_ghost_prime'// Round 7 AI: Corrupted Magenta Bytecode Overlord
   | 'procedural';
@@ -42,6 +32,42 @@ export interface AnatomyConfig {
 }
 
 export class StickmanAnatomy {
+  /**
+   * Closed-form 2-bone geometric joint solver (Inverse Kinematics).
+   * Prevents limb popping, stretching, and dislocated joints.
+   */
+  private static solveJoint(
+    rootX: number, rootY: number,
+    targetX: number, targetY: number,
+    L1: number, L2: number,
+    bendSign: number
+  ): { x: number; y: number } {
+    const dx = targetX - rootX;
+    const dy = targetY - rootY;
+    const dist = Math.hypot(dx, dy);
+
+    // If target is beyond full reach, clamp along vector without dislocation
+    if (dist >= L1 + L2) {
+      const ang = Math.atan2(dy, dx);
+      return {
+        x: rootX + Math.cos(ang) * L1,
+        y: rootY + Math.sin(ang) * L1
+      };
+    }
+
+    const d = Math.max(Math.abs(L1 - L2) + 0.1, dist);
+    const baseAng = Math.atan2(dy, dx);
+    const cosA = (L1 * L1 + d * d - L2 * L2) / (2 * L1 * d);
+    const clampedCosA = Math.max(-1, Math.min(1, cosA));
+    const angleA = Math.acos(clampedCosA);
+
+    const jointAng = baseAng + bendSign * angleA;
+    return {
+      x: rootX + Math.cos(jointAng) * L1,
+      y: rootY + Math.sin(jointAng) * L1
+    };
+  }
+
   /**
    * Render the complete articulated anatomical stickman
    */
@@ -63,15 +89,21 @@ export class StickmanAnatomy {
     const s = config.scale;
     const f = facing;
     const thick = config.thickness * s;
+    const isGhostPrime = config.archetype === 'flash_ghost_prime';
 
-    // 1. Floor Drop Shadow
+    // 1. Soft Radial Floor Drop Shadow (shrinks and softens as fighter jumps)
     const elevation = Math.max(0, groundY - y);
-    const shadowWidth = Math.max(12 * s, (26 * s) - elevation * 0.15);
-    const shadowAlpha = Math.max(0.12, 0.45 - elevation * 0.003);
+    const jumpProgress = Math.min(1.0, elevation / 140);
+    const shadowW = Math.max(8 * s, (28 * s) * (1 - jumpProgress * 0.55));
+    const shadowH = Math.max(2.5 * s, (7.0 * s) * (1 - jumpProgress * 0.55));
+    const shadowAlpha = Math.max(0.05, 0.45 * (1 - jumpProgress * 0.75));
 
+    const shadowGrad = ctx.createRadialGradient(x, groundY, shadowW * 0.15, x, groundY, shadowW);
+    shadowGrad.addColorStop(0, `rgba(0, 0, 0, ${shadowAlpha})`);
+    shadowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = shadowGrad;
     ctx.beginPath();
-    ctx.ellipse(x, groundY, shadowWidth, 6 * s, 0, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(0, 0, 0, ${shadowAlpha})`;
+    ctx.ellipse(x, groundY, shadowW, shadowH, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // 2. Overclock Flame Aura (Konami Code Boost)
@@ -88,15 +120,31 @@ export class StickmanAnatomy {
       ctx.restore();
     }
 
-    // 3. Setup Line Styling & Flash Glow
-    ctx.lineWidth = thick;
+    // 3. Flash Ghost Prime Chromatic Glitch Afterimages
+    if (isGhostPrime && state !== 'DEFEAT') {
+      ctx.save();
+      ctx.globalAlpha = 0.35;
+      const glitchX1 = (Math.sin(animFrame * 0.8) * 8 - 4) * s;
+      const glitchX2 = (-Math.cos(animFrame * 0.7) * 7 + 3) * s;
+      ctx.strokeStyle = '#00ffff';
+      ctx.lineWidth = thick * 0.9;
+      ctx.beginPath();
+      ctx.arc(x + glitchX1, y - 82 * s, 7 * s, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.strokeStyle = '#ff00aa';
+      ctx.beginPath();
+      ctx.arc(x + glitchX2, y - 82 * s, 7 * s, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // 4. Setup Line Styling & Flash Glow
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.strokeStyle = config.color;
 
     if (flashFrames > 0) {
       ctx.shadowColor = '#ffffff';
-      ctx.shadowBlur = 6 * s;
+      ctx.shadowBlur = 8 * s;
     } else if (config.auraColor && state !== 'DEFEAT') {
       ctx.shadowColor = config.auraColor;
       ctx.shadowBlur = 10 * s;
@@ -104,54 +152,32 @@ export class StickmanAnatomy {
       ctx.shadowBlur = 0;
     }
 
-    // --- Compute Articulated Skeleton Joints ---
-    const headX = x + pose.headX * f * s;
-    const headY = y + pose.headY * s;
-    const neckX = x + pose.neckX * f * s;
-    const neckY = y + pose.neckY * s;
-    const pelvisX = x + pose.pelvisX * f * s;
-    const pelvisY = y + pose.pelvisY * s;
+    // --- Animation Principle: Subtle Idle Breathing & Stance Bounces ---
+    let breathY = 0;
+    let stanceBounceY = 0;
 
-    // Torso / Solar Plexus mid-point
-    const solarPlexusX = (neckX * 0.55 + pelvisX * 0.45);
-    const solarPlexusY = (neckY * 0.55 + pelvisY * 0.45);
+    if (state === 'IDLE') {
+      breathY = Math.sin(animFrame * 0.12) * 1.6 * s;
+      if (config.archetype === 'cobalt_striker') {
+        // Cobalt kickboxer bouncy cadence
+        stanceBounceY = -Math.abs(Math.sin(animFrame * 0.22)) * 3.5 * s;
+      }
+    }
 
-    // Anatomical Shoulder Span (Clavicle Bar) — 14px span centered at neck
-    const shoulderHalfSpan = 7.5 * s;
-    const leftShoulderX = neckX - shoulderHalfSpan * f;
-    const leftShoulderY = neckY + 1.5 * s;
-    const rightShoulderX = neckX + shoulderHalfSpan * f;
-    const rightShoulderY = neckY + 1.5 * s;
-
-    // Anatomical Pelvic Hip Bar — 12px span centered at pelvis
-    const hipHalfSpan = 6.0 * s;
-    const leftHipX = pelvisX - hipHalfSpan * f;
-    const leftHipY = pelvisY;
-    const rightHipX = pelvisX + hipHalfSpan * f;
-    const rightHipY = pelvisY;
-
-    // Hands and Feet
-    const leftHandX = x + pose.leftHandX * f * s;
-    const leftHandY = y + pose.leftHandY * s;
-    const rightHandX = x + pose.rightHandX * f * s;
-    const rightHandY = y + pose.rightHandY * s;
-
-    const leftFootX = x + pose.leftFootX * f * s;
-    const leftFootY = y + pose.leftFootY * s;
-    const rightFootX = x + pose.rightFootX * f * s;
-    const rightFootY = y + pose.rightFootY * s;
-
-    // Calculate Articulated Elbows
-    const leftElbowX = (leftShoulderX + leftHandX) / 2 - 4 * f * s;
-    const leftElbowY = (leftShoulderY + leftHandY) / 2 + 5 * s;
-    const rightElbowX = (rightShoulderX + rightHandX) / 2 + 4 * f * s;
-    const rightElbowY = (rightShoulderY + rightHandY) / 2 + 5 * s;
-
-    // Calculate Articulated Knees
-    const leftKneeX = (leftHipX + leftFootX) / 2 - 5 * f * s;
-    const leftKneeY = (leftHipY + leftFootY) / 2 + 2 * s;
-    const rightKneeX = (rightHipX + rightFootX) / 2 + 5 * f * s;
-    const rightKneeY = (rightHipY + rightFootY) / 2 + 2 * s;
+    // --- Animation Principle: Jump Squash & Stretch ---
+    let squashX = 1.0;
+    let squashY = 1.0;
+    if (state === 'JUMP') {
+      if (stateTime <= 3) {
+        // Takeoff Stretch (volume preserved: 1.12 * 0.89 = 1.0)
+        squashY = 1.12;
+        squashX = 0.89;
+      } else if (elevation <= 6 && stateTime > 12) {
+        // Landing Squash (volume preserved: 0.88 * 1.14 = 1.0)
+        squashY = 0.88;
+        squashX = 1.14;
+      }
+    }
 
     // ========================================================================
     // WILDCARD EASTER EGG: MINECRAFT "STEVE" VOXEL RENDERER
@@ -162,19 +188,66 @@ export class StickmanAnatomy {
       return;
     }
 
-    // ========================================================================
-    // STANDARD ANATOMICAL MARTIAL ARTS SKELETON
-    // ========================================================================
+    // --- Compute Articulated Skeleton Joints ---
+    const headX = x + pose.headX * f * s * squashX;
+    const headY = y + (pose.headY + breathY + stanceBounceY) * s * squashY;
+    const neckX = x + pose.neckX * f * s * squashX;
+    const neckY = y + (pose.neckY + breathY * 0.8 + stanceBounceY) * s * squashY;
+    const pelvisX = x + pose.pelvisX * f * s * squashX;
+    const pelvisY = y + (pose.pelvisY + stanceBounceY) * s * squashY;
 
-    // 4. Martial Arts Guard Barrier
+    // Torso mid-point (Solar Plexus)
+    const solarPlexusX = (neckX * 0.52 + pelvisX * 0.48);
+    const solarPlexusY = (neckY * 0.52 + pelvisY * 0.48);
+
+    // Anatomical Clavicle Span
+    const shoulderHalfSpan = config.archetype === 'crimson_titan' ? 11.0 * s : 7.2 * s;
+    const leftShoulderX = neckX - shoulderHalfSpan * f;
+    const leftShoulderY = neckY + 1.2 * s;
+    const rightShoulderX = neckX + shoulderHalfSpan * f;
+    const rightShoulderY = neckY + 1.2 * s;
+
+    // Anatomical Pelvic Hip Bar
+    const hipHalfSpan = config.archetype === 'crimson_titan' ? 8.5 * s : 5.8 * s;
+    const leftHipX = pelvisX - hipHalfSpan * f;
+    const leftHipY = pelvisY;
+    const rightHipX = pelvisX + hipHalfSpan * f;
+    const rightHipY = pelvisY;
+
+    // Hands and Feet Targets
+    const leftHandX = x + pose.leftHandX * f * s;
+    const leftHandY = y + (pose.leftHandY + breathY * 0.5 + stanceBounceY) * s;
+    const rightHandX = x + pose.rightHandX * f * s;
+    const rightHandY = y + (pose.rightHandY + breathY * 0.6 + stanceBounceY) * s;
+
+    const leftFootX = x + pose.leftFootX * f * s;
+    const leftFootY = y + pose.leftFootY * s;
+    const rightFootX = x + pose.rightFootX * f * s;
+    const rightFootY = y + pose.rightFootY * s;
+
+    // --- Bone Lengths (Upper & Lower Segments) ---
+    // Scaled for natural joint articulation and athletic stance flexion
+    const armL1 = 17.5 * s;
+    const armL2 = 17.5 * s;
+    const legL1 = 24.5 * s;
+    const legL2 = 24.5 * s;
+
+    // Solve Articulated Elbows with Closed-Form Kinematics (No pop, no dislocate)
+    const leftElbow = this.solveJoint(leftShoulderX, leftShoulderY, leftHandX, leftHandY, armL1, armL2, -1 * f);
+    const rightElbow = this.solveJoint(rightShoulderX, rightShoulderY, rightHandX, rightHandY, armL1, armL2, 1 * f);
+
+    // Solve Articulated Knees (Natural forward bend in stance, chambering on jumps/kicks)
+    const kneeBendSign = state === 'LOW_SWEEP' ? 1 * f : -1 * f;
+    const leftKnee = this.solveJoint(leftHipX, leftHipY, leftFootX, leftFootY, legL1, legL2, -1 * f);
+    const rightKnee = this.solveJoint(rightHipX, rightHipY, rightFootX, rightFootY, legL1, legL2, kneeBendSign);
+
+    // 5. Martial Arts Block Barrier
     if (state === 'BLOCK') {
       ctx.save();
       ctx.beginPath();
-      ctx.arc(x + 18 * f * s, y - 60 * s, 34 * s, -Math.PI / 2.3, Math.PI / 2.3, f < 0);
-      ctx.lineWidth = 4.5 * s;
+      ctx.arc(x + 20 * f * s, y - 56 * s, 32 * s, -Math.PI / 2.3, Math.PI / 2.3, f < 0);
+      ctx.lineWidth = 4.2 * s;
       ctx.strokeStyle = config.auraColor || (config.color === '#000000' ? '#00e5ff' : config.color);
-      ctx.shadowColor = ctx.strokeStyle;
-      ctx.shadowBlur = 12 * s;
       ctx.stroke();
       ctx.restore();
     }
@@ -188,109 +261,101 @@ export class StickmanAnatomy {
       ctx.save();
       ctx.strokeStyle = '#000000';
       ctx.fillStyle = '#000000';
-      ctx.lineWidth = thick + 3.2 * s;
+      ctx.lineWidth = thick + 2.8 * s;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
 
-      // 1. Clavicle outline
+      // Spine & Bars
       ctx.beginPath();
       ctx.moveTo(leftShoulderX, leftShoulderY);
       ctx.lineTo(rightShoulderX, rightShoulderY);
       ctx.stroke();
 
-      // 2. Spine outline
       ctx.beginPath();
       ctx.moveTo(neckX, neckY);
       ctx.quadraticCurveTo(solarPlexusX, solarPlexusY, pelvisX, pelvisY);
       ctx.stroke();
 
-      // 3. Pelvis outline
       ctx.beginPath();
       ctx.moveTo(leftHipX, leftHipY);
       ctx.lineTo(rightHipX, rightHipY);
       ctx.stroke();
 
-      // 4. Back leg outline
+      // Limbs outline
       ctx.beginPath();
       ctx.moveTo(leftHipX, leftHipY);
-      ctx.lineTo(leftKneeX, leftKneeY);
+      ctx.lineTo(leftKnee.x, leftKnee.y);
       ctx.lineTo(leftFootX, leftFootY);
-      ctx.stroke();
-
-      // 5. Front leg outline
-      ctx.beginPath();
       ctx.moveTo(rightHipX, rightHipY);
-      ctx.lineTo(rightKneeX, rightKneeY);
+      ctx.lineTo(rightKnee.x, rightKnee.y);
       ctx.lineTo(rightFootX, rightFootY);
       ctx.stroke();
 
-      // 6. Back arm outline
       ctx.beginPath();
       ctx.moveTo(leftShoulderX, leftShoulderY);
-      ctx.lineTo(leftElbowX, leftElbowY);
+      ctx.lineTo(leftElbow.x, leftElbow.y);
       ctx.lineTo(leftHandX, leftHandY);
-      ctx.stroke();
-
-      // 7. Front arm outline
-      ctx.beginPath();
       ctx.moveTo(rightShoulderX, rightShoulderY);
-      ctx.lineTo(rightElbowX, rightElbowY);
+      ctx.lineTo(rightElbow.x, rightElbow.y);
       ctx.lineTo(rightHandX, rightHandY);
       ctx.stroke();
 
-      // 8. Fists black outline
+      // Head outline (Proportion 1/7 of height: radius ~7px)
+      const headR = 7.0 * s * (config.headScale || 1.0);
       ctx.beginPath();
-      ctx.arc(leftHandX, leftHandY, 6.2 * s, 0, Math.PI * 2);
-      ctx.arc(rightHandX, rightHandY, 6.2 * s, 0, Math.PI * 2);
+      ctx.arc(headX, headY, headR + 1.5 * s, 0, Math.PI * 2);
       ctx.fill();
 
-      // 9. Head black outline
-      const headRadius = 12 * s * (config.headScale || 1.0);
+      // Fists & Feet outlines
       ctx.beginPath();
-      ctx.arc(headX, headY, headRadius + 1.8 * s, 0, Math.PI * 2);
+      ctx.arc(leftHandX, leftHandY, 5.2 * s, 0, Math.PI * 2);
+      ctx.arc(rightHandX, rightHandY, 5.2 * s, 0, Math.PI * 2);
       ctx.fill();
 
-      // 10. Feet black outline
-      ctx.lineWidth = 5.6 * s;
+      ctx.lineWidth = 5.2 * s;
       ctx.beginPath();
-      ctx.moveTo(leftFootX - 6 * f * s, leftFootY);
-      ctx.lineTo(leftFootX + 11 * f * s, leftFootY);
-      ctx.moveTo(rightFootX - 6 * f * s, rightFootY);
-      ctx.lineTo(rightFootX + 11 * f * s, rightFootY);
+      ctx.moveTo(leftFootX - 5 * f * s, leftFootY);
+      ctx.lineTo(leftFootX + 10 * f * s, leftFootY);
+      ctx.moveTo(rightFootX - 5 * f * s, rightFootY);
+      ctx.lineTo(rightFootX + 10 * f * s, rightFootY);
       ctx.stroke();
 
       ctx.restore();
     }
 
-    // 5. Clavicle / Shoulder Bar
-    ctx.beginPath();
-    ctx.moveTo(leftShoulderX, leftShoulderY);
-    ctx.lineTo(rightShoulderX, rightShoulderY);
-    ctx.stroke();
-
-    // 6. Curving Spine (Neck -> Solar Plexus -> Pelvis)
+    // 6. Draw Spine (Slightly heavier tapered stroke)
+    ctx.strokeStyle = config.color;
+    ctx.lineWidth = (thick + 0.5 * s);
     ctx.beginPath();
     ctx.moveTo(neckX, neckY);
     ctx.quadraticCurveTo(solarPlexusX, solarPlexusY, pelvisX, pelvisY);
     ctx.stroke();
 
-    // 7. Pelvic Hip Bar
+    // 7. Clavicle & Pelvis Bars
+    ctx.lineWidth = thick;
     ctx.beginPath();
+    ctx.moveTo(leftShoulderX, leftShoulderY);
+    ctx.lineTo(rightShoulderX, rightShoulderY);
     ctx.moveTo(leftHipX, leftHipY);
     ctx.lineTo(rightHipX, rightHipY);
     ctx.stroke();
 
     // 8. Martial Arts Belt & Fluttering Ribbons
     ctx.save();
-    const beltColor = config.archetype === 'player_black' ? '#ffffff' : (config.archetype === 'ghost_white' ? '#111111' : '#ff2200');
+    let beltColor = '#ffffff';
+    if (config.archetype === 'player_black') beltColor = '#ffffff';
+    else if (config.archetype === 'ghost_white') beltColor = '#111111';
+    else if (config.archetype === 'jade_grandmaster') beltColor = '#ffd700';
+    else beltColor = config.auraColor || '#ff2200';
+
     ctx.strokeStyle = beltColor;
     ctx.fillStyle = beltColor;
-    ctx.lineWidth = 2.8 * s;
-    // Belt knot
+    ctx.lineWidth = 2.6 * s;
     ctx.beginPath();
-    ctx.arc(pelvisX, pelvisY, 3.2 * s, 0, Math.PI * 2);
+    ctx.arc(pelvisX, pelvisY, 2.8 * s, 0, Math.PI * 2);
     ctx.fill();
-    // Two trailing ribbons
+
+    // Trailing sash follow-through ribbons
     const ribbonWave1 = Math.sin(animFrame * 0.22) * 5 * s;
     const ribbonWave2 = Math.cos(animFrame * 0.18) * 6 * s;
     ctx.beginPath();
@@ -301,64 +366,71 @@ export class StickmanAnatomy {
     ctx.stroke();
     ctx.restore();
 
-    // 9. Back Leg (Left Leg)
+    // 9. Back Leg (Left Leg) — Tapered stroke (Thigh -> Calf)
+    ctx.strokeStyle = config.color;
+    ctx.lineWidth = thick;
     ctx.beginPath();
     ctx.moveTo(leftHipX, leftHipY);
-    ctx.lineTo(leftKneeX, leftKneeY);
+    ctx.lineTo(leftKnee.x, leftKnee.y);
+    ctx.stroke();
+
+    ctx.lineWidth = thick * 0.88;
+    ctx.beginPath();
+    ctx.moveTo(leftKnee.x, leftKnee.y);
     ctx.lineTo(leftFootX, leftFootY);
     ctx.stroke();
-    // Knee joint accent
-    this.drawJoint(ctx, leftKneeX, leftKneeY, 2.8 * s, config.color);
-
-    // Back Foot (Articulated Martial Soles)
+    this.drawJoint(ctx, leftKnee.x, leftKnee.y, 2.4 * s, config.color);
     this.drawFoot(ctx, leftFootX, leftFootY, f, s, config.color);
 
     // 10. Front Leg (Right Leg)
+    ctx.lineWidth = thick;
     ctx.beginPath();
     ctx.moveTo(rightHipX, rightHipY);
-    ctx.lineTo(rightKneeX, rightKneeY);
+    ctx.lineTo(rightKnee.x, rightKnee.y);
+    ctx.stroke();
+
+    ctx.lineWidth = thick * 0.88;
+    ctx.beginPath();
+    ctx.moveTo(rightKnee.x, rightKnee.y);
     ctx.lineTo(rightFootX, rightFootY);
     ctx.stroke();
-    // Knee joint accent
-    this.drawJoint(ctx, rightKneeX, rightKneeY, 2.8 * s, config.color);
-
-    // Front Foot
+    this.drawJoint(ctx, rightKnee.x, rightKnee.y, 2.4 * s, config.color);
     this.drawFoot(ctx, rightFootX, rightFootY, f, s, config.color);
 
-    // 11. Back Arm (Left Arm)
+    // 11. Back Arm (Left Arm) — Tapered stroke (Upper Arm -> Forearm)
+    ctx.lineWidth = thick * 0.95;
     ctx.beginPath();
     ctx.moveTo(leftShoulderX, leftShoulderY);
-    ctx.lineTo(leftElbowX, leftElbowY);
+    ctx.lineTo(leftElbow.x, leftElbow.y);
+    ctx.stroke();
+
+    ctx.lineWidth = thick * 0.84;
+    ctx.beginPath();
+    ctx.moveTo(leftElbow.x, leftElbow.y);
     ctx.lineTo(leftHandX, leftHandY);
     ctx.stroke();
-    // Elbow joint accent
-    this.drawJoint(ctx, leftElbowX, leftElbowY, 2.5 * s, config.color);
-
-    // Back Hand (Knuckle Tape / Fist)
+    this.drawJoint(ctx, leftElbow.x, leftElbow.y, 2.2 * s, config.color);
     this.drawFist(ctx, leftHandX, leftHandY, f, s, config, state === 'PALM_BURST');
 
     // 12. Front Arm (Right Arm)
+    ctx.lineWidth = thick * 0.95;
     ctx.beginPath();
     ctx.moveTo(rightShoulderX, rightShoulderY);
-    ctx.lineTo(rightElbowX, rightElbowY);
+    ctx.lineTo(rightElbow.x, rightElbow.y);
+    ctx.stroke();
+
+    ctx.lineWidth = thick * 0.84;
+    ctx.beginPath();
+    ctx.moveTo(rightElbow.x, rightElbow.y);
     ctx.lineTo(rightHandX, rightHandY);
     ctx.stroke();
-    // Elbow joint accent
-    this.drawJoint(ctx, rightElbowX, rightElbowY, 2.5 * s, config.color);
-
-    // Front Hand
+    this.drawJoint(ctx, rightElbow.x, rightElbow.y, 2.2 * s, config.color);
     this.drawFist(ctx, rightHandX, rightHandY, f, s, config, state === 'PALM_BURST');
 
-    // 13. Dynamic Attack Shockwaves (Pure Martial Arts Energy)
-    if (state === 'UPPERCUT' && stateTime >= 4 && stateTime <= 10) {
-      this.drawUppercutSpiral(ctx, rightHandX, rightHandY, f, s, config.auraColor || config.color);
-    } else if (state === 'FLYING_KNEE' && stateTime >= 3 && stateTime <= 12) {
-      this.drawKneeShockwave(ctx, rightKneeX, rightKneeY, f, s, config.auraColor || config.color);
-    } else if (state === 'PALM_BURST' && stateTime >= 3 && stateTime <= 10) {
-      this.drawPalmShockwave(ctx, rightHandX, rightHandY, f, s, config.auraColor || config.color);
-    }
+    // 13. Dynamic Attack Motion Arcs & Energy Shockwaves
+    this.drawAttackArcs(ctx, rightHandX, rightHandY, rightFootX, rightFootY, rightKnee.x, rightKnee.y, f, s, state, stateTime, config);
 
-    // 14. Head & Expressive Battle Eyes
+    // 14. Head & Expressive Battle Face (Proportion: 1/7 of height)
     this.drawHeadAndFace(ctx, headX, headY, f, s, config, state, animFrame);
 
     ctx.restore();
@@ -374,28 +446,20 @@ export class StickmanAnatomy {
     ctx.restore();
   }
 
-  // --- Sub-renderer: Flat Planted Martial Arts Foot ---
+  // --- Sub-renderer: Flat Planted Martial Arts Foot with Angled Toe ---
   private static drawFoot(ctx: CanvasRenderingContext2D, x: number, y: number, f: number, s: number, color: string) {
     ctx.save();
     const isWhiteGuy = color === '#ffffff' || color === '#f5f5f5';
-    ctx.lineWidth = 3.6 * s;
     ctx.strokeStyle = color;
+    ctx.lineWidth = 3.6 * s;
+    ctx.lineCap = 'round';
     ctx.beginPath();
-    // Heel to toe planted sole
+    // Sole
     ctx.moveTo(x - 5 * f * s, y);
     ctx.lineTo(x + 9 * f * s, y);
-    // Slight angled toe cap
-    ctx.lineTo(x + 10 * f * s, y - 2 * s);
+    // Upward angled toe
+    ctx.lineTo(x + 11 * f * s, y - 2.5 * s);
     ctx.stroke();
-
-    if (isWhiteGuy) {
-      ctx.lineWidth = 2.0 * s;
-      ctx.strokeStyle = '#000000';
-      ctx.beginPath();
-      ctx.moveTo(x - 5 * f * s, y + 1.2 * s);
-      ctx.lineTo(x + 10 * f * s, y + 1.2 * s);
-      ctx.stroke();
-    }
     ctx.restore();
   }
 
@@ -410,7 +474,7 @@ export class StickmanAnatomy {
     isOpenPalm: boolean
   ) {
     ctx.save();
-    const fistRadius = 4.8 * s;
+    const fistR = 4.2 * s;
     const isWhiteGuy = config.archetype === 'ghost_white' || config.color === '#ffffff' || config.color === '#f5f5f5';
 
     if (isOpenPalm) {
@@ -418,46 +482,44 @@ export class StickmanAnatomy {
       ctx.fillStyle = config.color;
       ctx.strokeStyle = isWhiteGuy ? '#000000' : config.color;
       ctx.beginPath();
-      ctx.arc(x, y, fistRadius * 0.9, 0, Math.PI * 2);
+      ctx.arc(x, y, fistR * 0.9, 0, Math.PI * 2);
       ctx.fill();
-      ctx.lineWidth = 2.0 * s;
+      ctx.lineWidth = 1.8 * s;
       ctx.stroke();
-      // 4 open finger ridges
       for (let i = -2; i <= 2; i++) {
         ctx.beginPath();
-        ctx.moveTo(x + (i * 2) * s, y);
-        ctx.lineTo(x + 8 * f * s + (i * 2) * s, y + (i * 2.5) * s);
+        ctx.moveTo(x + (i * 1.8) * s, y);
+        ctx.lineTo(x + 7 * f * s + (i * 1.8) * s, y + (i * 2.2) * s);
         ctx.stroke();
       }
       ctx.restore();
       return;
     }
 
-    // Clenched Boxing / Karate Fist
+    // Clenched Martial Fist
     ctx.beginPath();
-    ctx.arc(x, y, fistRadius, 0, Math.PI * 2);
+    ctx.arc(x, y, fistR, 0, Math.PI * 2);
     ctx.fillStyle = config.color;
     ctx.fill();
     ctx.strokeStyle = isWhiteGuy ? '#000000' : config.color;
-    ctx.lineWidth = isWhiteGuy ? 2.2 * s : 1.5 * s;
+    ctx.lineWidth = isWhiteGuy ? 2.0 * s : 1.4 * s;
     ctx.stroke();
 
-    // Knuckle Tape / Hand Wraps (White for pure black player, black/themed for white opponents)
+    // Knuckle Tape Wraps
     const tapeColor = config.knuckleTapeColor || (isWhiteGuy ? '#111111' : (config.archetype === 'player_black' ? '#ffffff' : 'rgba(255, 255, 255, 0.7)'));
     ctx.strokeStyle = tapeColor;
-    ctx.lineWidth = 1.8 * s;
-    // Cross wrap lines on fist
+    ctx.lineWidth = 1.5 * s;
     ctx.beginPath();
-    ctx.moveTo(x - 3 * s, y - 3 * s);
-    ctx.lineTo(x + 3 * s, y + 3 * s);
-    ctx.moveTo(x + 3 * s, y - 3 * s);
-    ctx.lineTo(x - 3 * s, y + 3 * s);
+    ctx.moveTo(x - 2.5 * s, y - 2.5 * s);
+    ctx.lineTo(x + 2.5 * s, y + 2.5 * s);
+    ctx.moveTo(x + 2.5 * s, y - 2.5 * s);
+    ctx.lineTo(x - 2.5 * s, y + 2.5 * s);
     ctx.stroke();
 
     ctx.restore();
   }
 
-  // --- Sub-renderer: Head & Expressive Battle Face ---
+  // --- Sub-renderer: Head & Expressive Battle Face (1/7 of height) ---
   private static drawHeadAndFace(
     ctx: CanvasRenderingContext2D,
     headX: number,
@@ -468,160 +530,243 @@ export class StickmanAnatomy {
     state: string,
     animFrame: number
   ) {
-    const headRadius = 12 * s * (config.headScale || 1.0);
+    const headRadius = 7.0 * s * (config.headScale || 1.0);
     const isWhiteGuy = config.archetype === 'ghost_white' || config.color === '#ffffff' || config.color === '#f5f5f5';
 
-    if (config.isHollowHead) {
-      // Hollow Void Head (Plasma Ascetic / Crimson Titan)
+    // Plasma Ascetic Hollow Ring Head & Halo
+    if (config.isHollowHead || config.archetype === 'plasma_ascetic') {
       ctx.beginPath();
-      ctx.arc(headX, headY, headRadius * 1.1, 0, Math.PI * 2);
-      ctx.lineWidth = 4.5 * s;
+      ctx.arc(headX, headY, headRadius * 1.05, 0, Math.PI * 2);
+      ctx.lineWidth = 3.6 * s;
       ctx.strokeStyle = config.color;
       ctx.stroke();
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
       ctx.fill();
 
-      // Glowing Core Eyes
+      // Floating Cyan Halo
       ctx.save();
-      const eyeGlow = config.auraColor || '#00ffff';
-      ctx.fillStyle = eyeGlow;
-      ctx.shadowColor = eyeGlow;
-      ctx.shadowBlur = 10 * s;
+      const haloGlow = config.auraColor || '#00ffff';
+      ctx.strokeStyle = haloGlow;
+      ctx.shadowColor = haloGlow;
+      ctx.shadowBlur = 12 * s;
+      ctx.lineWidth = 2.2 * s;
+      const haloY = headY - (headRadius + 6 * s) + Math.sin(animFrame * 0.15) * 2 * s;
       ctx.beginPath();
-      ctx.arc(headX + 4 * f * s, headY - 1 * s, 2.5 * s, 0, Math.PI * 2);
-      ctx.arc(headX - 1 * f * s, headY - 1 * s, 2.5 * s, 0, Math.PI * 2);
+      ctx.ellipse(headX, haloY, 8 * s, 2.5 * s, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Glowing Core Eye
+      ctx.fillStyle = haloGlow;
+      ctx.beginPath();
+      ctx.arc(headX + 2.5 * f * s, headY, 1.8 * s, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
       return;
     }
 
-    // Solid Martial Head
+    // Solid Martial Arts Head
     ctx.beginPath();
     ctx.arc(headX, headY, headRadius, 0, Math.PI * 2);
     ctx.fillStyle = config.color;
     ctx.fill();
     ctx.strokeStyle = isWhiteGuy ? '#000000' : config.color;
-    ctx.lineWidth = isWhiteGuy ? 2.4 * s : 1.5 * s;
+    ctx.lineWidth = isWhiteGuy ? 2.0 * s : 1.4 * s;
     ctx.stroke();
 
-    // Calavera Face Paint (Sugar Skull)
+    // Calavera Skull Face Paint
     if (config.archetype === 'calavera_phantom') {
       ctx.save();
-      ctx.fillStyle = '#ffaa00';
-      for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
-        const petX = headX + 3 * f * s + Math.cos(a) * 5 * s;
-        const petY = headY - 1 * s + Math.sin(a) * 5 * s;
-        ctx.beginPath();
-        ctx.arc(petX, petY, 1.8 * s, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.strokeStyle = '#111111';
-      ctx.lineWidth = 1.6 * s;
+      ctx.fillStyle = '#ff9900';
       ctx.beginPath();
-      ctx.moveTo(headX + (f * s - 4 * s), headY + 6 * s);
-      ctx.lineTo(headX + (f * s + 6 * s), headY + 6 * s);
+      ctx.arc(headX + 2.5 * f * s, headY - 1 * s, 1.8 * s, 0, Math.PI * 2);
+      ctx.fill();
+      // Stitched jaw
+      ctx.strokeStyle = '#111111';
+      ctx.lineWidth = 1.4 * s;
+      ctx.beginPath();
+      ctx.moveTo(headX + (f * s - 3 * s), headY + 4 * s);
+      ctx.lineTo(headX + (f * s + 4 * s), headY + 4 * s);
       ctx.stroke();
       ctx.restore();
       return;
     }
 
+    // Cobalt Duelist Athletic Headband & Streamers
+    if (config.archetype === 'cobalt_striker') {
+      ctx.save();
+      ctx.strokeStyle = '#00e5ff';
+      ctx.lineWidth = 2.0 * s;
+      ctx.beginPath();
+      ctx.arc(headX, headY, headRadius + 0.6 * s, -Math.PI * 0.9, 0.1);
+      ctx.stroke();
+      const ribbonWave = Math.sin(animFrame * 0.25) * 4 * s;
+      ctx.beginPath();
+      ctx.moveTo(headX - headRadius * f, headY - 1 * s);
+      ctx.quadraticCurveTo(headX - (headRadius + 8) * f * s, headY - 2 * s + ribbonWave, headX - (headRadius + 16) * f * s, headY + 3 * s + ribbonWave);
+      ctx.moveTo(headX - headRadius * f, headY);
+      ctx.quadraticCurveTo(headX - (headRadius + 6) * f * s, headY + 4 * s - ribbonWave, headX - (headRadius + 14) * f * s, headY + 9 * s - ribbonWave);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Jade Grandmaster Forehead Silk Sash & Crest
+    if (config.archetype === 'jade_grandmaster') {
+      ctx.save();
+      ctx.strokeStyle = '#ffd700';
+      ctx.fillStyle = '#ffd700';
+      ctx.lineWidth = 1.8 * s;
+      ctx.beginPath();
+      ctx.arc(headX, headY, headRadius + 0.6 * s, -Math.PI * 0.8, -Math.PI * 0.1);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(headX + 2 * f * s, headY - 4 * s, 1.8 * s, 0, Math.PI * 2);
+      ctx.fill();
+      const tailWave = Math.sin(animFrame * 0.18) * 5 * s;
+      ctx.strokeStyle = '#00e676';
+      ctx.beginPath();
+      ctx.moveTo(headX - headRadius * f, headY - 2 * s);
+      ctx.quadraticCurveTo(headX - (headRadius + 10) * f * s, headY + 6 * s + tailWave, headX - (headRadius + 20) * f * s, headY + 14 * s + tailWave);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Flash Ghost Prime Digital Bytecode Horns / Spikes
+    if (config.archetype === 'flash_ghost_prime') {
+      ctx.save();
+      ctx.strokeStyle = '#ff00aa';
+      ctx.fillStyle = '#ff00aa';
+      ctx.lineWidth = 2.2 * s;
+      const spikeFlicker = Math.sin(animFrame * 0.4) * 2 * s;
+      ctx.beginPath();
+      ctx.moveTo(headX - 4 * s, headY - headRadius);
+      ctx.lineTo(headX - 6 * s, headY - headRadius - 8 * s - spikeFlicker);
+      ctx.moveTo(headX + 4 * s, headY - headRadius);
+      ctx.lineTo(headX + 6 * s, headY - headRadius - 8 * s + spikeFlicker);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Crimson Titan Heavy Brow Ridge
+    if (config.archetype === 'crimson_titan') {
+      ctx.save();
+      ctx.strokeStyle = '#ff0044';
+      ctx.lineWidth = 2.4 * s;
+      ctx.beginPath();
+      ctx.moveTo(headX - 4 * f * s, headY - 2 * s);
+      ctx.lineTo(headX + 5 * f * s, headY - 1 * s);
+      ctx.stroke();
+      ctx.restore();
+    }
+
     // Expressive Battle Eyes
     ctx.save();
-    // Invert eye contrast: Black stickman gets bright white eyes; White stickman gets sharp black eyes
     const eyeColor = config.color === '#000000' || config.color === '#111111' ? '#ffffff' : '#000000';
     ctx.strokeStyle = eyeColor;
     ctx.fillStyle = eyeColor;
-    ctx.lineWidth = 2.0 * s;
+    ctx.lineWidth = 1.8 * s;
 
     if (state === 'HIT_STUN' || state === 'KNOCKDOWN' || state === 'DEFEAT') {
       // Knockout Shock Eyes (X X)
       ctx.beginPath();
-      ctx.moveTo(headX + (2 * f - 3) * s, headY - 4 * s);
-      ctx.lineTo(headX + (2 * f + 3) * s, headY + 2 * s);
-      ctx.moveTo(headX + (2 * f + 3) * s, headY - 4 * s);
-      ctx.lineTo(headX + (2 * f - 3) * s, headY + 2 * s);
-      ctx.moveTo(headX + (-4 * f - 3) * s, headY - 4 * s);
-      ctx.lineTo(headX + (-4 * f + 3) * s, headY + 2 * s);
-      ctx.moveTo(headX + (-4 * f + 3) * s, headY - 4 * s);
-      ctx.lineTo(headX + (-4 * f - 3) * s, headY + 2 * s);
+      ctx.moveTo(headX + (1.5 * f - 2) * s, headY - 3 * s);
+      ctx.lineTo(headX + (1.5 * f + 2) * s, headY + 1 * s);
+      ctx.moveTo(headX + (1.5 * f + 2) * s, headY - 3 * s);
+      ctx.lineTo(headX + (1.5 * f - 2) * s, headY + 1 * s);
       ctx.stroke();
     } else if (state === 'JAB' || state === 'CROSS_PUNCH' || state === 'UPPERCUT' || state === 'HEAVY_KICK') {
-      // Fierce Battle Slits
+      // Fierce Battle Eye Slit
       ctx.beginPath();
-      ctx.moveTo(headX + 1 * f * s, headY - 3 * s);
-      ctx.lineTo(headX + 6 * f * s, headY - 1 * s);
-      ctx.moveTo(headX - 5 * f * s, headY - 3 * s);
-      ctx.lineTo(headX - 1 * f * s, headY - 1 * s);
+      ctx.moveTo(headX + 1 * f * s, headY - 2 * s);
+      ctx.lineTo(headX + 4.5 * f * s, headY - 0.5 * s);
       ctx.stroke();
     } else {
-      // Focused Martial Slits
+      // Focused Martial Slit
       ctx.beginPath();
-      ctx.arc(headX + 4 * f * s, headY - 1 * s, 1.8 * s, 0, Math.PI * 2);
-      ctx.arc(headX - 2 * f * s, headY - 1 * s, 1.8 * s, 0, Math.PI * 2);
+      ctx.arc(headX + 2.8 * f * s, headY - 0.8 * s, 1.4 * s, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.restore();
   }
 
-  // --- Sub-renderer: Rising Uppercut Spiral Effect ---
-  private static drawUppercutSpiral(
+  // --- Sub-renderer: Dynamic Attack Motion Arcs & Shockwaves ---
+  private static drawAttackArcs(
     ctx: CanvasRenderingContext2D,
-    x: number,
-    y: number,
-    f: number,
-    s: number,
-    color: string
+    handX: number, handY: number,
+    footX: number, footY: number,
+    kneeX: number, kneeY: number,
+    f: number, s: number,
+    state: string,
+    stateTime: number,
+    config: AnatomyConfig
   ) {
-    ctx.save();
-    ctx.strokeStyle = color;
-    ctx.shadowColor = color;
-    ctx.shadowBlur = 14 * s;
-    ctx.lineWidth = 4 * s;
-    ctx.beginPath();
-    ctx.moveTo(x - 12 * f * s, y + 25 * s);
-    ctx.quadraticCurveTo(x + 18 * f * s, y, x, y - 24 * s);
-    ctx.stroke();
-    ctx.restore();
-  }
+    const color = config.auraColor || config.color;
 
-  // --- Sub-renderer: Flying Clinch Knee Shockwave ---
-  private static drawKneeShockwave(
-    ctx: CanvasRenderingContext2D,
-    x: number,
-    y: number,
-    f: number,
-    s: number,
-    color: string
-  ) {
-    ctx.save();
-    ctx.strokeStyle = color;
-    ctx.shadowColor = color;
-    ctx.shadowBlur = 16 * s;
-    ctx.lineWidth = 5 * s;
-    ctx.beginPath();
-    ctx.arc(x + 10 * f * s, y, 22 * s, -Math.PI / 2.5, Math.PI / 2.5, f < 0);
-    ctx.stroke();
-    ctx.restore();
-  }
+    // Heavy Kick Crescent Arc
+    if (state === 'HEAVY_KICK' && stateTime >= 2 && stateTime <= 8) {
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 12 * s;
+      ctx.lineWidth = 3.8 * s;
+      ctx.beginPath();
+      ctx.arc(footX - 16 * f * s, footY + 12 * s, 36 * s, -Math.PI / 3, Math.PI / 4, f < 0);
+      ctx.stroke();
+      ctx.restore();
+    }
 
-  // --- Sub-renderer: Two-Handed Palm Burst Shockwave ---
-  private static drawPalmShockwave(
-    ctx: CanvasRenderingContext2D,
-    x: number,
-    y: number,
-    f: number,
-    s: number,
-    color: string
-  ) {
-    ctx.save();
-    ctx.strokeStyle = color;
-    ctx.shadowColor = color;
-    ctx.shadowBlur = 18 * s;
-    ctx.lineWidth = 6 * s;
-    ctx.beginPath();
-    ctx.arc(x + 16 * f * s, y, 32 * s, -Math.PI / 2, Math.PI / 2, f < 0);
-    ctx.stroke();
-    ctx.restore();
+    // Uppercut Skyward Helix Arc
+    if (state === 'UPPERCUT' && stateTime >= 3 && stateTime <= 9) {
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 14 * s;
+      ctx.lineWidth = 4 * s;
+      ctx.beginPath();
+      ctx.moveTo(handX - 10 * f * s, handY + 22 * s);
+      ctx.quadraticCurveTo(handX + 16 * f * s, handY, handX, handY - 20 * s);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Flying Knee Leaping Wedge
+    if (state === 'FLYING_KNEE' && stateTime >= 2 && stateTime <= 10) {
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 14 * s;
+      ctx.lineWidth = 4.2 * s;
+      ctx.beginPath();
+      ctx.arc(kneeX + 8 * f * s, kneeY, 20 * s, -Math.PI / 2.6, Math.PI / 2.6, f < 0);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Palm Burst Dual Shockwave
+    if (state === 'PALM_BURST' && stateTime >= 2 && stateTime <= 8) {
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 16 * s;
+      ctx.lineWidth = 5 * s;
+      ctx.beginPath();
+      ctx.arc(handX + 14 * f * s, handY, 28 * s, -Math.PI / 2.2, Math.PI / 2.2, f < 0);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Low Sweep Floor Arc
+    if (state === 'LOW_SWEEP' && stateTime >= 2 && stateTime <= 7) {
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 10 * s;
+      ctx.lineWidth = 3.6 * s;
+      ctx.beginPath();
+      ctx.moveTo(footX - 22 * f * s, footY);
+      ctx.lineTo(footX + 14 * f * s, footY);
+      ctx.stroke();
+      ctx.restore();
+    }
   }
 
   // ========================================================================
@@ -638,82 +783,59 @@ export class StickmanAnatomy {
     animFrame: number
   ) {
     ctx.save();
-
-    const headW = 22 * s;
-    const headH = 22 * s;
+    const headW = 16 * s;
+    const headH = 16 * s;
     const headX = x + pose.headX * f * s - (headW / 2);
     const headY = y + pose.headY * s - (headH / 2);
 
-    // 1. Steve Voxel Head (Flesh tone: #d79878)
-    ctx.fillStyle = '#d79878';
+    // Voxel Head
+    ctx.fillStyle = '#b58863';
     ctx.fillRect(headX, headY, headW, headH);
-    ctx.strokeStyle = '#222222';
-    ctx.lineWidth = 1.5 * s;
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 1.8 * s;
     ctx.strokeRect(headX, headY, headW, headH);
 
-    // Brown Hair & Goatee (#4a2e18)
-    ctx.fillStyle = '#4a2e18';
-    ctx.fillRect(headX, headY, headW, 6 * s); // Hair cap
-    ctx.fillRect(headX + (f > 0 ? headW - 5 * s : 0), headY + 5 * s, 5 * s, 5 * s); // Sideburn
-    ctx.fillRect(headX + (f > 0 ? headW - 10 * s : 2 * s), headY + 14 * s, 8 * s, 3 * s); // Goatee/mouth
+    // Hair
+    ctx.fillStyle = '#4a3728';
+    ctx.fillRect(headX, headY, headW, 4 * s);
 
-    // Pixel Eyes (#ffffff + #2d45b5 blue pupil)
-    const eyeX = f > 0 ? headX + 11 * s : headX + 3 * s;
+    // Pixel Eyes
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(eyeX, headY + 8 * s, 6 * s, 3.5 * s);
-    ctx.fillStyle = '#2d45b5';
-    ctx.fillRect(f > 0 ? eyeX + 3 * s : eyeX, headY + 8 * s, 3 * s, 3.5 * s);
+    ctx.fillRect(headX + (f > 0 ? 9 * s : 2 * s), headY + 6 * s, 4 * s, 3 * s);
+    ctx.fillStyle = '#3f51b5';
+    ctx.fillRect(headX + (f > 0 ? 11 * s : 2 * s), headY + 7 * s, 2 * s, 2 * s);
 
-    // 2. Cyan Shirt Torso (#00a8a8)
-    const torsoW = 18 * s;
-    const torsoH = 28 * s;
-    const torsoX = x + pose.neckX * f * s - (torsoW / 2);
-    const torsoY = y + pose.neckY * s;
+    // Voxel Torso (Cyan T-Shirt)
+    const torsoW = 14 * s;
+    const torsoH = 24 * s;
+    const torsoX = x - (torsoW / 2) + pose.neckX * f * s * 0.5;
+    const torsoY = y - 72 * s;
     ctx.fillStyle = '#00a8a8';
     ctx.fillRect(torsoX, torsoY, torsoW, torsoH);
-    ctx.strokeStyle = '#222222';
-    ctx.lineWidth = 1.5 * s;
     ctx.strokeRect(torsoX, torsoY, torsoW, torsoH);
 
-    // 3. Indigo Pants Legs (#2d3282)
-    const leftFootX = x + pose.leftFootX * f * s;
-    const rightFootX = x + pose.rightFootX * f * s;
-    const legW = 7 * s;
-    const legH = 34 * s;
-    ctx.fillStyle = '#2d3282';
-    // Back leg
-    ctx.fillRect(leftFootX - legW / 2, y + pose.pelvisY * s + 6 * s, legW, legH);
-    ctx.strokeRect(leftFootX - legW / 2, y + pose.pelvisY * s + 6 * s, legW, legH);
-    // Front leg
-    ctx.fillRect(rightFootX - legW / 2, y + pose.pelvisY * s + 6 * s, legW, legH);
-    ctx.strokeRect(rightFootX - legW / 2, y + pose.pelvisY * s + 6 * s, legW, legH);
+    // Voxel Legs (Blue Pants)
+    const legW = 6.5 * s;
+    const legH = 26 * s;
+    const leftLegX = torsoX;
+    const rightLegX = torsoX + 7.5 * s;
+    const legY = torsoY + torsoH;
+    ctx.fillStyle = '#2b3990';
+    ctx.fillRect(leftLegX, legY, legW, legH);
+    ctx.strokeRect(leftLegX, legY, legW, legH);
+    ctx.fillRect(rightLegX, legY, legW, legH);
+    ctx.strokeRect(rightLegX, legY, legW, legH);
 
-    // Grey Shoes (#555555)
-    ctx.fillStyle = '#555555';
-    ctx.fillRect(leftFootX - legW / 2, y - 4 * s, legW + 3 * f * s, 5 * s);
-    ctx.fillRect(rightFootX - legW / 2, y - 4 * s, legW + 3 * f * s, 5 * s);
-
-    // 4. Blocky Voxel Arms & Boxing Fists (#00a8a8 sleeves + #d79878 flesh fists)
-    const armW = 8 * s;
-    const armH = 24 * s;
-    const leftHandX = x + pose.leftHandX * f * s;
-    const leftHandY = y + pose.leftHandY * s;
-    const rightHandX = x + pose.rightHandX * f * s;
-    const rightHandY = y + pose.rightHandY * s;
-
-    // Back arm
-    ctx.fillStyle = '#00a8a8';
-    ctx.fillRect(leftHandX - armW / 2, leftHandY - armH / 2, armW, 8 * s);
-    ctx.fillStyle = '#d79878';
-    ctx.fillRect(leftHandX - armW / 2, leftHandY - armH / 2 + 8 * s, armW, armH - 8 * s);
-    ctx.strokeRect(leftHandX - armW / 2, leftHandY - armH / 2, armW, armH);
-
-    // Front arm
-    ctx.fillStyle = '#00a8a8';
-    ctx.fillRect(rightHandX - armW / 2, rightHandY - armH / 2, armW, 8 * s);
-    ctx.fillStyle = '#d79878';
-    ctx.fillRect(rightHandX - armW / 2, rightHandY - armH / 2 + 8 * s, armW, armH - 8 * s);
-    ctx.strokeRect(rightHandX - armW / 2, rightHandY - armH / 2, armW, armH);
+    // Voxel Arms
+    ctx.fillStyle = '#b58863';
+    const leftArmX = x + pose.leftHandX * f * s - 4 * s;
+    const leftArmY = y + pose.leftHandY * s - 4 * s;
+    const rightArmX = x + pose.rightHandX * f * s - 4 * s;
+    const rightArmY = y + pose.rightHandY * s - 4 * s;
+    ctx.fillRect(leftArmX, leftArmY, 8 * s, 8 * s);
+    ctx.strokeRect(leftArmX, leftArmY, 8 * s, 8 * s);
+    ctx.fillRect(rightArmX, rightArmY, 8 * s, 8 * s);
+    ctx.strokeRect(rightArmX, rightArmY, 8 * s, 8 * s);
 
     ctx.restore();
   }

@@ -127,7 +127,7 @@ export class SoundEngine {
     osc2.stop(now + 0.15);
   }
 
-  // 4. Jump Airborne Whoosh
+  // 4. Jump Airborne Whoosh (Crisp athletic leap)
   public playJump() {
     if (this.isMuted) return;
     this.initCtx();
@@ -137,18 +137,18 @@ export class SoundEngine {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
 
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(190, now);
-    osc.frequency.exponentialRampToValueAtTime(580, now + 0.12);
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(140, now);
+    osc.frequency.exponentialRampToValueAtTime(480, now + 0.16);
 
-    gain.gain.setValueAtTime(0.25, now);
-    gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
+    gain.gain.setValueAtTime(0.28, now);
+    gain.gain.linearRampToValueAtTime(0.01, now + 0.16);
 
     osc.connect(gain);
     gain.connect(this.ctx.destination);
 
     osc.start(now);
-    osc.stop(now + 0.12);
+    osc.stop(now + 0.16);
   }
 
   // 5. Retro Typewriter / Terminal Click for Gemma 3:4B Streaming

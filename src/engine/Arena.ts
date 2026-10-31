@@ -170,12 +170,33 @@ export class Arena {
   public stage: ArenaStage = 'animator';
   public difficulty: GameDifficulty = 'veteran';
 
-  // --- Low-RAM Offscreen Background Cache ---
-  private stageCacheCanvas: HTMLCanvasElement | null = null;
-  private stageCacheCtx: CanvasRenderingContext2D | null = null;
+  // --- 3-Layer Parallax Offscreen Background Caches ---
+  private farLayerCanvas: HTMLCanvasElement | null = null;
+  private farLayerCtx: CanvasRenderingContext2D | null = null;
+  private midLayerCanvas: HTMLCanvasElement | null = null;
+  private midLayerCtx: CanvasRenderingContext2D | null = null;
+  private nearFloorCanvas: HTMLCanvasElement | null = null;
+  private nearFloorCtx: CanvasRenderingContext2D | null = null;
   private cachedStage: ArenaStage | null = null;
   private cachedWidth: number = 0;
   private cachedHeight: number = 0;
+
+  // Wall-Hit Glow & Impact Feedback
+  public leftWallGlow: number = 0;
+  public rightWallGlow: number = 0;
+
+  // Jump Dust Puff Particles
+  public dustPuffs: Array<{
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    radius: number;
+    maxRadius: number;
+    life: number;
+    maxLife: number;
+    color: string;
+  }> = [];
 
   public sparks: SparkParticle[] = [];
   public damageNumbers: DamageNumber[] = [];
@@ -241,8 +262,35 @@ export class Arena {
     this.player = new Stickman(220, false, playerName, 'black');
     this.ghost = new Stickman(580, true, 'White Ghost', 'ghost_white');
 
+    // Register jump takeoff and landing juice callbacks
+    this.player.onTakeoff = (x, y) => this.spawnDustPuff(x, y, false);
+    this.player.onLand = (x, y, hard) => this.spawnDustPuff(x, y, hard);
+    this.ghost.onTakeoff = (x, y) => this.spawnDustPuff(x, y, false);
+    this.ghost.onLand = (x, y, hard) => this.spawnDustPuff(x, y, hard);
+
     this.initStageParticles();
     this.initStageObstacles(this.stage);
+  }
+
+  public spawnDustPuff(x: number, y: number, hard: boolean = false) {
+    const count = hard ? 6 : 4;
+    const baseColor = this.stage === 'matrix' ? 'rgba(0, 255, 100, 0.4)' : 
+                      this.stage === 'ofrenda' ? 'rgba(255, 170, 0, 0.4)' : 
+                      'rgba(180, 180, 180, 0.45)';
+    for (let i = 0; i < count; i++) {
+      const dir = (i % 2 === 0 ? 1 : -1);
+      this.dustPuffs.push({
+        x: x + dir * (3 + Math.random() * 6),
+        y: y - 2,
+        vx: dir * (1.0 + Math.random() * 1.8),
+        vy: -0.2 - Math.random() * 0.6,
+        radius: 2.5,
+        maxRadius: hard ? 9 : 6,
+        life: 0,
+        maxLife: hard ? 8 : 5,
+        color: baseColor
+      });
+    }
   }
 
   public initStageObstacles(stage: ArenaStage) {
@@ -452,6 +500,9 @@ export class Arena {
       this.announcementFrames--;
     }
 
+    if (this.leftWallGlow > 0) this.leftWallGlow--;
+    if (this.rightWallGlow > 0) this.rightWallGlow--;
+
     // Round Timer
     if (!this.isRoundOver && this.announcementFrames <= 30) {
       this.timerFrames++;
@@ -484,14 +535,18 @@ export class Arena {
     this.player.update(this.width, this.obstacles);
     this.ghost.update(this.width, this.obstacles);
 
-    // Corner Wall-Splat Collision Sparks
+    // Corner Wall-Splat Collision Sparks & Wall Glow
     if (this.player.state === 'HIT_STUN' && (this.player.x <= 75 || this.player.x >= this.width - 75)) {
       this.spawnHitSparks(this.player.x, this.player.y - 45, true, false);
       this.screenShake = Math.max(this.screenShake, 6);
+      if (this.player.x <= 75) this.leftWallGlow = 14;
+      else this.rightWallGlow = 14;
     }
     if (this.ghost.state === 'HIT_STUN' && (this.ghost.x <= 75 || this.ghost.x >= this.width - 75)) {
       this.spawnHitSparks(this.ghost.x, this.ghost.y - 45, true, false);
       this.screenShake = Math.max(this.screenShake, 6);
+      if (this.ghost.x <= 75) this.leftWallGlow = 14;
+      else this.rightWallGlow = 14;
     }
 
     // Animator Mouse Cursor tracking in 'animator' and 'desktop' stages
@@ -535,6 +590,18 @@ export class Arena {
       this.afterimages[i].alpha -= 0.07;
       if (this.afterimages[i].alpha <= 0) {
         this.afterimages.splice(i, 1);
+      }
+    }
+
+    // Jump Dust Puffs Update
+    for (let i = this.dustPuffs.length - 1; i >= 0; i--) {
+      const d = this.dustPuffs[i];
+      d.x += d.vx;
+      d.y += d.vy;
+      d.radius += (d.maxRadius - d.radius) * 0.25;
+      d.life++;
+      if (d.life >= d.maxLife) {
+        this.dustPuffs.splice(i, 1);
       }
     }
 
@@ -595,7 +662,9 @@ export class Arena {
       desiredZoom = 0.94; // Wide view when fighters spread out
     }
 
-    this.targetCameraX = midX;
+    const minCamX = 220;
+    const maxCamX = this.width - 220;
+    this.targetCameraX = Math.max(minCamX, Math.min(maxCamX, midX));
     this.targetCameraY = stageCenterY; // Locked vertically to stage horizon so jumps feel grounded!
     this.targetCameraZoom = desiredZoom;
 
@@ -802,6 +871,17 @@ export class Arena {
     // 4. Motion Afterimages
     this.renderAfterimages();
 
+    // 4b. Jump Dust Puffs
+    for (const d of this.dustPuffs) {
+      this.ctx.save();
+      const alpha = Math.max(0, 1 - (d.life / d.maxLife));
+      this.ctx.fillStyle = d.color.replace('0.45', `${0.45 * alpha}`).replace('0.4', `${0.4 * alpha}`);
+      this.ctx.beginPath();
+      this.ctx.arc(d.x, d.y, d.radius, 0, Math.PI * 2);
+      this.ctx.fill();
+      this.ctx.restore();
+    }
+
     // 5. Fighters
     this.player.render(this.ctx);
     this.ghost.render(this.ctx);
@@ -873,14 +953,29 @@ export class Arena {
     this.ctx.closePath();
   }
 
-  // --- Low-RAM Offscreen Stage Caching & Vector Background Engine ---
+  // --- 3-Layer Parallax Offscreen Background Engine ---
   private renderStage() {
-    if (!this.stageCacheCanvas || this.cachedStage !== this.stage || this.cachedWidth !== this.width || this.cachedHeight !== this.height) {
+    if (!this.farLayerCanvas || !this.midLayerCanvas || !this.nearFloorCanvas ||
+        this.cachedStage !== this.stage || this.cachedWidth !== this.width || this.cachedHeight !== this.height) {
       this.rebuildStageCache();
     }
-    if (this.stageCacheCanvas) {
-      this.ctx.drawImage(this.stageCacheCanvas, -800, -400);
+    const padW = 800;
+    const padH = 400;
+    const camDiffX = this.cameraX - this.width / 2;
+
+    // 1. Far Backdrop (Parallax factor: 0.15)
+    if (this.farLayerCanvas) {
+      this.ctx.drawImage(this.farLayerCanvas, -padW - camDiffX * 0.15, -padH);
     }
+    // 2. Mid Scenery (Parallax factor: 0.40)
+    if (this.midLayerCanvas) {
+      this.ctx.drawImage(this.midLayerCanvas, -padW - camDiffX * 0.40, -padH);
+    }
+    // 3. Near Floor Details (1:1 with camera)
+    if (this.nearFloorCanvas) {
+      this.ctx.drawImage(this.nearFloorCanvas, -padW, -padH);
+    }
+
     if (this.stage === 'animator') {
       this.renderAnimatorCursor();
     }
@@ -892,20 +987,38 @@ export class Arena {
     const totalW = this.width + padW * 2;
     const totalH = this.height + padH * 2;
 
-    if (!this.stageCacheCanvas) {
-      this.stageCacheCanvas = document.createElement('canvas');
-      this.stageCacheCtx = this.stageCacheCanvas.getContext('2d');
+    if (!this.farLayerCanvas) {
+      this.farLayerCanvas = document.createElement('canvas');
+      this.farLayerCtx = this.farLayerCanvas.getContext('2d');
+    }
+    if (!this.midLayerCanvas) {
+      this.midLayerCanvas = document.createElement('canvas');
+      this.midLayerCtx = this.midLayerCanvas.getContext('2d');
+    }
+    if (!this.nearFloorCanvas) {
+      this.nearFloorCanvas = document.createElement('canvas');
+      this.nearFloorCtx = this.nearFloorCanvas.getContext('2d');
     }
 
-    if (!this.stageCacheCanvas || !this.stageCacheCtx) return;
+    if (!this.farLayerCanvas || !this.farLayerCtx || !this.midLayerCanvas || !this.midLayerCtx || !this.nearFloorCanvas || !this.nearFloorCtx) return;
 
-    this.stageCacheCanvas.width = totalW;
-    this.stageCacheCanvas.height = totalH;
+    this.farLayerCanvas.width = totalW;
+    this.farLayerCanvas.height = totalH;
+    this.midLayerCanvas.width = totalW;
+    this.midLayerCanvas.height = totalH;
+    this.nearFloorCanvas.width = totalW;
+    this.nearFloorCanvas.height = totalH;
 
-    const ctx = this.stageCacheCtx;
-    ctx.save();
-    // Offset so (0,0) in game coordinates corresponds to (padW, padH) in cache
-    ctx.translate(padW, padH);
+    const farCtx = this.farLayerCtx;
+    const midCtx = this.midLayerCtx;
+    const nearCtx = this.nearFloorCtx;
+
+    farCtx.save();
+    farCtx.translate(padW, padH);
+    midCtx.save();
+    midCtx.translate(padW, padH);
+    nearCtx.save();
+    nearCtx.translate(padW, padH);
 
     const floorY = this.height - 90;
     const minX = -padW;
@@ -915,70 +1028,63 @@ export class Arena {
 
     if (this.stage === 'animator') {
       // 1. FLASH STUDIO CANVAS (Round 1)
-      ctx.fillStyle = '#f6f6f8';
-      ctx.fillRect(minX, minY, totalW, totalH);
+      // Layer 1 (Far): Clean Drafting Pasteboard
+      farCtx.fillStyle = '#f6f6f8';
+      farCtx.fillRect(minX, minY, totalW, totalH);
 
-      // Flash Stage Document Border with subtle drop shadow
+      // Layer 2 (Mid): White Document Sheet with Drop Shadow & Tools
       const docW = Math.min(this.width - 80, 850);
       const docH = this.height - 120;
       const docX = (this.width - docW) / 2;
       const docY = 40;
 
-      ctx.fillStyle = '#ffffff';
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.12)';
-      ctx.shadowBlur = 18;
-      ctx.fillRect(docX, docY, docW, docH);
-      ctx.shadowBlur = 0;
-      ctx.strokeStyle = '#cccccc';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(docX, docY, docW, docH);
+      midCtx.fillStyle = '#ffffff';
+      midCtx.shadowColor = 'rgba(0, 0, 0, 0.12)';
+      midCtx.shadowBlur = 18;
+      midCtx.fillRect(docX, docY, docW, docH);
+      midCtx.shadowBlur = 0;
+      midCtx.strokeStyle = '#cccccc';
+      midCtx.lineWidth = 1;
+      midCtx.strokeRect(docX, docY, docW, docH);
 
       // Fine grid drafting lines inside document
-      ctx.strokeStyle = 'rgba(0, 0, 0, 0.035)';
-      ctx.lineWidth = 1;
+      midCtx.strokeStyle = 'rgba(0, 0, 0, 0.035)';
+      midCtx.lineWidth = 1;
       for (let x = docX; x <= docX + docW; x += 24) {
-        ctx.beginPath();
-        ctx.moveTo(x, docY);
-        ctx.lineTo(x, docY + docH);
-        ctx.stroke();
+        midCtx.beginPath();
+        midCtx.moveTo(x, docY);
+        midCtx.lineTo(x, docY + docH);
+        midCtx.stroke();
       }
       for (let y = docY; y <= docY + docH; y += 24) {
-        ctx.beginPath();
-        ctx.moveTo(docX, y);
-        ctx.lineTo(docX + docW, y);
-        ctx.stroke();
+        midCtx.beginPath();
+        midCtx.moveTo(docX, y);
+        midCtx.lineTo(docX + docW, y);
+        midCtx.stroke();
       }
 
-      // Hand-Drawn Dark Graphite Pencil Ground Line
-      ctx.strokeStyle = '#1e1e24';
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.moveTo(minX, floorY);
-      ctx.lineTo(maxX, floorY);
-      ctx.stroke();
-
       // Top Flash Timeline Header Bar
-      ctx.fillStyle = '#ece9d8';
-      ctx.fillRect(docX, docY, docW, 26);
-      ctx.strokeStyle = '#a0a0a0';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(docX, docY, docW, 26);
+      midCtx.fillStyle = '#ece9d8';
+      midCtx.fillRect(docX, docY, docW, 26);
+      midCtx.strokeStyle = '#a0a0a0';
+      midCtx.lineWidth = 1;
+      midCtx.strokeRect(docX, docY, docW, 26);
 
-      ctx.fillStyle = '#222';
-      ctx.font = 'bold 11px Tahoma, sans-serif';
-      ctx.fillText('📁 Layer 1', docX + 10, docY + 17);
+      midCtx.fillStyle = '#222';
+      midCtx.font = 'bold 11px Tahoma, sans-serif';
+      midCtx.fillText('📁 Layer 1', docX + 10, docY + 17);
 
-      ctx.font = '9px monospace';
-      ctx.fillStyle = '#666';
+      midCtx.font = '9px monospace';
+      midCtx.fillStyle = '#666';
       for (let f = 1; f <= 35; f += 5) {
         const fx = docX + 85 + f * 12;
         if (fx < docX + docW - 10) {
-          ctx.fillText(`${f}`, fx, docY + 11);
-          ctx.beginPath();
-          ctx.moveTo(fx, docY + 13);
-          ctx.lineTo(fx, docY + 26);
-          ctx.strokeStyle = '#ccc';
-          ctx.stroke();
+          midCtx.fillText(`${f}`, fx, docY + 11);
+          midCtx.beginPath();
+          midCtx.moveTo(fx, docY + 13);
+          midCtx.lineTo(fx, docY + 26);
+          midCtx.strokeStyle = '#ccc';
+          midCtx.stroke();
         }
       }
 
@@ -987,291 +1093,311 @@ export class Arena {
       const toolBoxH = 220;
       const toolBoxX = docX + 8;
       const toolBoxY = docY + 36;
-      ctx.fillStyle = '#ece9d8';
-      ctx.fillRect(toolBoxX, toolBoxY, toolBoxW, toolBoxH);
-      ctx.strokeStyle = '#716f64';
-      ctx.strokeRect(toolBoxX, toolBoxY, toolBoxW, toolBoxH);
+      midCtx.fillStyle = '#ece9d8';
+      midCtx.fillRect(toolBoxX, toolBoxY, toolBoxW, toolBoxH);
+      midCtx.strokeStyle = '#716f64';
+      midCtx.strokeRect(toolBoxX, toolBoxY, toolBoxW, toolBoxH);
       const tools = ['↖', '▲', '╱', '✎', '🖌', '○', '□', '🪣', '🧹'];
-      ctx.font = '12px sans-serif';
-      ctx.fillStyle = '#333';
-      ctx.textAlign = 'center';
+      midCtx.font = '12px sans-serif';
+      midCtx.fillStyle = '#333';
+      midCtx.textAlign = 'center';
       tools.forEach((t, i) => {
-        ctx.fillText(t, toolBoxX + toolBoxW / 2, toolBoxY + 20 + i * 22);
+        midCtx.fillText(t, toolBoxX + toolBoxW / 2, toolBoxY + 20 + i * 22);
       });
-      ctx.textAlign = 'left';
+      midCtx.textAlign = 'left';
+
+      // Layer 3 (Near): Hand-Drawn Dark Graphite Ground Line & Perspective Floor Grid
+      nearCtx.strokeStyle = '#1e1e24';
+      nearCtx.lineWidth = 4;
+      nearCtx.beginPath();
+      nearCtx.moveTo(minX, floorY);
+      nearCtx.lineTo(maxX, floorY);
+      nearCtx.stroke();
+
+      // Subtle perspective lines receding below floor
+      nearCtx.strokeStyle = 'rgba(0, 0, 0, 0.04)';
+      nearCtx.lineWidth = 1;
+      for (let y = floorY + 14; y <= maxY; y += 20) {
+        nearCtx.beginPath();
+        nearCtx.moveTo(minX, y);
+        nearCtx.lineTo(maxX, y);
+        nearCtx.stroke();
+      }
 
       // Stage Watermark
-      ctx.font = 'bold 13px "Share Tech Mono", monospace';
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
-      ctx.fillText('[Flash Studio MX — Scene 1 @ 60.0 fps]', docX + 45, floorY + 36);
+      nearCtx.font = 'bold 13px "Share Tech Mono", monospace';
+      nearCtx.fillStyle = 'rgba(0, 0, 0, 0.22)';
+      nearCtx.fillText('[Flash Studio MX — Scene 1 @ 60.0 fps]', docX + 45, floorY + 36);
 
     } else if (this.stage === 'desktop') {
       // 2. WINDOWS XP BLISS DESKTOP (Round 2)
-      // Multi-stop Radiant Azure Sky Gradient
-      const skyGrad = ctx.createLinearGradient(0, minY, 0, floorY);
+      // Layer 1 (Far): Multi-stop Radiant Azure Sky Gradient & Puffy Clouds
+      const skyGrad = farCtx.createLinearGradient(0, minY, 0, floorY);
       skyGrad.addColorStop(0, '#1565c0');
       skyGrad.addColorStop(0.4, '#42a5f5');
       skyGrad.addColorStop(0.85, '#90caf9');
       skyGrad.addColorStop(1, '#e3f2fd');
-      ctx.fillStyle = skyGrad;
-      ctx.fillRect(minX, minY, totalW, floorY - minY);
+      farCtx.fillStyle = skyGrad;
+      farCtx.fillRect(minX, minY, totalW, floorY - minY);
 
-      // Cumulus Clouds
-      this.drawPuffyCloud(ctx, 120, floorY - 260, 1.2);
-      this.drawPuffyCloud(ctx, this.width - 200, floorY - 320, 1.5);
-      this.drawPuffyCloud(ctx, -180, floorY - 200, 0.9);
+      this.drawPuffyCloud(farCtx, 120, floorY - 260, 1.2);
+      this.drawPuffyCloud(farCtx, this.width - 200, floorY - 320, 1.5);
+      this.drawPuffyCloud(farCtx, -180, floorY - 200, 0.9);
 
-      // Distant rolling hills
-      const backHillGrad = ctx.createLinearGradient(0, floorY - 180, 0, floorY);
+      // Layer 2 (Mid): Rolling Green Hills & Classic Desktop Icons
+      const backHillGrad = midCtx.createLinearGradient(0, floorY - 180, 0, floorY);
       backHillGrad.addColorStop(0, '#558b2f');
       backHillGrad.addColorStop(1, '#33691e');
-      ctx.fillStyle = backHillGrad;
-      ctx.beginPath();
-      ctx.moveTo(minX, floorY);
-      ctx.bezierCurveTo(-100, floorY - 140, 300, floorY - 90, 600, floorY - 130);
-      ctx.bezierCurveTo(900, floorY - 160, 1200, floorY - 100, maxX, floorY);
-      ctx.lineTo(maxX, floorY);
-      ctx.lineTo(minX, floorY);
-      ctx.fill();
+      midCtx.fillStyle = backHillGrad;
+      midCtx.beginPath();
+      midCtx.moveTo(minX, floorY);
+      midCtx.bezierCurveTo(-100, floorY - 140, 300, floorY - 90, 600, floorY - 130);
+      midCtx.bezierCurveTo(900, floorY - 160, 1200, floorY - 100, maxX, floorY);
+      midCtx.lineTo(maxX, floorY);
+      midCtx.lineTo(minX, floorY);
+      midCtx.fill();
 
-      // Main Sunny Rolling Hill Crest (Classic Bliss Curve)
-      const hillGrad = ctx.createLinearGradient(0, floorY - 130, 0, floorY);
+      // Main Sunny Rolling Hill Crest
+      const hillGrad = midCtx.createLinearGradient(0, floorY - 130, 0, floorY);
       hillGrad.addColorStop(0, '#7cb342');
       hillGrad.addColorStop(0.5, '#689f38');
       hillGrad.addColorStop(1, '#33691e');
-      ctx.fillStyle = hillGrad;
-      ctx.beginPath();
-      ctx.moveTo(minX, floorY);
-      ctx.bezierCurveTo(-200, floorY - 90, 250, floorY - 45, 500, floorY - 95);
-      ctx.bezierCurveTo(750, floorY - 135, 1050, floorY - 60, maxX, floorY);
-      ctx.lineTo(maxX, floorY);
-      ctx.lineTo(minX, floorY);
-      ctx.fill();
+      midCtx.fillStyle = hillGrad;
+      midCtx.beginPath();
+      midCtx.moveTo(minX, floorY);
+      midCtx.bezierCurveTo(-200, floorY - 90, 250, floorY - 45, 500, floorY - 95);
+      midCtx.bezierCurveTo(750, floorY - 135, 1050, floorY - 60, maxX, floorY);
+      midCtx.lineTo(maxX, floorY);
+      midCtx.lineTo(minX, floorY);
+      midCtx.fill();
 
-      // Windows XP Luna Blue Taskbar (Combat Floor)
+      // Classic Desktop Icons
+      this.renderDesktopIconToCtx(midCtx, -150, 70, '🗑️', 'Recycle Bin');
+      this.renderDesktopIconToCtx(midCtx, -150, 150, '💻', 'My Computer');
+      this.renderDesktopIconToCtx(midCtx, -150, 230, '📁', 'My Documents');
+      this.renderDesktopIconToCtx(midCtx, -150, 310, '🌐', 'Internet Explorer');
+      this.renderDesktopIconToCtx(midCtx, -150, 390, '⚡', 'Flash_MX.exe');
+
+      // Layer 3 (Near): Windows XP Luna Blue Taskbar (Combat Floor)
       const taskbarH = maxY - floorY;
-      ctx.fillStyle = '#245edc';
-      ctx.fillRect(minX, floorY, totalW, taskbarH);
+      nearCtx.fillStyle = '#245edc';
+      nearCtx.fillRect(minX, floorY, totalW, taskbarH);
 
       // Taskbar top rim highlight
-      ctx.fillStyle = '#458bf8';
-      ctx.fillRect(minX, floorY, totalW, 3);
+      nearCtx.fillStyle = '#458bf8';
+      nearCtx.fillRect(minX, floorY, totalW, 3);
 
       // Green "start" Button
-      ctx.fillStyle = '#388e3c';
-      ctx.beginPath();
-      ctx.roundRect(-20, floorY + 4, 95, 34, [0, 8, 8, 0]);
-      ctx.fill();
-      ctx.strokeStyle = '#2e7d32';
-      ctx.lineWidth = 1;
-      ctx.stroke();
+      nearCtx.fillStyle = '#388e3c';
+      nearCtx.beginPath();
+      nearCtx.roundRect(-20, floorY + 4, 95, 34, [0, 8, 8, 0]);
+      nearCtx.fill();
+      nearCtx.strokeStyle = '#2e7d32';
+      nearCtx.lineWidth = 1;
+      nearCtx.stroke();
 
       // Windows 4-color tile emblem
       const wx = 8;
       const wy = floorY + 14;
-      ctx.fillStyle = '#f44336'; ctx.fillRect(wx, wy, 5, 5);
-      ctx.fillStyle = '#4caf50'; ctx.fillRect(wx + 6, wy, 5, 5);
-      ctx.fillStyle = '#2196f3'; ctx.fillRect(wx, wy + 6, 5, 5);
-      ctx.fillStyle = '#ffeb3b'; ctx.fillRect(wx + 6, wy + 6, 5, 5);
+      nearCtx.fillStyle = '#f44336'; nearCtx.fillRect(wx, wy, 5, 5);
+      nearCtx.fillStyle = '#4caf50'; nearCtx.fillRect(wx + 6, wy, 5, 5);
+      nearCtx.fillStyle = '#2196f3'; nearCtx.fillRect(wx, wy + 6, 5, 5);
+      nearCtx.fillStyle = '#ffeb3b'; nearCtx.fillRect(wx + 6, wy + 6, 5, 5);
 
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'italic bold 16px "Segoe UI", Tahoma, sans-serif';
-      ctx.fillText('start', wx + 18, floorY + 27);
+      nearCtx.fillStyle = '#ffffff';
+      nearCtx.font = 'italic bold 16px "Segoe UI", Tahoma, sans-serif';
+      nearCtx.fillText('start', wx + 18, floorY + 27);
 
       // Active Window Taskbar Tab
       const tabX = 90;
       const tabY = floorY + 5;
-      ctx.fillStyle = '#1e4fb8';
-      ctx.fillRect(tabX, tabY, 190, 26);
-      ctx.strokeStyle = '#173c8d';
-      ctx.strokeRect(tabX, tabY, 190, 26);
-      ctx.fillStyle = '#fff';
-      ctx.font = '11px "Segoe UI", sans-serif';
-      ctx.fillText('⚡ KillSwitch.swf [Flash MX]', tabX + 12, tabY + 17);
+      nearCtx.fillStyle = '#1e4fb8';
+      nearCtx.fillRect(tabX, tabY, 190, 26);
+      nearCtx.strokeStyle = '#173c8d';
+      nearCtx.strokeRect(tabX, tabY, 190, 26);
+      nearCtx.fillStyle = '#fff';
+      nearCtx.font = '11px "Segoe UI", sans-serif';
+      nearCtx.fillText('⚡ KillSwitch.swf [Flash MX]', tabX + 12, tabY + 17);
 
       // System Tray (right)
       const trayX = this.width - 90;
-      ctx.fillStyle = '#0f3a9e';
-      ctx.fillRect(trayX, floorY + 4, 85, 28);
-      ctx.strokeStyle = '#173c8d';
-      ctx.strokeRect(trayX, floorY + 4, 85, 28);
-      ctx.fillStyle = '#e3f2fd';
-      ctx.font = 'bold 11px Tahoma, sans-serif';
-      ctx.fillText('🔊 22:30 PM', trayX + 8, floorY + 22);
-
-      // Classic Desktop Icons
-      this.renderDesktopIconToCtx(ctx, -150, 70, '🗑️', 'Recycle Bin');
-      this.renderDesktopIconToCtx(ctx, -150, 150, '💻', 'My Computer');
-      this.renderDesktopIconToCtx(ctx, -150, 230, '📁', 'My Documents');
-      this.renderDesktopIconToCtx(ctx, -150, 310, '🌐', 'Internet Explorer');
-      this.renderDesktopIconToCtx(ctx, -150, 390, '⚡', 'Flash_MX.exe');
+      nearCtx.fillStyle = '#0f3a9e';
+      nearCtx.fillRect(trayX, floorY + 4, 85, 28);
+      nearCtx.strokeStyle = '#173c8d';
+      nearCtx.strokeRect(trayX, floorY + 4, 85, 28);
+      nearCtx.fillStyle = '#e3f2fd';
+      nearCtx.font = 'bold 11px Tahoma, sans-serif';
+      nearCtx.fillText('🔊 22:30 PM', trayX + 8, floorY + 22);
 
     } else if (this.stage === 'matrix') {
       // 3. ACTIONSCRIPT CYBER MATRIX (Round 3)
-      ctx.fillStyle = '#010803';
-      ctx.fillRect(minX, minY, totalW, totalH);
+      // Layer 1 (Far): Deep Cyber Matrix Abyss
+      farCtx.fillStyle = '#010803';
+      farCtx.fillRect(minX, minY, totalW, totalH);
 
-      // 3D Receding Horizon Perspective Wireframe Floor Grid
+      // Layer 2 (Mid): Holographic ActionScript Code Blocks
+      midCtx.font = '13px "Share Tech Mono", monospace';
+      midCtx.fillStyle = 'rgba(0, 255, 100, 0.22)';
+      midCtx.fillText('_root.onEnterFrame = function() {', 40, 100);
+      midCtx.fillText('  Ghost.anticipatePlayerHabits();', 60, 125);
+      midCtx.fillText('  if (player.isJumping) Ghost.antiAirSweep();', 60, 150);
+      midCtx.fillText('  0x7E5_STACK_OVERFLOW_VECTORS();', 60, 175);
+      midCtx.fillText('};', 40, 200);
+
+      // Layer 3 (Near): 3D Perspective Wireframe Floor Grid & Neon Rim
       const horizonY = floorY - 70;
       const vanishingX = this.width / 2;
 
-      // Dark floor base
-      ctx.fillStyle = '#021406';
-      ctx.fillRect(minX, horizonY, totalW, maxY - horizonY);
+      nearCtx.fillStyle = '#021406';
+      nearCtx.fillRect(minX, horizonY, totalW, maxY - horizonY);
 
-      // Perspective Ray Lines radiating from vanishing point
-      ctx.strokeStyle = 'rgba(0, 255, 100, 0.35)';
-      ctx.lineWidth = 1.5;
+      nearCtx.strokeStyle = 'rgba(0, 255, 100, 0.35)';
+      nearCtx.lineWidth = 1.5;
       const rayCount = 18;
       for (let i = 0; i <= rayCount; i++) {
         const spreadX = minX + (totalW / rayCount) * i;
-        ctx.beginPath();
-        ctx.moveTo(vanishingX, horizonY);
-        ctx.lineTo(spreadX, maxY);
-        ctx.stroke();
+        nearCtx.beginPath();
+        nearCtx.moveTo(vanishingX, horizonY);
+        nearCtx.lineTo(spreadX, maxY);
+        nearCtx.stroke();
       }
 
-      // Horizontal lines with exponential distance compression
       for (let d = 0; d < 12; d++) {
         const hy = horizonY + Math.pow(d / 11, 2.2) * (maxY - horizonY);
         const alpha = 0.15 + (d / 11) * 0.45;
-        ctx.strokeStyle = `rgba(0, 255, 120, ${alpha})`;
-        ctx.beginPath();
-        ctx.moveTo(minX, hy);
-        ctx.lineTo(maxX, hy);
-        ctx.stroke();
+        nearCtx.strokeStyle = `rgba(0, 255, 120, ${alpha})`;
+        nearCtx.beginPath();
+        nearCtx.moveTo(minX, hy);
+        nearCtx.lineTo(maxX, hy);
+        nearCtx.stroke();
       }
 
-      // Glowing Neon Floor Rim
-      ctx.strokeStyle = '#00ff66';
-      ctx.lineWidth = 3;
-      ctx.shadowColor = '#00ff66';
-      ctx.shadowBlur = 14;
-      ctx.beginPath();
-      ctx.moveTo(minX, floorY);
-      ctx.lineTo(maxX, floorY);
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-
-      // Holographic ActionScript Code Blocks in the background
-      ctx.font = '13px "Share Tech Mono", monospace';
-      ctx.fillStyle = 'rgba(0, 255, 100, 0.22)';
-      ctx.fillText('_root.onEnterFrame = function() {', 40, 100);
-      ctx.fillText('  Ghost.anticipatePlayerHabits();', 60, 125);
-      ctx.fillText('  if (player.isJumping) Ghost.antiAirSweep();', 60, 150);
-      ctx.fillText('  0x7E5_STACK_OVERFLOW_VECTORS();', 60, 175);
-      ctx.fillText('};', 40, 200);
+      nearCtx.strokeStyle = '#00ff66';
+      nearCtx.lineWidth = 3;
+      nearCtx.shadowColor = '#00ff66';
+      nearCtx.shadowBlur = 14;
+      nearCtx.beginPath();
+      nearCtx.moveTo(minX, floorY);
+      nearCtx.lineTo(maxX, floorY);
+      nearCtx.stroke();
+      nearCtx.shadowBlur = 0;
 
     } else if (this.stage === 'void') {
       // 4. 2021 KILL-SWITCH VOID (Round 4)
-      const grad = ctx.createLinearGradient(0, minY, 0, maxY);
+      // Layer 1 (Far): Deep Cosmic DRM Void Gradient
+      const grad = farCtx.createLinearGradient(0, minY, 0, maxY);
       grad.addColorStop(0, '#06060c');
       grad.addColorStop(0.5, '#120d1c');
       grad.addColorStop(1, '#040308');
-      ctx.fillStyle = grad;
-      ctx.fillRect(minX, minY, totalW, totalH);
+      farCtx.fillStyle = grad;
+      farCtx.fillRect(minX, minY, totalW, totalH);
 
-      // Dark floor
-      ctx.fillStyle = '#0d0b16';
-      ctx.fillRect(minX, floorY, totalW, maxY - floorY);
+      // Layer 2 (Mid): Shattered Adobe Flash Puzzle Monolith ('f')
+      const cx = this.width / 2;
+      midCtx.save();
+      midCtx.font = 'italic bold 170px "Arial Black", sans-serif';
+      midCtx.fillStyle = 'rgba(255, 0, 80, 0.07)';
+      midCtx.textAlign = 'center';
+      midCtx.fillText('f', cx, floorY - 50);
 
-      // Cyan Grid Floor
-      ctx.strokeStyle = 'rgba(0, 255, 255, 0.35)';
-      ctx.lineWidth = 1.5;
+      midCtx.font = 'bold 12px "Share Tech Mono", monospace';
+      midCtx.fillStyle = 'rgba(255, 50, 80, 0.4)';
+      midCtx.fillText('[CRITICAL EXECUTION ERROR 0x7E5 — JAN 12, 2021 TIME-BOMB ACTIVE]', cx, floorY - 180);
+      midCtx.fillText('[MEMORY ADAPTATION: GOOGLE GEMMA 3:4B LOCAL ENGINE]', cx, floorY - 160);
+      midCtx.restore();
+
+      // Layer 3 (Near): Cyan Grid Floor with Red Glitch Outline
+      nearCtx.fillStyle = '#0d0b16';
+      nearCtx.fillRect(minX, floorY, totalW, maxY - floorY);
+
+      nearCtx.strokeStyle = 'rgba(0, 255, 255, 0.35)';
+      nearCtx.lineWidth = 1.5;
       for (let x = minX; x <= maxX; x += 45) {
-        ctx.beginPath();
-        ctx.moveTo(x, floorY);
-        ctx.lineTo(x, maxY);
-        ctx.stroke();
+        nearCtx.beginPath();
+        nearCtx.moveTo(x, floorY);
+        nearCtx.lineTo(x, maxY);
+        nearCtx.stroke();
       }
       for (let y = floorY; y <= maxY; y += 30) {
-        ctx.beginPath();
-        ctx.moveTo(minX, y);
-        ctx.lineTo(maxX, y);
-        ctx.stroke();
+        nearCtx.beginPath();
+        nearCtx.moveTo(minX, y);
+        nearCtx.lineTo(maxX, y);
+        nearCtx.stroke();
       }
 
-      // Neon Cyan Floor Rim with Red Glitch Outline
-      ctx.strokeStyle = '#00ffff';
-      ctx.lineWidth = 3;
-      ctx.shadowColor = '#00ffff';
-      ctx.shadowBlur = 14;
-      ctx.beginPath();
-      ctx.moveTo(minX, floorY);
-      ctx.lineTo(maxX, floorY);
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-
-      // Shattered Adobe Flash Puzzle Monolith
-      const cx = this.width / 2;
-      ctx.save();
-      ctx.font = 'italic bold 170px "Arial Black", sans-serif';
-      ctx.fillStyle = 'rgba(255, 0, 80, 0.07)';
-      ctx.textAlign = 'center';
-      ctx.fillText('f', cx, floorY - 50);
-
-      // Warning Prompt
-      ctx.font = 'bold 12px "Share Tech Mono", monospace';
-      ctx.fillStyle = 'rgba(255, 50, 80, 0.4)';
-      ctx.fillText('[CRITICAL EXECUTION ERROR 0x7E5 — JAN 12, 2021 TIME-BOMB ACTIVE]', cx, floorY - 180);
-      ctx.fillText('[MEMORY ADAPTATION: GOOGLE GEMMA 3:4B LOCAL ENGINE]', cx, floorY - 160);
-      ctx.restore();
+      nearCtx.strokeStyle = '#00ffff';
+      nearCtx.lineWidth = 3;
+      nearCtx.shadowColor = '#00ffff';
+      nearCtx.shadowBlur = 14;
+      nearCtx.beginPath();
+      nearCtx.moveTo(minX, floorY);
+      nearCtx.lineTo(maxX, floorY);
+      nearCtx.stroke();
+      nearCtx.shadowBlur = 0;
 
     } else if (this.stage === 'ofrenda') {
       // 5. DÍA DE LOS MUERTOS ALTAR (Round 5)
-      // Twilight Night Sky
-      const nightGrad = ctx.createLinearGradient(0, minY, 0, floorY);
+      // Layer 1 (Far): Twilight Night Sky & Glowing Full Moon
+      const nightGrad = farCtx.createLinearGradient(0, minY, 0, floorY);
       nightGrad.addColorStop(0, '#10061e');
       nightGrad.addColorStop(0.6, '#280c38');
       nightGrad.addColorStop(1, '#0e0417');
-      ctx.fillStyle = nightGrad;
-      ctx.fillRect(minX, minY, totalW, floorY - minY);
+      farCtx.fillStyle = nightGrad;
+      farCtx.fillRect(minX, minY, totalW, floorY - minY);
 
-      // Full Moon
-      ctx.save();
-      ctx.fillStyle = '#fff9d6';
-      ctx.shadowColor = '#ffeb3b';
-      ctx.shadowBlur = 28;
-      ctx.beginPath();
-      ctx.arc(this.width - 120, 90, 42, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowBlur = 0;
-      ctx.restore();
+      farCtx.save();
+      farCtx.fillStyle = '#fff9d6';
+      farCtx.shadowColor = '#ffeb3b';
+      farCtx.shadowBlur = 28;
+      farCtx.beginPath();
+      farCtx.arc(this.width - 120, 90, 42, 0, Math.PI * 2);
+      farCtx.fill();
+      farCtx.shadowBlur = 0;
+      farCtx.restore();
 
-      // Waving Papel Picado Banners across the top
-      this.drawPapelPicadoRow(ctx, minX, maxX, 18);
+      // Layer 2 (Mid): Papel Picado Row, Gravestones with Candles & Altar Banner
+      this.drawPapelPicadoRow(midCtx, minX, maxX, 18);
 
-      // Earthy altar floor
-      ctx.fillStyle = '#16081c';
-      ctx.fillRect(minX, floorY, totalW, maxY - floorY);
+      this.drawAltarCandle(midCtx, 80, floorY);
+      this.drawAltarCandle(midCtx, 220, floorY);
+      this.drawAltarCandle(midCtx, this.width - 100, floorY);
+      this.drawAltarCandle(midCtx, this.width - 240, floorY);
 
-      // Golden Marigold Floor Rim
-      ctx.strokeStyle = '#ff9800';
-      ctx.lineWidth = 3;
-      ctx.shadowColor = '#ffa726';
-      ctx.shadowBlur = 12;
-      ctx.beginPath();
-      ctx.moveTo(minX, floorY);
-      ctx.lineTo(maxX, floorY);
-      ctx.stroke();
-      ctx.shadowBlur = 0;
+      midCtx.save();
+      midCtx.font = 'bold 36px "VT323", monospace';
+      midCtx.fillStyle = 'rgba(255, 179, 0, 0.22)';
+      midCtx.textAlign = 'center';
+      midCtx.fillText('💀 DÍA DE LOS MUERTOS — FLASH OFRENDA 🕯️', this.width / 2, floorY - 90);
+      midCtx.restore();
 
-      // Memorial Gravestones with Candles
-      this.drawAltarCandle(ctx, 80, floorY);
-      this.drawAltarCandle(ctx, 220, floorY);
-      this.drawAltarCandle(ctx, this.width - 100, floorY);
-      this.drawAltarCandle(ctx, this.width - 240, floorY);
+      // Layer 3 (Near): Earthy Altar Floor & Golden Marigold Rim Line
+      nearCtx.fillStyle = '#16081c';
+      nearCtx.fillRect(minX, floorY, totalW, maxY - floorY);
 
-      // Center Calavera Banner
-      ctx.save();
-      ctx.font = 'bold 36px "VT323", monospace';
-      ctx.fillStyle = 'rgba(255, 179, 0, 0.22)';
-      ctx.textAlign = 'center';
-      ctx.fillText('💀 DÍA DE LOS MUERTOS — FLASH OFRENDA 🕯️', this.width / 2, floorY - 90);
-      ctx.restore();
+      nearCtx.strokeStyle = '#ff9800';
+      nearCtx.lineWidth = 3;
+      nearCtx.shadowColor = '#ffa726';
+      nearCtx.shadowBlur = 12;
+      nearCtx.beginPath();
+      nearCtx.moveTo(minX, floorY);
+      nearCtx.lineTo(maxX, floorY);
+      nearCtx.stroke();
+      nearCtx.shadowBlur = 0;
+
+      // Subtle ground cobblestone perspective lines
+      nearCtx.strokeStyle = 'rgba(255, 170, 0, 0.08)';
+      nearCtx.lineWidth = 1;
+      for (let y = floorY + 15; y <= maxY; y += 22) {
+        nearCtx.beginPath();
+        nearCtx.moveTo(minX, y);
+        nearCtx.lineTo(maxX, y);
+        nearCtx.stroke();
+      }
     }
 
-    ctx.restore();
+    farCtx.restore();
+    midCtx.restore();
+    nearCtx.restore();
 
     this.cachedStage = this.stage;
     this.cachedWidth = this.width;
@@ -1483,6 +1609,37 @@ export class Arena {
         ctx.fill();
         ctx.fillStyle = '#ffaa00';
       }
+    }
+
+    // Glowing wall-hit impact line feedback
+    if (this.leftWallGlow > 0) {
+      ctx.save();
+      const glowAlpha = Math.min(1.0, this.leftWallGlow / 12);
+      const glowColor = this.stage === 'matrix' ? '#00ff66' : this.stage === 'void' ? '#ff0033' : (this.stage === 'ofrenda' ? '#ffaa00' : '#00e5ff');
+      ctx.strokeStyle = '#ffffff';
+      ctx.shadowColor = glowColor;
+      ctx.shadowBlur = 24 * glowAlpha;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(leftX, ceilingY);
+      ctx.lineTo(leftX, floorY);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    if (this.rightWallGlow > 0) {
+      ctx.save();
+      const glowAlpha = Math.min(1.0, this.rightWallGlow / 12);
+      const glowColor = this.stage === 'matrix' ? '#00ff66' : this.stage === 'void' ? '#ff0033' : (this.stage === 'ofrenda' ? '#ffaa00' : '#00e5ff');
+      ctx.strokeStyle = '#ffffff';
+      ctx.shadowColor = glowColor;
+      ctx.shadowBlur = 24 * glowAlpha;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(rightX, ceilingY);
+      ctx.lineTo(rightX, floorY);
+      ctx.stroke();
+      ctx.restore();
     }
 
     ctx.restore();

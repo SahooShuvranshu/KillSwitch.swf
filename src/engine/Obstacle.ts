@@ -113,6 +113,13 @@ export class ArenaObstacle {
     if (this.hp <= 0 && this.isDestructible) return;
 
     ctx.save();
+
+    // 1. Soft Floor Drop Shadow for Ground Obstacles
+    if (!this.isPlatform) {
+      this.renderDropShadow(ctx);
+    }
+
+    // 2. Render Stage Themed 3D Obstacle Body
     switch (this.stage) {
       case 'studio':
         this.renderStudioTheme(ctx);
@@ -133,21 +140,77 @@ export class ArenaObstacle {
         this.renderDefaultTheme(ctx);
         break;
     }
+
+    // 3. Render Damage Fractures & Splinters when Damaged
+    if (this.isDestructible && this.hp < this.maxHp) {
+      this.drawDamageCracks(ctx);
+    }
+
+    ctx.restore();
+  }
+
+  // --- Soft Ground Shadow ---
+  private renderDropShadow(ctx: CanvasRenderingContext2D) {
+    ctx.save();
+    const shadowGrad = ctx.createRadialGradient(
+      this.x + this.w / 2, this.y + this.h + 2, 8,
+      this.x + this.w / 2, this.y + this.h + 2, this.w * 0.7
+    );
+    shadowGrad.addColorStop(0, 'rgba(0, 0, 0, 0.40)');
+    shadowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = shadowGrad;
+    ctx.beginPath();
+    ctx.ellipse(this.x + this.w / 2, this.y + this.h + 2, this.w * 0.65, 5.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // --- Dynamic Damage Splinters & Fissure Cracks ---
+  private drawDamageCracks(ctx: CanvasRenderingContext2D) {
+    const dmgRatio = 1 - (this.hp / this.maxHp);
+    if (dmgRatio < 0.15) return;
+
+    ctx.save();
+    ctx.strokeStyle = this.stage === 'matrix' ? '#00ff66' : this.stage === 'void' ? '#ff0033' : 'rgba(0, 0, 0, 0.75)';
+    ctx.lineWidth = 2.0;
+
+    // Primary jagged stress fissure
+    ctx.beginPath();
+    ctx.moveTo(this.x + this.w * 0.22, this.y);
+    ctx.lineTo(this.x + this.w * 0.38, this.y + this.h * 0.38);
+    ctx.lineTo(this.x + this.w * 0.28, this.y + this.h * 0.72);
+    ctx.lineTo(this.x + this.w * 0.46, this.y + this.h);
+    ctx.stroke();
+
+    if (dmgRatio > 0.48) {
+      // Secondary branching fracture splinters
+      ctx.beginPath();
+      ctx.moveTo(this.x + this.w * 0.38, this.y + this.h * 0.38);
+      ctx.lineTo(this.x + this.w * 0.68, this.y + this.h * 0.48);
+      ctx.lineTo(this.x + this.w * 0.82, this.y + this.h * 0.82);
+      ctx.moveTo(this.x + this.w * 0.72, this.y);
+      ctx.lineTo(this.x + this.w * 0.58, this.y + this.h * 0.32);
+      ctx.stroke();
+    }
     ctx.restore();
   }
 
   // --- 1. Flash Studio Theme (Timeline Shelf & Pencil Crate) ---
   private renderStudioTheme(ctx: CanvasRenderingContext2D) {
     if (this.isPlatform) {
-      // Floating Flash Timeline Shelf
+      // Semi-solid Floating Flash Timeline Shelf with Highlight Rail
       ctx.fillStyle = '#e8e8e8';
       ctx.fillRect(this.x, this.y, this.w, this.h);
       ctx.strokeStyle = '#666666';
       ctx.lineWidth = 2;
       ctx.strokeRect(this.x, this.y, this.w, this.h);
 
+      // Top reflective highlight rail
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+      ctx.fillRect(this.x + 1, this.y + 1, this.w - 2, 3);
+
       // Top timeline tick marks
-      ctx.strokeStyle = '#aaaaaa';
+      ctx.strokeStyle = '#999999';
       ctx.lineWidth = 1;
       for (let tx = this.x + 10; tx < this.x + this.w - 10; tx += 12) {
         ctx.beginPath();
@@ -159,7 +222,33 @@ export class ArenaObstacle {
       ctx.fillStyle = '#ff2200';
       ctx.fillRect(this.x + this.w / 2 - 4, this.y - 4, 8, 8);
     } else {
-      // Wooden Animator Pencil Crate
+      // 3D Wooden Animator Pencil Crate
+      const bevel = 6;
+      // Top face
+      ctx.fillStyle = '#dbb880';
+      ctx.beginPath();
+      ctx.moveTo(this.x, this.y);
+      ctx.lineTo(this.x + bevel, this.y - bevel);
+      ctx.lineTo(this.x + this.w + bevel, this.y - bevel);
+      ctx.lineTo(this.x + this.w, this.y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#4a3318';
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+
+      // Right side face
+      ctx.fillStyle = '#ad8950';
+      ctx.beginPath();
+      ctx.moveTo(this.x + this.w, this.y);
+      ctx.lineTo(this.x + this.w + bevel, this.y - bevel);
+      ctx.lineTo(this.x + this.w + bevel, this.y + this.h - bevel);
+      ctx.lineTo(this.x + this.w, this.y + this.h);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Front Face
       ctx.fillStyle = '#c8a46b';
       ctx.fillRect(this.x, this.y, this.w, this.h);
       ctx.strokeStyle = '#4a3318';
@@ -174,7 +263,7 @@ export class ArenaObstacle {
       ctx.lineTo(this.x, this.y + this.h);
       ctx.stroke();
 
-      // "FLASH" label stenciled on crate
+      // "CRATE" label stenciled on crate
       ctx.fillStyle = '#4a3318';
       ctx.font = 'bold 11px sans-serif';
       ctx.textAlign = 'center';
@@ -185,13 +274,17 @@ export class ArenaObstacle {
   // --- 2. Windows XP Bliss Theme (Window Titlebar Platform & Desktop Speaker) ---
   private renderBlissTheme(ctx: CanvasRenderingContext2D) {
     if (this.isPlatform) {
-      // Luna Blue Window Titlebar Platform
+      // Luna Blue Window Titlebar Platform with Glossy Bevel
       const grad = ctx.createLinearGradient(this.x, this.y, this.x, this.y + this.h);
       grad.addColorStop(0, '#0a64dc');
       grad.addColorStop(0.5, '#2e8bed');
       grad.addColorStop(1, '#0054c2');
       ctx.fillStyle = grad;
       ctx.fillRect(this.x, this.y, this.w, this.h);
+
+      // Top glossy highlight
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.40)';
+      ctx.fillRect(this.x + 1, this.y + 1, this.w - 2, 3);
 
       ctx.strokeStyle = '#003399';
       ctx.lineWidth = 2;
@@ -203,7 +296,31 @@ export class ArenaObstacle {
       ctx.textAlign = 'left';
       ctx.fillText('📁 System32 Platform', this.x + 8, this.y + 13);
     } else {
-      // Retro Desktop Beige Speaker
+      // 3D Retro Desktop Beige Speaker
+      const bevel = 6;
+      ctx.fillStyle = '#eeebe3';
+      ctx.beginPath();
+      ctx.moveTo(this.x, this.y);
+      ctx.lineTo(this.x + bevel, this.y - bevel);
+      ctx.lineTo(this.x + this.w + bevel, this.y - bevel);
+      ctx.lineTo(this.x + this.w, this.y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#8a857a';
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+
+      ctx.fillStyle = '#c4c0b5';
+      ctx.beginPath();
+      ctx.moveTo(this.x + this.w, this.y);
+      ctx.lineTo(this.x + this.w + bevel, this.y - bevel);
+      ctx.lineTo(this.x + this.w + bevel, this.y + this.h - bevel);
+      ctx.lineTo(this.x + this.w, this.y + this.h);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Front
       ctx.fillStyle = '#dedad2';
       ctx.fillRect(this.x, this.y, this.w, this.h);
       ctx.strokeStyle = '#999488';
@@ -227,6 +344,9 @@ export class ArenaObstacle {
       // Neon Bytecode Energy Beam Platform
       ctx.fillStyle = 'rgba(0, 40, 15, 0.85)';
       ctx.fillRect(this.x, this.y, this.w, this.h);
+      ctx.fillStyle = '#00ff66';
+      ctx.fillRect(this.x + 1, this.y + 1, this.w - 2, 2.5); // Top glow rail
+
       ctx.strokeStyle = '#00ff66';
       ctx.lineWidth = 2.5;
       ctx.strokeRect(this.x, this.y, this.w, this.h);
@@ -237,7 +357,31 @@ export class ArenaObstacle {
       ctx.textAlign = 'center';
       ctx.fillText('<BYTECODE_PLATFORM>', this.x + this.w / 2, this.y + 11);
     } else {
-      // Glowing Green Data Cache Cube
+      // 3D Glowing Green Data Cache Cube
+      const bevel = 6;
+      ctx.fillStyle = 'rgba(0, 80, 30, 0.9)';
+      ctx.beginPath();
+      ctx.moveTo(this.x, this.y);
+      ctx.lineTo(this.x + bevel, this.y - bevel);
+      ctx.lineTo(this.x + this.w + bevel, this.y - bevel);
+      ctx.lineTo(this.x + this.w, this.y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#00ff66';
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(0, 30, 10, 0.9)';
+      ctx.beginPath();
+      ctx.moveTo(this.x + this.w, this.y);
+      ctx.lineTo(this.x + this.w + bevel, this.y - bevel);
+      ctx.lineTo(this.x + this.w + bevel, this.y + this.h - bevel);
+      ctx.lineTo(this.x + this.w, this.y + this.h);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Front
       ctx.fillStyle = 'rgba(0, 50, 20, 0.9)';
       ctx.fillRect(this.x, this.y, this.w, this.h);
       ctx.strokeStyle = '#00ff66';
@@ -273,7 +417,31 @@ export class ArenaObstacle {
         ctx.fill();
       }
     } else {
-      // Corrupted Red Flash Crate
+      // 3D Corrupted Red Flash Crate
+      const bevel = 6;
+      ctx.fillStyle = '#420810';
+      ctx.beginPath();
+      ctx.moveTo(this.x, this.y);
+      ctx.lineTo(this.x + bevel, this.y - bevel);
+      ctx.lineTo(this.x + this.w + bevel, this.y - bevel);
+      ctx.lineTo(this.x + this.w, this.y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#ff0033';
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+
+      ctx.fillStyle = '#1a0306';
+      ctx.beginPath();
+      ctx.moveTo(this.x + this.w, this.y);
+      ctx.lineTo(this.x + this.w + bevel, this.y - bevel);
+      ctx.lineTo(this.x + this.w + bevel, this.y + this.h - bevel);
+      ctx.lineTo(this.x + this.w, this.y + this.h);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Front
       ctx.fillStyle = '#2a050b';
       ctx.fillRect(this.x, this.y, this.w, this.h);
       ctx.strokeStyle = '#ff0033';
@@ -296,19 +464,45 @@ export class ArenaObstacle {
       // Stone Carved Memorial Step Platform
       ctx.fillStyle = '#3a332c';
       ctx.fillRect(this.x, this.y, this.w, this.h);
+      ctx.fillStyle = '#ffaa00';
+      ctx.fillRect(this.x + 1, this.y + 1, this.w - 2, 2.5); // Top marigold rim
+
       ctx.strokeStyle = '#ffaa00';
       ctx.lineWidth = 2;
       ctx.strokeRect(this.x, this.y, this.w, this.h);
 
       // Golden Marigold Petals along the platform top
-      ctx.fillStyle = '#ffaa00';
       for (let px = this.x + 8; px < this.x + this.w - 8; px += 18) {
         ctx.beginPath();
         ctx.arc(px, this.y + 2, 3.5, 0, Math.PI * 2);
         ctx.fill();
       }
     } else {
-      // Carved Stone Tomb Block with Candle
+      // 3D Carved Stone Tomb Block with Candle
+      const bevel = 6;
+      ctx.fillStyle = '#3d352c';
+      ctx.beginPath();
+      ctx.moveTo(this.x, this.y);
+      ctx.lineTo(this.x + bevel, this.y - bevel);
+      ctx.lineTo(this.x + this.w + bevel, this.y - bevel);
+      ctx.lineTo(this.x + this.w, this.y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#6e5f50';
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+
+      ctx.fillStyle = '#1e1a16';
+      ctx.beginPath();
+      ctx.moveTo(this.x + this.w, this.y);
+      ctx.lineTo(this.x + this.w + bevel, this.y - bevel);
+      ctx.lineTo(this.x + this.w + bevel, this.y + this.h - bevel);
+      ctx.lineTo(this.x + this.w, this.y + this.h);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Front
       ctx.fillStyle = '#2d2722';
       ctx.fillRect(this.x, this.y, this.w, this.h);
       ctx.strokeStyle = '#857361';
@@ -318,7 +512,7 @@ export class ArenaObstacle {
       // Flickering Candle on top
       const candleX = this.x + this.w / 2;
       const candleY = this.y - 12;
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = '#fff8e7';
       ctx.fillRect(candleX - 3, candleY, 6, 12);
       // Flame
       ctx.fillStyle = '#ffcc00';

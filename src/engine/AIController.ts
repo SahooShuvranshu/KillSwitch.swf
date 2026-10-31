@@ -49,6 +49,7 @@ export class AIController {
 
   // Callback to display tactical prediction banner in Arena
   public onTacticalRead?: (readText: string) => void;
+  public arena?: import('./Arena').Arena;
 
   constructor(ghost: Stickman, player: Stickman, telemetry?: TelemetryTracker, difficulty: GameDifficulty = 'veteran') {
     this.ghost = ghost;
@@ -199,6 +200,27 @@ export class AIController {
       this.ghost.dodgeRoll();
       this.actionCooldown = Math.max(12, 22 - cdReduction);
       return;
+    }
+
+    // --- 0b. Obstacle Avoidance & Unstick Logic (Leap or smash obstacles blocking path) ---
+    if (this.arena && this.ghost.isGrounded) {
+      for (const obs of this.arena.obstacles) {
+        if (obs.isPlatform || (obs.isDestructible && obs.hp <= 0)) continue;
+        const toCrate = (obs.x + obs.w / 2) - this.ghost.x;
+        const crateDist = Math.abs(toCrate);
+        const inFront = (toCrate * dir) > 0;
+        if (inFront && crateDist < (obs.w / 2 + 38)) {
+          if (Math.random() < 0.6) {
+            this.ghost.move(dir);
+            this.ghost.jump();
+            this.actionCooldown = 18;
+          } else {
+            this.ghost.heavyKick();
+            this.actionCooldown = 16;
+          }
+          return;
+        }
+      }
     }
 
     // --- 1. Real-Time Move Prediction via Markov Sequence Model ---

@@ -1,90 +1,107 @@
 {
   "close_idle_0": {
-    "PUNCH_CHAIN": 7.529,
-    "UPPERCUT": 2.462,
-    "KICK_CHAIN": 0.818,
-    "EVADE": -0.048,
-    "FLYING_KNEE": 4.947,
-    "GUARD_BREAK": 1.328
+    "PUNCH_CHAIN": 3.582,
+    "UPPERCUT": 0.589,
+    "KICK_CHAIN": 9.502,
+    "EVADE": -0.543,
+    "FLYING_KNEE": 4.811,
+    "GUARD_BREAK": 0.791
   },
   "close_air_0": {
-    "UPPERCUT": 3.81
+    "UPPERCUT": 0.93,
+    "FLYING_KNEE": 4.033
   },
   "close_air_1": {
-    "ANTI_AIR": 1.144
+    "ANTI_AIR": 1.123
   },
   "mid_air_0": {
-    "ANTI_AIR": 7.992
+    "ANTI_AIR": -0.793,
+    "FLYING_KNEE": -0.411,
+    "UPPERCUT": -0.689,
+    "EVADE": -0.541,
+    "RETREAT": -0.294
   },
   "mid_idle_0": {
-    "KICK_CHAIN": -0.087,
-    "FLYING_KNEE": 8.938,
-    "JUMP_IN": -0.731,
-    "EVADE": -0.296
+    "KICK_CHAIN": 2.641,
+    "FLYING_KNEE": 7.019,
+    "JUMP_IN": 0.409,
+    "EVADE": -0.282
   },
   "close_idle_1": {
-    "PUNCH_CHAIN": 6.337,
-    "UPPERCUT": -0.293,
+    "PUNCH_CHAIN": 2.074,
+    "UPPERCUT": -0.078,
     "EVADE": -0.298
   },
   "far_idle_0": {
-    "FLYING_KNEE": -0.578,
-    "JUMP_IN": -0.606,
-    "EVADE": -0.147
+    "FLYING_KNEE": 4.643,
+    "JUMP_IN": -0.317,
+    "EVADE": -0.057
   },
   "far_air_0": {
-    "ANTI_AIR": 7.12
+    "ANTI_AIR": -0.154,
+    "FLYING_KNEE": -0.707,
+    "UPPERCUT": -0.642
   },
   "close_block_0": {
-    "GUARD_BREAK": 0.973,
-    "PUNCH_CHAIN": 3.032,
-    "KICK_CHAIN": 0.609
+    "GUARD_BREAK": 1.019,
+    "PUNCH_CHAIN": 2.511,
+    "KICK_CHAIN": 3.817,
+    "EVADE": -0.326
   },
   "close_attack_0": {
-    "WHIFF_PUNISH": 2.971,
-    "FLYING_KNEE": -1.581,
-    "EVADE": -1.127,
-    "RETREAT": -1.064
+    "WHIFF_PUNISH": -1.122,
+    "FLYING_KNEE": -1.311,
+    "EVADE": -0.609,
+    "RETREAT": -1.131
   },
   "mid_attack_0": {
-    "WHIFF_PUNISH": 0.268,
-    "FLYING_KNEE": 4.022,
-    "EVADE": -0.22
+    "WHIFF_PUNISH": -0.119,
+    "FLYING_KNEE": 1.953,
+    "EVADE": -0.22,
+    "RETREAT": -0.215
   },
   "mid_idle_1": {
-    "JUMP_IN": -0.658,
-    "FLYING_KNEE": 6.609,
-    "KICK_CHAIN": -0.356,
-    "EVADE": -0.369
+    "JUMP_IN": -0.141,
+    "FLYING_KNEE": 6.299,
+    "KICK_CHAIN": -0.45,
+    "EVADE": -0.333
   },
   "mid_attack_1": {
-    "WHIFF_PUNISH": 3.498,
+    "WHIFF_PUNISH": 2.657,
     "FLYING_KNEE": -0.245,
-    "EVADE": -0.274,
+    "EVADE": -0.231,
     "RETREAT": -0.328
   },
   "close_attack_1": {
-    "WHIFF_PUNISH": -0.749,
-    "FLYING_KNEE": -0.961,
+    "WHIFF_PUNISH": 1.668,
+    "FLYING_KNEE": -1.103,
     "EVADE": -1.28,
-    "RETREAT": -0.45
+    "RETREAT": -1.306
   },
   "close_block_1": {
     "GUARD_BREAK": 1.346,
     "PUNCH_CHAIN": 0.196
   },
   "mid_block_0": {
-    "GUARD_BREAK": 1.425
+    "GUARD_BREAK": 1.447
   },
   "far_idle_1": {
     "JUMP_IN": -0.263,
-    "FLYING_KNEE": -0.108,
-    "EVADE": -0.617
+    "FLYING_KNEE": 3.245,
+    "EVADE": -0.617,
+    "RETREAT": -0.132
   },
   "mid_block_1": {
     "PUNCH_CHAIN": -0.101
   },
   "far_air_1": {
-    "ANTI_AIR": 4.412
+    "ANTI_AIR": -0.115,
+    "UPPERCUT": -0.419
+  },
+  "mid_air_1": {
+    "ANTI_AIR": -0.273,
+    "UPPERCUT": -0.334,
+    "EVADE": -0.555,
+    "RETREAT": -1.254
   }
 }

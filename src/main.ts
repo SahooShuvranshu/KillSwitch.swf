@@ -66,6 +66,7 @@ class KillSwitchGame {
     this.arena = new Arena(this.canvas, defaultName, 'black');
     this.telemetry = new TelemetryTracker(defaultName);
     this.aiController = new AIController(this.arena.ghost, this.arena.player, this.telemetry);
+    this.aiController.arena = this.arena;
     this.arena.aiController = this.aiController;
     this.aiController.onTacticalRead = (text) => this.arena.showTacticalBanner(text);
     this.cemetery = new CemeteryManager();

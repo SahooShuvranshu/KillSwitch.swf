@@ -40,7 +40,39 @@ The Ghost is not a hardcoded script. It combines a **high-speed Q-learning reinf
 
 ---
 
-## 🕹️ Controls & Martial Arts Move List
+## 🎨 Vector Visual Overhaul & 2.5D Arena Scenery
+
+`KillSwitch.swf` features an authentic, 100% original vector canvas visual engine designed from the ground up to capture the energy of classic Macromedia Flash animation while delivering modern game feel:
+
+1. **Analytical 2-Bone Inverse Kinematics (`solveJoint`):**
+   - Eliminates limb popping, unnatural flipping, and straight-leg locking with closed-form cosine-law bone solvers.
+   - Proportions tuned to classic martial arts aesthetics: $1/7\text{th}$ head ratio ($r = 7.0$), elongated torso, tapered limb strokes (torso $5.0$, upper leg $4.5$, lower leg $4.0$), and dynamic martial arts knee flexion.
+   - Attack motion trails: Dynamic crescent arcs for Heavy Kicks, skyward helices for Uppercuts, leaping wedges for Flying Knees, and expanding shockwaves for Palm Bursts.
+
+2. **8 Distinct Opponent Visual Archetypes:**
+   - **White Ghost (Round 1):** Classic high-contrast Flash silhouette with dual black knuckle wraps and dark sash.
+   - **Cobalt Duelist (Round 2):** Cyan kickboxer with fluttering dual headband ribbons.
+   - **Jade Grandmaster (Round 3):** Emerald acrobat with low horse stance, gold circlet crest, and flowing silk tail.
+   - **Blocky Steve (Round 4):** Voxel wildcard brawler with cubic head, teal shirt, indigo trousers, and block fists.
+   - **Crimson Titan (Round 5):** Towering $1.25\times$ scale colossus with wide 22px clavicle span, brow ridge, and inner furnace glow.
+   - **Plasma Ascetic (Round 6):** Void monk with hollow ring head, floating cyan halo, and inner core pupil.
+   - **Calavera Phantom (Round 7):** Day of the Dead warrior with sugar skull face paint, marigold aura, and stitched jawline.
+   - **Flash Ghost Prime (Round 8):** Corrupted bytecode overlord with digital error horns and cyan/magenta chromatic aberration glitch trails.
+
+3. **Asymmetric Jump Physics & Platformer Game Feel:**
+   - **Floaty Rise ($g = 0.40$) vs. Snappy Fall ($g = 0.68$):** Jump launch velocity $v_0 = -10.4$, reaching a peak apex of $\approx 130$ px across $25$ frames with swift, responsive descent.
+   - **6-Frame Input Buffer:** Jump inputs pressed just before touching ground immediately execute on landing.
+   - **6-Frame Coyote Time:** Walking off platform ledges provides a grace window to jump mid-air.
+   - **Corner Correction:** Brushing past ledge corners automatically applies a 4px horizontal nudge onto the platform top.
+   - **Audio & FX:** Resonant $140\text{Hz} \to 480\text{Hz}$ procedural triangle swoosh with takeoff/landing dust particles.
+
+4. **3-Layer Parallax Arenas & 3D Interactive Obstacles:**
+   - **Offscreen Cached Parallax:** Far Layer ($0.15\times$ speed), Mid Layer ($0.40\times$ speed), and Near Floor Layer ($1:1$) pre-rendered to separate offscreen canvases for silky 60 FPS performance.
+   - **Zero Blank Margins:** Extended 2,400px wide background canvases and clamped camera bounds guarantee zero exposed borders even at maximum $0.75\times$ zoom-out.
+   - **Physical Boundary Pillars:** Flanking boundary pillars with animated energy coils that flash bright shockwaves when fighters are wall-splatted.
+   - **3D Isometric Destructible Obstacles:** Crates render top and side isometric bevels, floor drop shadows, and damage-scaled fracture splinters as HP drops. Ghost AI automatically leaps over or smashes blocking crates.
+
+---
 
 | Action | Primary Keys | Alternate Keys | Technical Frame Details |
 | :--- | :--- | :--- | :--- |

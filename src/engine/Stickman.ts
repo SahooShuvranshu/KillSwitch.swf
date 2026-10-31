@@ -112,6 +112,12 @@ export class Stickman {
   public isOverclocked: boolean = false;
   public overclockTimeRemaining: number = 0;
 
+  // Jump Juice: Input Buffer, Coyote Time & Visual Callbacks
+  public jumpBufferTimer: number = 0;
+  public coyoteTimer: number = 0;
+  public onTakeoff?: (x: number, y: number) => void;
+  public onLand?: (x: number, y: number, hard: boolean) => void;
+
   public flashFrames: number = 0;
   public glitchOffset: number = 0;
 
@@ -250,6 +256,8 @@ export class Stickman {
     this.flashFrames = 0;
     this.glitchOffset = 0;
     this.dropThroughTimer = 0;
+    this.jumpBufferTimer = 0;
+    this.coyoteTimer = 0;
   }
 
   // --- State Transitions ---
@@ -368,10 +376,21 @@ export class Stickman {
   }
 
   public jump() {
-    if (this.isGrounded && this.state !== 'HIT_STUN' && this.state !== 'DEFEAT') {
+    if (this.state === 'HIT_STUN' || this.state === 'KNOCKDOWN' || this.state === 'DEFEAT' || this.state === 'VICTORY') return;
+
+    if (this.isGrounded || this.coyoteTimer > 0) {
       this.setState('JUMP');
-      this.vy = -9.6;
+      // Classic platformer jump: apex 1.42x height (~135px), time-to-apex ~26 frames (0.43s)
+      this.vy = -10.4;
       this.isGrounded = false;
+      this.coyoteTimer = 0;
+      this.jumpBufferTimer = 0;
+      this.onTakeoff?.(this.x, this.y);
+    } else {
+      // Buffer jump input up to 6 frames before landing
+      if (this.y >= this.currentSurfaceY - 85 && this.vy > 0) {
+        this.jumpBufferTimer = 6;
+      }
     }
   }
 
@@ -446,6 +465,10 @@ export class Stickman {
 
     if (this.flashFrames > 0) this.flashFrames--;
     if (this.dropThroughTimer > 0) this.dropThroughTimer--;
+    if (this.jumpBufferTimer > 0) this.jumpBufferTimer--;
+    if (this.coyoteTimer > 0) this.coyoteTimer--;
+
+    const wasGrounded = this.isGrounded;
 
     // Overclock Timer
     if (this.isOverclocked) {
@@ -507,9 +530,13 @@ export class Stickman {
       return;
     }
 
-    // Snappy grounded gravity
+    // Asymmetric platformer gravity: floaty rise to apex (0.40), snappy descent (0.68)
     if (!this.isGrounded) {
-      this.vy += 1.08;
+      if (this.vy < 0) {
+        this.vy += 0.40;
+      } else {
+        this.vy = Math.min(13.5, this.vy + 0.68);
+      }
     }
 
     this.x += this.vx;
@@ -521,11 +548,21 @@ export class Stickman {
     if (this.dropThroughTimer <= 0) {
       for (const obs of obstacles) {
         if (obs.hp <= 0 && obs.isDestructible) continue;
-        const leftEdge = obs.x - 15;
-        const rightEdge = obs.x + obs.w + 15;
+        const leftEdge = obs.x - 14;
+        const rightEdge = obs.x + obs.w + 14;
+
+        // Corner correction: if moving downward near platform edge, nudge onto surface (~4px)
+        if (this.vy > 0 && Math.abs(this.y - obs.y) <= 8) {
+          if (this.x >= obs.x - 18 && this.x < obs.x - 10) {
+            this.x += 4;
+          } else if (this.x <= obs.x + obs.w + 18 && this.x > obs.x + obs.w + 10) {
+            this.x -= 4;
+          }
+        }
+
         if (this.x >= leftEdge && this.x <= rightEdge) {
           // Check if fighter is falling onto platform top
-          if (this.y >= obs.y && (this.y - this.vy) <= obs.y + 12) {
+          if (this.y >= obs.y && (this.y - this.vy) <= obs.y + 14) {
             targetSurfaceY = obs.y;
             break;
           }
@@ -535,20 +572,28 @@ export class Stickman {
 
     this.currentSurfaceY = targetSurfaceY;
 
-    // Surface collision
+    // Surface collision & Landing
     if (this.y >= this.currentSurfaceY) {
+      const hardLanding = this.vy > 6.0;
       this.y = this.currentSurfaceY;
       this.vy = 0;
       if (!this.isGrounded) {
         this.isGrounded = true;
+        this.onLand?.(this.x, this.y, hardLanding);
         if (this.state === 'JUMP' || this.state === 'JUMP_KICK' || this.state === 'FLYING_KNEE' || this.state === 'UPPERCUT') {
           this.setState('IDLE');
         }
+        // Consume buffered jump input immediately on landing
+        if (this.jumpBufferTimer > 0) {
+          this.jumpBufferTimer = 0;
+          this.jump();
+        }
       }
     } else {
-      // Walking off a platform edge
-      if (this.isGrounded && this.currentSurfaceY < this.groundY && this.y < this.currentSurfaceY - 4) {
+      // Walking off a platform ledge triggers Coyote time (~6 frames window)
+      if (wasGrounded && this.currentSurfaceY < this.groundY && this.y < this.currentSurfaceY - 4) {
         this.isGrounded = false;
+        this.coyoteTimer = 6;
       }
     }
 
