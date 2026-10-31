@@ -90,9 +90,13 @@ async function main() {
 
     // 5. Rapid key mashing and two keys at once
     console.log('[Test 5] Testing rapid key mashing & simultaneous two-key press...');
-    // Reset player to IDLE
+    // Freeze only the autonomous opponent so the test measures input handling,
+    // not a legitimate KO or round-state transition during the mash.
     await page.evaluate(() => {
-      window.__game.arena.player.state = 'IDLE';
+      window.__setGhostAiFrozen(true);
+      const p = window.__game.arena.player;
+      p.state = 'IDLE';
+      p.health = p.maxHealth;
     });
     // Mash keys concurrently
     await Promise.all([
@@ -103,13 +107,17 @@ async function main() {
       page.keyboard.press('Space')
     ]);
     await wait(100);
-    const noCrashAfterMash = await page.evaluate(() => {
-      const p = window.__game.arena.player;
-      const isAlive = p.health > 0 && typeof p.x === 'number' && !isNaN(p.x);
-      return isAlive && window.__game.isRunning;
+    const mashResult = await page.evaluate(() => {
+      const g = window.__game;
+      const p = g.arena.player;
+      const finitePosition = Number.isFinite(p.x) && Number.isFinite(p.y) && Number.isFinite(p.vx) && Number.isFinite(p.vy);
+      const noStuckInput = !Object.values(g.keysHeld).some(value => value === true);
+      window.__setGhostAiFrozen(false);
+      return { finitePosition, noStuckInput };
     });
+    const noCrashAfterMash = mashResult.finitePosition && mashResult.noStuckInput;
     console.log(`✓ Game stable after rapid key mashing: ${noCrashAfterMash}`);
-    if (!noCrashAfterMash) throw new Error('Game crashed or state corrupted after key mash');
+    if (!noCrashAfterMash) throw new Error('Key mash produced a non-finite position or stuck input');
 
     // 6. Tab visibility change handling
     console.log('[Test 6] Testing tab visibilitychange event...');

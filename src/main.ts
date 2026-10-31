@@ -18,6 +18,7 @@ declare global {
   interface Window {
     __game?: KillSwitchGame;
     __setGhostLowHealth?: () => void;
+    __setGhostAiFrozen?: (frozen: boolean) => void;
     __trainingCompleted?: boolean;
     __exportedQTable?: Record<string, Record<string, number>>;
     __trainingStats?: any;
@@ -39,6 +40,7 @@ class KillSwitchGame {
   private currentAdaptation: CombatAdaptation | null = null;
   private introAnimationActive: boolean = false;
   private showDebugOverlay: boolean = false;
+  private ghostAiFrozenForTest: boolean = false;
 
   // Key tracking
   private keysHeld: Record<string, boolean> = {};
@@ -84,6 +86,9 @@ class KillSwitchGame {
         if (this.arena?.ghost) {
           this.arena.ghost.health = 5;
         }
+      };
+      window.__setGhostAiFrozen = (frozen: boolean) => {
+        this.ghostAiFrozenForTest = frozen;
       };
     }
 
@@ -831,7 +836,7 @@ class KillSwitchGame {
       if (this.isRunning) {
         this.handleContinuousInput();
         const t0 = performance.now();
-        this.aiController.update();
+        if (!this.ghostAiFrozenForTest) this.aiController.update();
         this.lastAiUpdateMs = performance.now() - t0;
         this.arena.update();
       }
