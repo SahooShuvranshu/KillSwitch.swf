@@ -2,7 +2,7 @@
 title: "Adobe killed Flash in 2021. So I trapped its vengeful ghost in a 60 FPS Canvas fighter powered by local Gemma 3:4B."
 published: false
 description: "A 60 FPS HTML5 Canvas stickman fighting game trapped inside a broken Adobe Flash Player window, fighting a vengeful Flash Ghost powered by local Google Gemma 3:4B."
-tags: "hf26challenge, hacktoberfest, gemma, webdev"
+tags: "hf26challenge, devchallenge, gemma, opensource"
 cover_image: "https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/0dcf846/docs/cover-image.png"
 canonical_url: "https://sahooshuvranshu.github.io/KillSwitch.swf/"
 ---
@@ -25,13 +25,13 @@ Flash was closed-source, proprietary abandonware. When corporate priorities shif
 
 **Meet `KillSwitch.swf`**: a 60 FPS HTML5 Canvas stickman fighting game trapped inside a cracked Macromedia Flash Player 10.3 desktop window. You play as a rogue stickman fighter who breaches the 2021 Adobe kill-switch error dialog to face the **Ghost of Flash Player** itself.
 
-The Ghost is not a pre-scripted bot running cheap `if/else` checks. It is driven by a **Dual-Layer Edge AI Brain**:
+The Ghost is not a pre-scripted bot running cheap `if/else` checks. It is driven by a **Decoupled Dual-Layer Edge AI Brain**:
 1. **Layer 1: Real-Time 60 FPS Q-Learning & Markov Habit Predictor**: A sub-millisecond reinforcement learner and bigram sequence tracker running directly on the client canvas. It continuously tracks your frame data, strike rhythms, and combo tendencies (e.g., $P(\text{Heavy Kick} \mid \text{Jab})$, $P(\text{Jump Kick} \mid \text{Jump})$) to unleash real-time **Matrix Parries**, duck-under dragon sweeps, and live HUD alerts like `⚡ GEMMA READ: PREDICTED HEAVY KICK (100%)`.
 2. **Layer 2: Local Google Gemma 3:4B Inter-Round Tactical Cognition**: Between rounds, an offline **Google Gemma 3:4B** model running locally via Ollama ingests structured combat telemetry, roasts your fighting habits in authentic 2000s Newgrounds slang on a retro CRT typewriter terminal, dynamically tunes the Ghost's AI state machine (`antiAirPriority`, `aggression`, `guardBreakRate`), and unleashes an unhinged, Gemma-designed **ActionScript Error 0x7E5** boss rage mechanic.
 
 ### How I Interpreted the Theme: Ghost in the Machine & Día de los Muertos
 
-The Week 4 challenge brings together **Halloween (Ghost in the Machine)** and **Día de los Muertos (Honoring the Past)**. I interpreted both literally and culturally:
+The Week 4 challenge brings together **Halloween (Ghost in the Machine)** and **Día de los Muertos (Honoring the Past)**. I interpreted both literally, mechanically, and culturally:
 
 * 🎃 **The Ghost in the Machine:** The software runtime that died on Jan 12, 2021 is the literal ghost possessing your browser canvas. It fights with the glitching fury of a deprecated plugin, wielding CRT scanlines, ActionScript bytecode leaks, and memory overflow attacks against the modern browser.
 * 🕯️ **Día de los Muertos (The Digital Ofrenda):** In Mexican tradition, the dead never truly disappear as long as the living remember them. `KillSwitch.swf` features an interactive **Flash Cemetery (Ofrenda)** glowing with marigold petals and memorial candles honoring fallen Flash classics (*Club Penguin*, *Xiao Xiao*, *Line Rider*, *Alien Hominid*). When you light a candle, **Google Gemma 3:4B** composes real-time satirical *calaveritas literarias* (Day of the Dead rhyming epitaph poems) in nostalgic 2000s web slang.
@@ -51,9 +51,13 @@ The Week 4 challenge brings together **Halloween (Ghost in the Machine)** and **
 
 ## Demo
 
-- 🌐 **Live Playable Showcase Website:** [https://sahooshuvranshu.github.io/KillSwitch.swf/](https://sahooshuvranshu.github.io/KillSwitch.swf/)
+- 🌐 **Live Playable Web Game:** [https://sahooshuvranshu.github.io/KillSwitch.swf/](https://sahooshuvranshu.github.io/KillSwitch.swf/)
 - 📊 **900-Round Calibration Report:** [docs/difficulty-tuning.md](https://github.com/SahooShuvranshu/KillSwitch.swf/blob/main/docs/difficulty-tuning.md)
 - 📈 **1,800-Round Learning Benchmark:** [docs/learning-results.md](https://github.com/SahooShuvranshu/KillSwitch.swf/blob/main/docs/learning-results.md)
+
+> **💡 How to Play:**  
+> 1. **Instant In-Browser Play:** Click the live web link above. Click **⚡ BYPASS 2021 KILL-SWITCH & EXECUTE** to enter the Flash runtime. The game runs 100% in your browser at 60 FPS with client-side Q-learning and procedural ActionScript commentary—zero installs required!  
+> 2. **Local Google Gemma 3:4B Edge AI Mode:** To connect the local Gemma 3:4B brain with streaming CRT typewriter roasts and dynamic state-machine tuning, follow the [30-second local quickstart](#30-second-local-quickstart) below with Ollama!
 
 ### Walkthrough & Screenshots
 
@@ -87,7 +91,7 @@ The Week 4 challenge brings together **Halloween (Ghost in the Machine)** and **
 
 {% embed https://github.com/SahooShuvranshu/KillSwitch.swf %}
 
-* **Author & Engine Architect:** **Shuvranshu Sekhar Sahoo** ([@SahooShuvranshu](https://github.com/SahooShuvranshu))
+* **Author & Lead Architect:** **Shuvranshu Sekhar Sahoo** ([@SahooShuvranshu](https://github.com/SahooShuvranshu))
 * **License:** Open Source under the [MIT License](https://github.com/SahooShuvranshu/KillSwitch.swf/blob/main/LICENSE)
 * **Tech Stack:** TypeScript · HTML5 Canvas (2D IK) · Web Audio API · Vite · Local Google Gemma 3:4B via Ollama · Tabular Q-Learning
 
@@ -117,7 +121,7 @@ If you tie LLM generation to the combat loop, the game hitches, frames drop, and
 
 `KillSwitch.swf` solves this with a **Decoupled Asynchronous Dual-Layer Architecture**:
 
-```
+```plaintext
 +-------------------------------------------------------------------------+
 | LAYER 1: 60 FPS Real-Time Combat Engine (Client HTML5 Canvas)           |
 | -> Player inputs (WASD + JKUI / Space) -> 2-Bone Inverse Kinematics     |
@@ -289,7 +293,7 @@ It turns a graveyard of dead plugins into an ofrenda of digital folklore.
 - **Core Cognitive Engine:** Gemma 3:4B is not an afterthought or an auxiliary chatbot; it is the cognitive engine of the Ghost of Flash Player.
 - **Offline Edge Adaptation:** Runs 100% locally via Ollama with zero cloud API latency or dependencies, enabling true local-first gameplay.
 - **Tactical Dynamic Tuning:** Ingests structured round telemetry and dynamically tunes the Ghost's high-level state machine (`antiAirPriority`, `aggression`, `guardBreakRate`).
-- **Gemma-Authored Boss Mechanics:** Directly designed the unhinged "ActionScript Error 0x7E5" triple-teleport memory overflow boss rage phase.
+- **Gemma-Authored Boss Mechanics:** Directly designed the unhinged \"ActionScript Error 0x7E5\" triple-teleport memory overflow boss rage phase.
 - **Cultural Epitaph Synthesis:** Composes real-time satirical calaveritas literarias honoring fallen Flash classics at the Day of the Dead Ofrenda.
 
 ---

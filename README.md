@@ -38,6 +38,7 @@
 ## 📑 Table of Contents
 - [👤 Author Attribution](#-author-attribution--hackathon-track)
 - [💀 The Story: January 12, 2021](#-the-story-january-12-2021)
+- [📸 Gameplay Showcase & Live Screenshots](#-gameplay-showcase--live-screenshots)
 - [🧠 Dual-Layer AI Architecture](#-dual-layer-ai-architecture)
 - [🔄 Combat Adaptation Sequence](#-combat-adaptation-sequence)
 - [🕹️ Combat State Machine & Error 0x7E5 Boss Rage](#-combat-state-machine--error-0x7e5-boss-rage)
@@ -76,6 +77,34 @@ On January 12, 2021, Adobe triggered a hardcoded time-bomb kill-switch embedded 
 * **Zero Kill-Switches:** Because **Google Gemma 3:4B** runs locally via Ollama and the combat engine uses open web standards (HTML5 Canvas + Web Audio API), this game works 100% offline with zero cloud latency and zero risk of corporate deprecation.
 
 ---
+
+---
+
+## 📸 Gameplay Showcase & Live Screenshots
+
+### 1. Windows XP Bliss Desktop — Aerial Combat & Parry Shield
+![Aerial Flying Kick vs Cobalt Duelist Parry Shield](docs/screenshots/after_fight.png)
+*Figure 1: Player executing a flying kick with dynamic calligraphy brush trails against Cobalt Duelist's reactive parry shield on the Windows XP Bliss desktop stage.*
+
+### 2. Real-Time Telemetry & Habit Reading (F3 Overlay)
+![Real-Time Q-Learner Telemetry & Habit Reading](docs/screenshots/after_f3_overlay.png)
+*Figure 2: Pressing F3 toggles the live telemetry inspector. Real-time Q-learner displays state, action, reward, and active Gemma prediction alert (`⚡ GEMMA READ: PREDICTED HEAVY KICK (100%)`).*
+
+### 3. Inter-Round CRT Typewriter Roast & Telemetry Terminal
+![Inter-Round Newgrounds CRT Roast](docs/screenshots/after_roast.png)
+*Figure 3: Between rounds, local Google Gemma 3:4B analyzes combat telemetry, generates a sarcastic 2000s Newgrounds typewriter monologue, and dynamically tunes the Ghost's aggression, anti-air, and guard-break meters.*
+
+### 4. ActionScript Error 0x7E5 Boss Rage in Cyber Matrix
+![ActionScript Error 0x7E5 Boss Rage](docs/screenshots/after_rage_mode.png)
+*Figure 4: Flash Ghost in Nightmare mode executing the Gemma 3:4B designed Error 0x7E5 triple-teleport memory overflow attack across the ActionScript Bytecode Matrix.*
+
+### 5. Día de los Muertos Flash Cemetery & Real-Time Calaverita
+![Día de los Muertos Flash Cemetery](docs/screenshots/after_cemetery.png)
+*Figure 5: The Flash Cemetery (Ofrenda). Lighting candles for fallen Flash classics (Club Penguin, Xiao Xiao, Line Rider) prompts Gemma 3:4B to compose satirical Day of the Dead poems.*
+
+### 6. Arcade Menu & Adaptive Difficulty Calibration
+![Arcade Menu & Difficulty Select](docs/screenshots/after_menu.png)
+*Figure 6: Arcade setup modal offering Casual, Veteran, and Nightmare calibrations, challenger name profiling, and instant access to the digital ofrenda.*
 
 ## 🧠 Dual-Layer AI Architecture
 
