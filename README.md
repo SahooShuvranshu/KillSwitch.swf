@@ -58,8 +58,8 @@
 * **Category:** Strictly targeting **Best Use of Gemma** (`#hf26challenge`, `#hacktoberfest`, `#gemma`)
 * **Team Members:**
   * **Shuvranshu Sekhar Sahoo** ([@SahooShuvranshu](https://github.com/SahooShuvranshu)) — *Lead Engine Architect, Kinematics & Dual-Layer AI Controller*
-  * **Pruthiraj Lenka** — *AI Benchmark Architecture & Headless Difficulty Calibration*
-  * **Suhani Priyadarshini** — *Telemetry Ingestion Pipeline & QA Automated Verification*
+  * **Pruthiraj Lenka** ([@Pruthiraj2007](https://github.com/Pruthiraj2007)) — *AI Benchmark Architecture & Headless Difficulty Calibration*
+  * **Suhani Priyadarshini** ([@suhanipriyadarshini24-arch](https://github.com/suhanipriyadarshini24-arch)) — *Telemetry Ingestion Pipeline & QA Automated Verification*
 
 ---
 

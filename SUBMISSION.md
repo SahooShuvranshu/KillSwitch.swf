@@ -21,8 +21,8 @@ canonical_url: "https://sahooshuvranshu.github.io/KillSwitch.swf/"
 
 #### 👥 Hacktoberfest 2026 Team Members
 - **Shuvranshu Sekhar Sahoo** ([@SahooShuvranshu](https://github.com/SahooShuvranshu)) — *Lead Engine Architect, Combat Kinematics & Dual-Layer AI Controller*
-- **Pruthiraj Lenka** — *AI Benchmark Architecture & Headless Difficulty Calibration*
-- **Suhani Priyadarshini** — *Telemetry Ingestion Pipeline & QA Automated Verification*
+- **Pruthiraj Lenka** ([@Pruthiraj2007](https://github.com/Pruthiraj2007)) — *AI Benchmark Architecture & Headless Difficulty Calibration*
+- **Suhani Priyadarshini** ([@suhanipriyadarshini24-arch](https://github.com/suhanipriyadarshini24-arch)) — *Telemetry Ingestion Pipeline & QA Automated Verification*
 
 ---
 
