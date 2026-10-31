@@ -169,6 +169,7 @@ export class Arena {
 
   public stage: ArenaStage = 'animator';
   public difficulty: GameDifficulty = 'veteran';
+  public roundBonusType: 'NONE' | 'DAMAGE' | 'HP' | 'SPEED' = 'NONE';
 
   // --- 3-Layer Parallax Offscreen Background Caches ---
   private farLayerCanvas: HTMLCanvasElement | null = null;
@@ -415,8 +416,41 @@ export class Arena {
     if (archetype.isHollowHead !== undefined) this.ghost.isHollowHead = archetype.isHollowHead;
     this.ghost.scale = archetype.scale;
     this.ghost.thickness = archetype.thickness;
-    this.ghost.damageMultiplier = archetype.damageMultiplier;
-    this.ghost.maxHealth = 180 + archetype.bonusMaxHealth;
+
+    // Difficulty tier base multipliers
+    let tierDamageMult = 1.0;
+    let tierHpMult = 1.0;
+
+    if (this.difficulty === 'casual') {
+      tierDamageMult = 1.15;
+      tierHpMult = 1.00; // 180 HP
+    } else if (this.difficulty === 'veteran') {
+      tierDamageMult = 0.98;
+      tierHpMult = 1.00; // 180 HP
+    } else if (this.difficulty === 'nightmare') {
+      tierDamageMult = 1.12;
+      tierHpMult = 1.00; // 180 HP
+    }
+
+    // Round scaling: at most +4% per round and +25% total by round 8 (casual +2%, cap +10%).
+    // Never stack multiplier, HP bonus and speed bonus in the same round.
+    const scalingRate = this.difficulty === 'casual' ? 0.02 : 0.04;
+    const scalingCap = this.difficulty === 'casual' ? 0.10 : 0.25;
+    const roundScalingBonus = Math.min(scalingCap, (roundNum - 1) * scalingRate);
+
+    const bonusType = (roundNum === 1) ? 'NONE' : (['DAMAGE', 'HP', 'SPEED'][(roundNum - 2) % 3] as 'DAMAGE' | 'HP' | 'SPEED');
+    this.roundBonusType = bonusType;
+
+    let dmgMult = tierDamageMult;
+    let bonusHp = 0;
+    if (bonusType === 'DAMAGE') {
+      dmgMult = tierDamageMult * (1.0 + roundScalingBonus);
+    } else if (bonusType === 'HP') {
+      bonusHp = Math.round(180 * tierHpMult * roundScalingBonus);
+    }
+
+    this.ghost.damageMultiplier = dmgMult;
+    this.ghost.maxHealth = Math.round(180 * tierHpMult) + bonusHp;
 
     // 3. Reset player & ghost positions and health (180 HP Rebalanced Pool)
     this.player.maxHealth = 180;

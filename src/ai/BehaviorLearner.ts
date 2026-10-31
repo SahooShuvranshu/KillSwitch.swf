@@ -21,7 +21,8 @@ export class BehaviorLearner {
   public qTable: Record<string, Record<string, number>> = {};
   public visits: Record<string, Record<string, number>> = {};
   public epsilon: number = 0.20;
-  private readonly alpha: number = 0.1;
+  public epsilonFloor: number = 0.05;
+  public alpha: number = 0.1;
 
   constructor() {
     this.resetToPretrained();
@@ -97,9 +98,25 @@ export class BehaviorLearner {
     this.visits[stateKey][behavior] = (this.visits[stateKey][behavior] || 0) + 1;
   }
 
+  public configureDifficulty(diff: 'casual' | 'veteran' | 'nightmare'): void {
+    if (diff === 'casual') {
+      this.alpha = 0.0;
+      this.epsilon = 0.20;
+      this.epsilonFloor = 0.20;
+    } else if (diff === 'veteran') {
+      this.alpha = 0.05; // Learning rate halved from 0.10
+      this.epsilon = 0.20;
+      this.epsilonFloor = 0.15; // Epsilon floor 0.15
+    } else {
+      this.alpha = 0.10; // Current full learner
+      this.epsilon = 0.20;
+      this.epsilonFloor = 0.05;
+    }
+  }
+
   // Decay exploration at round conclusion
   public endRound(): void {
-    this.epsilon = Math.max(0.05, this.epsilon - 0.02);
+    this.epsilon = Math.max(this.epsilonFloor, this.epsilon - 0.02);
   }
 
   public toJSON(): string {
@@ -118,7 +135,7 @@ export class BehaviorLearner {
           this.qTable = data.qTable;
         }
         if (typeof data.epsilon === 'number') {
-          this.epsilon = Math.max(0.05, Math.min(1.0, data.epsilon));
+          this.epsilon = Math.max(this.epsilonFloor, Math.min(1.0, data.epsilon));
         }
         if (data.visits && typeof data.visits === 'object') {
           this.visits = data.visits;

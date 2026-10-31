@@ -24,6 +24,21 @@ export class AIController {
 
   public difficulty: GameDifficulty = 'veteran';
   public roundNumber: number = 1;
+  public roundBonusType: 'NONE' | 'DAMAGE' | 'HP' | 'SPEED' = 'NONE';
+
+  // Human-like limits & cooldowns
+  public blockCooldownTimer: number = 0;
+  public dodgeCooldownTimer: number = 0;
+  public attackGapTimer: number = 0;
+  public rageActiveTimer: number = 0;
+  public consecutiveEvasiveCount: number = 0;
+  public defenseReactionTimer: number = 0;
+  public defenseCooldown: number = 0;
+
+  // Assist tracking (hidden)
+  public playerLossStreak: number = 0;
+  public playerWinStreak: number = 0;
+  public isAssistActive: boolean = false;
 
   // Gemma-tuned adaptation parameters
   public antiAirPriority: number = 0.45;
@@ -55,7 +70,7 @@ export class AIController {
     this.ghost = ghost;
     this.player = player;
     this.telemetry = telemetry;
-    this.difficulty = difficulty;
+    this.setDifficulty(difficulty);
   }
 
   public schedule(frames: number, fn: () => void) {
@@ -68,20 +83,37 @@ export class AIController {
 
   public setDifficulty(diff: GameDifficulty) {
     this.difficulty = diff;
+    this.useLearner = (diff !== 'casual');
+    this.learner.configureDifficulty(diff);
+    if (diff === 'veteran' || diff === 'nightmare') {
+      this.learner.resetToPretrained();
+      this.learner.configureDifficulty(diff);
+    }
   }
 
   public setRound(roundNum: number) {
     this.roundNumber = roundNum;
     this.isRageModeActive = false;
     this.rageAttackTimer = 0;
+    this.rageActiveTimer = 0;
     this.actionCooldown = 0;
     this.decisionTimer = 0;
     this.parryCooldown = 0;
+    this.blockCooldownTimer = 0;
+    this.dodgeCooldownTimer = 0;
+    this.attackGapTimer = 0;
+    this.consecutiveEvasiveCount = 0;
+    this.defenseReactionTimer = 0;
+    this.defenseCooldown = 0;
     this.queue = [];
     this.lastStateKey = '';
     this.lastBehavior = '';
     this.lastReward = 0;
     this.actionCountThisRound = 0;
+
+    if (this.arena) {
+      this.roundBonusType = this.arena.roundBonusType;
+    }
 
     if (!this.ghost.canAct()) {
       this.ghost.state = 'IDLE';
@@ -121,9 +153,11 @@ export class AIController {
   }
 
   public update() {
-    // Clear scheduled actions if ghost enters hitstun
+    // Clear scheduled actions and reset timers if ghost enters hitstun
     if (this.ghost.state === 'HIT_STUN') {
       this.queue = [];
+      this.defenseReactionTimer = 0;
+      this.actionCooldown = 0;
     }
 
     // Tick frame queue (decrements each item and runs due ones)
@@ -148,57 +182,171 @@ export class AIController {
     }
 
     if (this.parryCooldown > 0) this.parryCooldown--;
+    if (this.blockCooldownTimer > 0) this.blockCooldownTimer--;
+    if (this.dodgeCooldownTimer > 0) this.dodgeCooldownTimer--;
+    if (this.attackGapTimer > 0) this.attackGapTimer--;
+    if (this.defenseCooldown > 0) this.defenseCooldown--;
 
-    if (this.actionCooldown > 0) {
-      this.actionCooldown--;
-      return;
+    // 6-Second Rage Mode Limit (Nightmare only)
+    if (this.isRageModeActive) {
+      this.rageActiveTimer++;
+      if (this.rageActiveTimer >= 360) {
+        this.isRageModeActive = false;
+        this.ghost.auraColor = null;
+        this.onTacticalRead?.('⚠️ ACTIONSCRIPT ERROR 0x7E5 EXPIRED');
+      }
     }
 
-    // Reaction frame interval scales sharper across rounds
-    const roundSpeedTier = Math.floor((this.roundNumber - 1) / 2);
-    const baseDelay = this.difficulty === 'casual' ? 5 : (this.difficulty === 'veteran' ? 2 : 1);
-    const reactionDelay = Math.max(1, baseDelay - roundSpeedTier);
-    
-    this.decisionTimer++;
-    if (this.decisionTimer < reactionDelay) return;
-    this.decisionTimer = 0;
+    // Reaction frame interval & human-like limits per tier
+    let baseReactionDelay = 15;
+    let baseMistakeRate = 0.12;
+    let baseBlockChance = 0.50;
+    let dodgeCooldownMax = 100;
+    let markovProb = 0.35;
+    let minAttackGap = 20;
+
+    if (this.difficulty === 'casual') {
+      baseReactionDelay = 24;
+      baseMistakeRate = 0.20;
+      baseBlockChance = 0.35;
+      dodgeCooldownMax = 150;
+      markovProb = 0.15;
+      minAttackGap = 26;
+    } else if (this.difficulty === 'veteran') {
+      baseReactionDelay = 15;
+      baseMistakeRate = 0.14;
+      baseBlockChance = 0.42;
+      dodgeCooldownMax = 100;
+      markovProb = 0.35;
+      minAttackGap = 20;
+    } else if (this.difficulty === 'nightmare') {
+      baseReactionDelay = 10;
+      baseMistakeRate = 0.05;
+      baseBlockChance = 0.68;
+      dodgeCooldownMax = 70;
+      markovProb = 0.60;
+      minAttackGap = 12;
+    }
+
+    // Only apply speed bonus if SPEED was selected for this round (never stacked with HP or DMG)
+    let speedBonus = 0;
+    if (this.roundBonusType === 'SPEED') {
+      const scalingRate = this.difficulty === 'casual' ? 0.02 : 0.04;
+      const scalingCap = this.difficulty === 'casual' ? 0.10 : 0.25;
+      const roundScaling = Math.min(scalingCap, (this.roundNumber - 1) * scalingRate);
+      speedBonus = Math.round(roundScaling * 5); // 0 to 1 frame
+    }
+
+    let reactionDelay = Math.max(1, baseReactionDelay - speedBonus);
+    let mistakeRate = baseMistakeRate;
+
+    // Assist: if the player lost the last 2 rounds, ease the next round (reaction delay +4 frames, mistakes +8%)
+    if (this.isAssistActive) {
+      reactionDelay += 4;
+      mistakeRate += 0.08;
+    }
 
     const dx = this.player.x - this.ghost.x;
     const dist = Math.abs(dx);
     const dir = dx > 0 ? 1 : -1;
 
-    // Cumulative round scaling factors
-    const roundBoost = Math.min(0.35, (this.roundNumber - 1) * 0.05);
-    const antiAirRate = Math.min(0.95, this.antiAirPriority + roundBoost);
-    const aggRate = Math.min(0.95, this.aggression + roundBoost);
-    const guardRate = Math.min(0.95, this.guardBreakRate + roundBoost);
-    const cdReduction = Math.min(10, Math.floor((this.roundNumber - 1) * 1.5));
+    // Defensive Reaction with strict Human Reaction Delay
+    // The ghost must never react on the same frame as a player input!
+    // It initiates a non-zero reaction timer (at least 2 frames) before raising defense.
+    const isPlayerStriking = (this.player.getHitbox() !== null) || [
+      'JAB', 'CROSS_PUNCH', 'PALM_BURST', 'HEAVY_KICK', 'AXE_KICK', 'UPPERCUT', 'FLYING_KNEE', 'LOW_SWEEP', 'JUMP_KICK'
+    ].includes(this.player.state);
 
-    // --- Gemma 3:4B Boss Mechanic: ActionScript Error 0x7E5 Time-Bomb ---
-    const rageThreshold = Math.min(55, 35 + (this.roundNumber - 1) * 4);
-    const ghostHpPercent = (this.ghost.health / this.ghost.maxHealth) * 100;
-    if (ghostHpPercent <= rageThreshold && !this.isRageModeActive) {
-      this.isRageModeActive = true;
-      this.ghost.auraColor = '#ff0033'; // Pulsating red warning aura
-      this.onTacticalRead?.('⚠️ GEMMA CORE: ACTIONSCRIPT ERROR 0x7E5 TIME-BOMB!');
-      sound.playBypass();
+    const defReactionFrames = this.difficulty === 'casual' ? 3 : 2;
+    if (isPlayerStriking && dist < 120 && this.defenseReactionTimer === 0 && this.defenseCooldown <= 0) {
+      this.defenseReactionTimer = defReactionFrames;
     }
 
-    if (this.isRageModeActive) {
-      this.rageAttackTimer++;
-      const rageInterval = Math.max(80, 140 - (this.roundNumber - 1) * 10);
-      if (this.rageAttackTimer >= rageInterval) {
-        this.rageAttackTimer = 0;
-        this.executeError0x7E5TripleTeleport();
-        return;
+    if (this.defenseReactionTimer > 0) {
+      this.defenseReactionTimer--;
+      if (this.defenseReactionTimer === 0 && this.ghost.canAct()) {
+        this.defenseCooldown = 15;
+        if (Math.random() < baseBlockChance) {
+          if (Math.random() < 0.35 && this.dodgeCooldownTimer <= 0) {
+            this.ghost.dodgeRoll();
+            this.dodgeCooldownTimer = dodgeCooldownMax;
+            this.actionCooldown = 12;
+            return;
+          } else if (this.blockCooldownTimer <= 0) {
+            this.ghost.block(true);
+            this.blockCooldownTimer = 25;
+            this.schedule(8, () => {
+              if (this.ghost.state === 'BLOCK') this.ghost.block(false);
+            });
+            this.actionCooldown = 8;
+            return;
+          }
+        }
+      }
+    }
+
+    if (this.actionCooldown > 0) {
+      this.actionCooldown--;
+      if (this.lastBehavior !== 'RETREAT' && this.lastBehavior !== 'EVADE' && dist > 70 && this.ghost.isGrounded && this.ghost.canAct()) {
+        this.ghost.move(dir);
+      }
+      return;
+    }
+
+    this.decisionTimer++;
+    if (this.decisionTimer < reactionDelay) {
+      if (this.lastBehavior !== 'RETREAT' && this.lastBehavior !== 'EVADE' && dist > 70 && this.ghost.isGrounded && this.ghost.canAct()) {
+        this.ghost.move(dir);
+      } else if (this.lastBehavior === 'RETREAT' && this.ghost.isGrounded && this.ghost.canAct()) {
+        this.ghost.move(-dir);
+      }
+      return;
+    }
+    this.decisionTimer = 0;
+
+    // Check for mistake: random legal behavior or hesitation
+    const isMistake = Math.random() < mistakeRate;
+    let makeHesitation = false;
+    let makeRandomAction = false;
+    if (isMistake) {
+      if (Math.random() < 0.5) makeHesitation = true;
+      else makeRandomAction = true;
+    }
+
+    if (makeHesitation) {
+      this.actionCooldown = Math.max(6, Math.floor(reactionDelay / 2));
+      return;
+    }
+
+    // --- Rage Mode 0x7E5: Nightmare ONLY, 6-second limit ---
+    if (this.difficulty === 'nightmare') {
+      const rageThreshold = Math.min(55, 35 + (this.roundNumber - 1) * 4);
+      const ghostHpPercent = (this.ghost.health / this.ghost.maxHealth) * 100;
+      if (ghostHpPercent <= rageThreshold && !this.isRageModeActive && this.rageActiveTimer < 360) {
+        this.isRageModeActive = true;
+        this.ghost.auraColor = '#ff0033';
+        this.onTacticalRead?.('⚠️ GEMMA CORE: ACTIONSCRIPT ERROR 0x7E5 TIME-BOMB!');
+        sound.playBypass();
+      }
+
+      if (this.isRageModeActive) {
+        this.rageAttackTimer++;
+        const rageInterval = Math.max(80, 140 - (this.roundNumber - 1) * 10);
+        if (this.rageAttackTimer >= rageInterval) {
+          this.rageAttackTimer = 0;
+          this.executeError0x7E5TripleTeleport();
+          this.attackGapTimer = minAttackGap;
+          return;
+        }
       }
     }
 
     // --- 0. Corner Trap Evasion (Dodge Roll to escape corner boundaries) ---
     const isGhostCornered = this.ghost.x <= 95 || this.ghost.x >= 705;
-    if (isGhostCornered && dist < 120 && Math.random() < 0.65) {
+    if (isGhostCornered && dist < 120 && Math.random() < 0.65 && this.dodgeCooldownTimer <= 0) {
       this.ghost.dodgeRoll();
-      this.actionCooldown = Math.max(12, 22 - cdReduction);
+      this.dodgeCooldownTimer = dodgeCooldownMax;
+      this.actionCooldown = 18;
       return;
     }
 
@@ -217,6 +365,7 @@ export class AIController {
           } else {
             this.ghost.heavyKick();
             this.actionCooldown = 16;
+            this.attackGapTimer = minAttackGap;
           }
           return;
         }
@@ -224,41 +373,26 @@ export class AIController {
     }
 
     // --- 1. Real-Time Move Prediction via Markov Sequence Model ---
-    if (this.telemetry) {
+    if (this.telemetry && Math.random() < markovProb && this.attackGapTimer <= 0) {
       const prediction = this.telemetry.predictNextMove();
-      if (prediction && prediction.confidence >= 0.45 && this.parryCooldown <= 0) {
+      if (prediction && prediction.confidence >= 0.45 && this.parryCooldown <= 0 && this.blockCooldownTimer <= 0) {
         if (prediction.predicted === 'HEAVY_KICK' && dist < 115) {
           this.onTacticalRead?.(`⚡ GEMMA READ: PREDICTED HEAVY KICK (${Math.round(prediction.confidence * 100)}%)`);
           this.ghost.block(true);
           sound.playBlock();
-          this.parryCooldown = Math.max(50, 90 - cdReduction * 3);
-          this.actionCooldown = Math.max(6, 12 - cdReduction);
+          this.blockCooldownTimer = 25;
+          this.parryCooldown = 70;
+          this.actionCooldown = 10;
 
           this.schedule(8, () => {
             if (this.ghost.canAct()) {
               this.ghost.block(false);
-              this.ghost.uppercut(); // Counter-launch the heavy kick!
+              this.ghost.uppercut();
+              this.attackGapTimer = minAttackGap;
             }
           });
           return;
         }
-      }
-    }
-
-    // --- 2. Defensive Reaction vs Incoming Attacks ---
-    const playerHitbox = this.player.getHitbox();
-    if (playerHitbox && dist < 100) {
-      const baseBlockChance = this.difficulty === 'casual' ? 0.30 : (this.difficulty === 'veteran' ? 0.60 : 0.85);
-      const blockChance = Math.min(0.92, baseBlockChance + (this.roundNumber - 1) * 0.04);
-      if (Math.random() < blockChance) {
-        if (Math.random() < 0.40) {
-          this.ghost.dodgeRoll(); // Evasive tumble
-        } else {
-          this.ghost.block(true);
-          this.schedule(12, () => this.ghost.block(false));
-        }
-        this.actionCooldown = Math.max(8, 16 - cdReduction);
-        return;
       }
     }
 
@@ -285,7 +419,7 @@ export class AIController {
     const cornered = (this.ghost.x <= 95 || this.ghost.x >= 705) ? '1' : '0';
     const stateKey = `${distBucket}_${playerClass}_${cornered}`;
 
-    const allowed: string[] = [];
+    let allowed: string[] = [];
     if (playerClass === 'air') {
       allowed.push('ANTI_AIR', 'UPPERCUT', 'FLYING_KNEE', 'EVADE', 'RETREAT');
     } else if (playerClass === 'block') {
@@ -302,28 +436,85 @@ export class AIController {
       }
     }
 
-    let choice = this.useLearner ? this.learner.choose(stateKey, allowed) : '';
+    // Dodge cooldown constraint on EVADE
+    if (this.dodgeCooldownTimer > 0) {
+      allowed = allowed.filter(b => b !== 'EVADE');
+    }
+
+    // Minimum attack gap constraint: ghost cannot initiate new attack during gap
+    if (this.attackGapTimer > 0) {
+      allowed = allowed.filter(b => b === 'RETREAT' || b === 'EVADE');
+      if (allowed.length === 0) {
+        if (dist < 85 && this.ghost.isGrounded && this.ghost.canAct()) {
+          this.ghost.move(-dir);
+        }
+        return;
+      }
+    }
+
+    // Anti-Passivity Rule:
+    // If ghost is behind or equal on HP and under 50% of round time is left (roundTime <= 49),
+    // forbid RETREAT/EVADE chains (max 1 in a row)
+    const isRoundTimeUnderHalf = this.arena ? (this.arena.roundTime <= 49) : false;
+    const isHpBehindOrEqual = this.ghost.health <= this.player.health;
+    if (isRoundTimeUnderHalf && isHpBehindOrEqual && this.consecutiveEvasiveCount >= 1) {
+      allowed = allowed.filter(b => b !== 'RETREAT' && b !== 'EVADE');
+      if (allowed.length === 0) {
+        allowed.push('PUNCH_CHAIN', 'FLYING_KNEE', 'JUMP_IN');
+      }
+    }
+
+    let choice = '';
+    if (makeRandomAction && allowed.length > 0) {
+      const rIdx = Math.floor(Math.random() * allowed.length);
+      choice = allowed[rIdx];
+    } else if (this.useLearner) {
+      choice = this.learner.choose(stateKey, allowed);
+    }
+
     if (!choice || !allowed.includes(choice)) {
       if (playerClass === 'air') {
-        choice = Math.random() < antiAirRate ? 'ANTI_AIR' : 'EVADE';
+        choice = Math.random() < 0.60 ? 'ANTI_AIR' : 'EVADE';
       } else if (playerClass === 'block') {
-        choice = Math.random() < guardRate ? 'GUARD_BREAK' : 'PUNCH_CHAIN';
+        choice = Math.random() < 0.50 ? 'GUARD_BREAK' : 'PUNCH_CHAIN';
       } else if (playerClass === 'attack') {
-        choice = Math.random() < 0.5 ? 'WHIFF_PUNISH' : 'EVADE';
+        choice = Math.random() < 0.45 ? 'WHIFF_PUNISH' : 'RETREAT';
       } else {
         if (distBucket === 'close') {
-          choice = Math.random() < aggRate ? 'PUNCH_CHAIN' : 'KICK_CHAIN';
+          choice = Math.random() < 0.60 ? 'PUNCH_CHAIN' : 'KICK_CHAIN';
         } else if (distBucket === 'mid') {
-          choice = Math.random() < 0.6 ? 'FLYING_KNEE' : 'JUMP_IN';
+          choice = Math.random() < 0.55 ? 'FLYING_KNEE' : 'JUMP_IN';
         } else {
           choice = 'JUMP_IN';
         }
       }
+      if (!allowed.includes(choice) && allowed.length > 0) {
+        choice = allowed[0];
+      }
+    }
+
+    if (choice === 'RETREAT' || choice === 'EVADE') {
+      this.consecutiveEvasiveCount++;
+    } else {
+      this.consecutiveEvasiveCount = 0;
     }
 
     this.lastStateKey = stateKey;
     this.lastBehavior = choice;
     this.actionCountThisRound++;
+
+    const isAttackBehavior = [
+      'ANTI_AIR', 'WHIFF_PUNISH', 'GUARD_BREAK', 'PUNCH_CHAIN', 
+      'KICK_CHAIN', 'UPPERCUT', 'FLYING_KNEE', 'JUMP_IN'
+    ].includes(choice);
+
+    if (isAttackBehavior) {
+      this.attackGapTimer = minAttackGap;
+    }
+
+    if (choice === 'EVADE') {
+      this.dodgeCooldownTimer = dodgeCooldownMax;
+    }
 
     switch (choice) {
       case 'ANTI_AIR':
@@ -333,19 +524,19 @@ export class AIController {
         } else {
           this.ghost.flyingKnee();
         }
-        this.actionCooldown = Math.max(10, 22 - cdReduction);
+        this.actionCooldown = 18;
         break;
 
       case 'WHIFF_PUNISH':
         this.onTacticalRead?.('⚡ AI LEARNER: WHIFF PUNISH!');
         this.ghost.flyingKnee();
-        this.actionCooldown = Math.max(10, 20 - cdReduction);
+        this.actionCooldown = 16;
         break;
 
       case 'GUARD_BREAK':
         this.onTacticalRead?.('⚡ AI LEARNER: LOW SWEEP GUARD-BREAK!');
         this.ghost.lowSweep();
-        this.actionCooldown = Math.max(10, 20 - cdReduction);
+        this.actionCooldown = 16;
         break;
 
       case 'PUNCH_CHAIN':
@@ -356,7 +547,7 @@ export class AIController {
         this.schedule(11, () => {
           if (this.ghost.canAct()) this.ghost.palmBurst();
         });
-        this.actionCooldown = Math.max(12, 22 - cdReduction);
+        this.actionCooldown = 20;
         break;
 
       case 'KICK_CHAIN':
@@ -364,23 +555,23 @@ export class AIController {
         this.schedule(7, () => {
           if (this.ghost.canAct()) this.ghost.axeKick();
         });
-        this.actionCooldown = Math.max(12, 22 - cdReduction);
+        this.actionCooldown = 20;
         break;
 
       case 'UPPERCUT':
         this.ghost.uppercut();
-        this.actionCooldown = Math.max(12, 24 - cdReduction);
+        this.actionCooldown = 22;
         break;
 
       case 'FLYING_KNEE':
         this.ghost.flyingKnee();
-        this.actionCooldown = Math.max(14, 26 - cdReduction);
+        this.actionCooldown = 24;
         break;
 
       case 'JUMP_IN':
         this.ghost.jump();
         this.ghost.jumpKick();
-        this.actionCooldown = Math.max(14, 28 - cdReduction);
+        this.actionCooldown = 26;
         break;
 
       case 'RETREAT':
@@ -389,7 +580,7 @@ export class AIController {
 
       case 'EVADE':
         this.ghost.dodgeRoll();
-        this.actionCooldown = Math.max(12, 22 - cdReduction);
+        this.actionCooldown = 20;
         break;
     }
 
@@ -417,6 +608,21 @@ export class AIController {
     }
     if (this.useLearner) {
       this.learner.endRound();
+    }
+
+    // Assist Tracking: if player lost last 2 rounds, ease next round; if won last 2, return to normal
+    if (won) {
+      this.playerLossStreak++;
+      this.playerWinStreak = 0;
+    } else {
+      this.playerWinStreak++;
+      this.playerLossStreak = 0;
+    }
+
+    if (this.playerLossStreak >= 2) {
+      this.isAssistActive = true;
+    } else if (this.playerWinStreak >= 2) {
+      this.isAssistActive = false;
     }
   }
 
