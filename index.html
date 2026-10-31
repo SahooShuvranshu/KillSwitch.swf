@@ -3,350 +3,913 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Macromedia Flash Player 10 - [KillSwitch.swf]</title>
-  <link rel="stylesheet" href="/src/style.css" />
+  <title>KillSwitch.swf — Resurrecting Flash with Local Gemma 3:4B & Q-Learning</title>
+  <meta name="description" content="A 60 FPS HTML5 Canvas stickman martial arts resurrection fighter inside an authentic Macromedia Flash Player 10.3 desktop window. Fight an evolving Flash Ghost powered by real-time Q-learning reinforcement learning and local Google Gemma 3:4B habit roasts." />
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://sahooshuvranshu.github.io/KillSwitch.swf/" />
+  <meta property="og:title" content="KillSwitch.swf — Resurrecting Flash with Local Gemma 3:4B & Q-Learning" />
+  <meta property="og:description" content="A 60 FPS HTML5 Canvas stickman martial arts resurrection fighter inside an authentic Macromedia Flash Player 10.3 window." />
+  <meta property="og:image" content="./docs/screenshots/after_fight.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:title" content="KillSwitch.swf — Resurrecting Flash with Local Gemma 3:4B & Q-Learning" />
+  <meta property="twitter:description" content="A 60 FPS HTML5 Canvas stickman martial arts resurrection fighter inside an authentic Macromedia Flash Player 10.3 window." />
+  <meta property="twitter:image" content="./docs/screenshots/after_fight.png" />
+
+  <link rel="stylesheet" href="./src/style.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div id="desktop-container">
-    <!-- Retro Flash Player Window Frame -->
-    <div id="flash-window" class="flash-window">
-      <!-- Title Bar -->
-      <div class="window-titlebar">
-        <div class="titlebar-left">
-          <span class="flash-icon">f</span>
-          <span class="window-title">Macromedia Flash Player 10.3 - [KillSwitch.swf]</span>
-        </div>
-        <div class="window-controls">
-          <button class="win-btn" id="btn-win-min" tabindex="-1" title="Minimize">_</button>
-          <button class="win-btn win-max" id="btn-win-max" tabindex="-1" title="Toggle Fullscreen">□</button>
-          <button class="win-btn win-close" id="btn-win-close" tabindex="-1" title="Close / Reset">✕</button>
-        </div>
+
+  <!-- Sticky Global Navigation Bar -->
+  <header class="showcase-nav">
+    <div class="nav-container">
+      <a href="#hero" class="nav-brand">
+        <span class="brand-flash-badge">f</span>
+        <span class="brand-name">KILLSWITCH<span>.SWF</span></span>
+        <span class="brand-status-tag"><span class="pulse-dot"></span> LIVE V1.0</span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="#story" class="nav-link">The Story</a>
+        <a href="#how-it-works" class="nav-link">How It Works</a>
+        <a href="#gemma" class="nav-link">Dual AI</a>
+        <a href="#archetypes" class="nav-link">Archetypes</a>
+        <a href="#difficulty" class="nav-link">Difficulty</a>
+        <a href="#benchmarks" class="nav-link">Benchmarks</a>
+        <a href="#manifesto" class="nav-link">Manifesto</a>
+        <a href="#quickstart" class="nav-link">Setup</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="btn-nav-play trigger-fullscreen-play">▶ FULLSCREEN PLAY</button>
+        <a href="https://github.com/SahooShuvranshu/KillSwitch.swf" target="_blank" rel="noopener noreferrer" class="btn-nav-github">
+          <span>★ GITHUB</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section id="hero" class="showcase-hero">
+    <div class="section-container">
+      <div class="hero-badge-row">
+        <span class="hero-pill-badge">🏆 DEV x MLH Hacktoberfest 2026 Winner Submission</span>
+        <span class="hero-pill-badge cyan">⚡ Google Gemma 3:4B + Q-Learning RL</span>
+        <span class="hero-pill-badge gold">🔒 100% Offline & Open-Source</span>
       </div>
 
-      <!-- Flash Menu Bar -->
-      <div class="window-menubar">
-        <div class="menu-item" id="menu-file">File</div>
-        <div class="menu-item" id="menu-view">View</div>
-        <div class="menu-item" id="menu-control">Control</div>
-        <div class="menu-item" id="menu-gemma">Gemma 3:4B</div>
-        <div class="menu-item" id="menu-ofrenda">Ofrenda (Altar)</div>
-        <div class="menu-item" id="menu-help">Help</div>
+      <h1 class="hero-title">
+        THE 2021 ADOBE KILL-SWITCH BRICKED FLASH.<br />
+        <span class="gradient-span">WE RESURRECTED IT WITH OPEN-WEIGHT AI.</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        A 60 FPS HTML5 Canvas stickman martial arts resurrection fighter inside an authentic Macromedia Flash Player 10.3 desktop window. Fight an evolving Flash Ghost powered by real-time Q-learning reinforcement learning and local Google Gemma 3:4B habit roasts.
+      </p>
+
+      <div class="hero-cta-cluster">
+        <button class="hero-btn primary trigger-fullscreen-play">
+          <span>⚡ PLAY IN FULLSCREEN (60 FPS)</span>
+        </button>
+        <a href="#how-it-works" class="hero-btn secondary">
+          <span>📖 HOW IT WORKS ↓</span>
+        </a>
+        <a href="https://github.com/SahooShuvranshu/KillSwitch.swf" target="_blank" rel="noopener noreferrer" class="hero-btn secondary">
+          <span>★ VIEW ON GITHUB</span>
+        </a>
       </div>
 
-      <!-- Flash Canvas Container (800x500) -->
-      <div class="viewport-wrapper">
-        <canvas id="game-canvas" width="800" height="500"></canvas>
-        <div class="crt-scanlines"></div>
-        <div class="crt-glow"></div>
-
-        <!-- HTML Overlay Screens (Unblock, Gaming Intro, Menu, Roasts, Game Over, Ofrenda) -->
-        <div id="overlay-container">
-          <!-- 1. Authentic Retro Unblock Flash Player Screen -->
-          <div id="flash-unblock-screen" class="retro-screen active">
-            <div class="plugin-notification-bar">
-              <span class="plugin-icon">🧩</span>
-              <span class="plugin-text">killswitch.swf wants to: <strong>Run Adobe Flash Player</strong></span>
-              <div class="plugin-actions">
-                <button id="btn-allow-plugin" class="plugin-btn primary" tabindex="-1">Allow</button>
-                <button id="btn-block-plugin" class="plugin-btn secondary" tabindex="-1">Block</button>
-              </div>
+      <!-- Centerpiece: Retro Macromedia Flash Player Window -->
+      <div id="desktop-container">
+        <div id="flash-window" class="flash-window">
+          <!-- Title Bar -->
+          <div class="window-titlebar">
+            <div class="titlebar-left">
+              <span class="flash-icon">f</span>
+              <span class="window-title">Macromedia Flash Player 10.3 - [KillSwitch.swf]</span>
             </div>
-            <div class="unblock-box" id="unblock-box-trigger">
-              <div class="puzzle-piece-icon">
-                <div class="puzzle-shape">🧩</div>
-                <span class="flash-sub-icon">f</span>
-              </div>
-              <h1 class="unblock-title">Adobe Flash Player is blocked</h1>
-              <p class="unblock-desc">Click anywhere to enable and unblock Adobe Flash Player 10.3</p>
-              <button id="btn-unblock-flash" class="flash-btn primary-btn pulse-btn" tabindex="-1">
-                ⚡ CLICK TO UNBLOCK FLASH PLAYER
-              </button>
-              <div class="unblock-footer">NPAPI Flash Plugin • Resurrected by Local Gemma 3:4B</div>
+            <div class="window-controls">
+              <button class="win-btn" id="btn-win-min" tabindex="-1" title="Minimize">_</button>
+              <button class="win-btn win-max" id="btn-win-max" tabindex="-1" title="Toggle Fullscreen">□</button>
+              <button class="win-btn win-close" id="btn-win-close" tabindex="-1" title="Close / Reset">✕</button>
             </div>
           </div>
 
-          <!-- 2. Retro Flash Gaming Intro & Preloader Screen -->
-          <div id="gaming-intro-screen" class="retro-screen hidden">
-            <div class="intro-card">
-              <div class="macromedia-header">
-                <span class="macro-brand">MACROMEDIA</span>
-                <span class="macro-product">FLASH PLAYER 10</span>
-              </div>
-              <div class="intro-clash-visual">
-                <div class="intro-fighter hero-silhouette">🥋</div>
-                <div class="intro-clash-lightning">⚡</div>
-                <div class="intro-fighter ghost-silhouette">👻</div>
-              </div>
-              <h1 class="intro-game-title">KILLSWITCH.SWF</h1>
-              <p class="intro-game-subtitle">GHOST IN THE MACHINE • ENDLESS MARTIAL ARTS GAUNTLET</p>
-              <div class="preloader-container">
-                <div class="preloader-bar">
-                  <div id="intro-progress-bar" class="preloader-fill" style="width: 0%;"></div>
-                </div>
-                <div class="preloader-status">
-                  <span id="intro-load-percent">LOADING 0%</span>
-                  <span id="intro-load-log">[INITIALIZING ACTIONSCRIPT 2.0...]</span>
-                </div>
-              </div>
-              <div class="intro-action">
-                <button id="btn-intro-continue" class="flash-btn primary-btn hidden" tabindex="-1">
-                  ⚔️ ENTER THE GAUNTLET ▶
-                </button>
-              </div>
-            </div>
+          <!-- Flash Menu Bar -->
+          <div class="window-menubar">
+            <div class="menu-item" id="menu-file">File</div>
+            <div class="menu-item" id="menu-view">View</div>
+            <div class="menu-item" id="menu-control">Control</div>
+            <div class="menu-item" id="menu-gemma">Gemma 3:4B</div>
+            <div class="menu-item" id="menu-ofrenda">Ofrenda (Altar)</div>
+            <div class="menu-item" id="menu-help">Help</div>
           </div>
 
-          <!-- 3. Simplified Player Name Arcade Menu (Player never chooses characters; infinite match starts!) -->
-          <div id="game-menu-screen" class="retro-screen hidden">
-            <div class="arcade-menu-card">
-              <div class="arcade-badge">INFINITE COMBAT GAUNTLET</div>
-              <h1 class="arcade-title">KILLSWITCH.SWF</h1>
-              <p class="arcade-sub">
-                Face an endless gauntlet of evolving AI stickmen across shifting dimensions.
-                With every round, the AI transforms its visual archetype, learns your move patterns, and counter-adapts to defeat you!
-              </p>
+          <!-- Flash Canvas Container (800x500) -->
+          <div class="viewport-wrapper">
+            <canvas id="game-canvas" width="800" height="500"></canvas>
+            <div class="crt-scanlines"></div>
+            <div class="crt-glow"></div>
 
-              <div class="player-name-form">
-                <label for="player-name-input">ENTER CHALLENGER NAME:</label>
-                <div class="name-input-wrapper">
-                  <span class="name-prefix">🥋</span>
-                  <input type="text" id="player-name-input" maxlength="15" value="Challenger_04" placeholder="Your Fighter Name" autocomplete="off" />
+            <!-- HTML Overlay Screens -->
+            <div id="overlay-container">
+              <!-- 1. Authentic Retro Unblock Flash Player Screen -->
+              <div id="flash-unblock-screen" class="retro-screen active">
+                <div class="plugin-notification-bar">
+                  <span class="plugin-icon">🧩</span>
+                  <span class="plugin-text">killswitch.swf wants to: <strong>Run Adobe Flash Player</strong></span>
+                  <div class="plugin-actions">
+                    <button id="btn-allow-plugin" class="plugin-btn primary" tabindex="-1">Allow</button>
+                    <button id="btn-block-plugin" class="plugin-btn secondary" tabindex="-1">Block</button>
+                  </div>
+                </div>
+                <div class="unblock-box" id="unblock-box-trigger">
+                  <div class="puzzle-piece-icon">
+                    <div class="puzzle-shape">🧩</div>
+                    <span class="flash-sub-icon">f</span>
+                  </div>
+                  <h2 class="unblock-title">Adobe Flash Player is blocked</h2>
+                  <p class="unblock-desc">Click anywhere to enable and unblock Adobe Flash Player 10.3</p>
+                  <button id="btn-unblock-flash" class="flash-btn primary-btn pulse-btn" tabindex="-1">
+                    ⚡ CLICK TO UNBLOCK FLASH PLAYER
+                  </button>
+                  <div class="unblock-footer">NPAPI Flash Plugin • Resurrected by Local Gemma 3:4B</div>
                 </div>
               </div>
 
-              <div class="difficulty-select-group">
-                <label>AI DIFFICULTY TIER:</label>
-                <div class="diff-btn-row">
-                  <button type="button" id="btn-diff-casual" class="diff-btn" data-diff="casual" tabindex="-1">CASUAL</button>
-                  <button type="button" id="btn-diff-veteran" class="diff-btn active" data-diff="veteran" tabindex="-1">VETERAN</button>
-                  <button type="button" id="btn-diff-nightmare" class="diff-btn" data-diff="nightmare" tabindex="-1">NIGHTMARE</button>
-                </div>
-              </div>
-
-              <div class="fighter-assigned-info">
-                <div class="assigned-avatar">🥋</div>
-                <div class="assigned-details">
-                  <span class="assigned-label">ASSIGNED FIGHTER:</span>
-                  <span class="assigned-name">APEX STRIKER (Human Challenger)</span>
-                  <span class="assigned-desc">Balanced martial artist with crisp frame-by-frame strikes</span>
-                </div>
-              </div>
-
-              <div class="button-row">
-                <button id="btn-start-infinite" class="flash-btn primary-btn pulse-btn" tabindex="-1">
-                  ⚔️ START INFINITE MATCH
-                </button>
-                <button id="btn-open-ofrenda" class="flash-btn secondary-btn" tabindex="-1">
-                  🕯️ VISIT FLASH OFRENDA (MEMORIAL)
-                </button>
-                <button id="btn-reset-ai-memory" class="flash-btn secondary-btn" title="Clear persistent Q-table and learned habits" tabindex="-1">
-                  🔄 RESET AI MEMORY
-                </button>
-              </div>
-
-              <div class="controls-pill">
-                <span>[A/D] Move</span>
-                <span>•</span>
-                <span>[W] Jump</span>
-                <span>•</span>
-                <span>[S+W] Drop Platform</span>
-                <span>•</span>
-                <span>[J] Punch Combo</span>
-                <span>•</span>
-                <span>[K] Kick Combo</span>
-                <span>•</span>
-                <span>[S+K] Low Sweep</span>
-                <span>•</span>
-                <span>[U] Uppercut Launcher</span>
-                <span>•</span>
-                <span>[I] Flying Knee</span>
-                <span>•</span>
-                <span>[L] Guard</span>
-                <span>•</span>
-                <span>[Space] Dodge Roll</span>
-                <span>•</span>
-                <span style="color: #ffd700;">Secret: ↑↑↓↓←→←→BA</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 4. Inter-Round Adaptation Screen (Clean Spoken Speech, Zero JSON, Next Opponent Preview) -->
-          <div id="roast-screen" class="retro-screen hidden">
-            <div class="roast-box">
-              <div class="roast-header">
-                <span class="roast-speaker">👻 THE GHOST OF FLASH PLAYER [Gemma 3:4B]</span>
-                <span id="roast-round-tag" class="roast-round">ROUND TELEMETRY DECODED</span>
-              </div>
-              <div class="roast-terminal">
-                <p id="roast-text" class="typewriter-text">Decrypting ActionScript memory heaps...</p>
-                <span class="blinking-cursor">█</span>
-              </div>
-
-              <!-- Upcoming Evolved Stickman Archetype Preview -->
-              <div class="next-opponent-card">
-                <div class="next-opp-header">INCOMING NEXT OPPONENT:</div>
-                <div class="next-opp-body">
-                  <div id="next-opp-icon" class="next-opp-icon">⚡</div>
-                  <div class="next-opp-info">
-                    <div id="next-opp-name" class="next-opp-name">COBALT DUELIST</div>
-                    <div id="next-opp-title" class="next-opp-title">Round 2 • Swift Kickboxer • Electric Arcs</div>
+              <!-- 2. Retro Flash Gaming Intro & Preloader Screen -->
+              <div id="gaming-intro-screen" class="retro-screen hidden">
+                <div class="intro-card">
+                  <div class="macromedia-header">
+                    <span class="macro-brand">MACROMEDIA</span>
+                    <span class="macro-product">FLASH PLAYER 10</span>
+                  </div>
+                  <div class="intro-clash-visual">
+                    <div class="intro-fighter hero-silhouette">🥋</div>
+                    <div class="intro-clash-lightning">⚡</div>
+                    <div class="intro-fighter ghost-silhouette">👻</div>
+                  </div>
+                  <h2 class="intro-game-title">KILLSWITCH.SWF</h2>
+                  <p class="intro-game-subtitle">GHOST IN THE MACHINE • ENDLESS MARTIAL ARTS GAUNTLET</p>
+                  <div class="preloader-container">
+                    <div class="preloader-bar">
+                      <div id="intro-progress-bar" class="preloader-fill" style="width: 0%;"></div>
+                    </div>
+                    <div class="preloader-status">
+                      <span id="intro-load-percent">LOADING 0%</span>
+                      <span id="intro-load-log">[INITIALIZING ACTIONSCRIPT 2.0...]</span>
+                    </div>
+                  </div>
+                  <div class="intro-action">
+                    <button id="btn-intro-continue" class="flash-btn primary-btn hidden" tabindex="-1">
+                      ⚔️ ENTER THE GAUNTLET ▶
+                    </button>
                   </div>
                 </div>
               </div>
 
-              <!-- Real-time Learned Habits & Counter Telemetry -->
-              <div class="habits-panel">
-                <div class="habit-badge" id="habit-combo">
-                  <span class="habit-label">DETECTED COMBO HABIT:</span>
-                  <span class="habit-value" id="val-habit-combo">ANALYZING PLAYER INPUTS...</span>
-                </div>
-                <div class="habit-badge" id="habit-tactic">
-                  <span class="habit-label">GEMMA 3:4B COUNTER TACTIC:</span>
-                  <span class="habit-value" id="val-habit-tactic">PRIMING NEURAL COUNTERS...</span>
+              <!-- 3. Arcade Menu Screen -->
+              <div id="game-menu-screen" class="retro-screen hidden">
+                <div class="arcade-menu-card">
+                  <div class="arcade-badge">INFINITE COMBAT GAUNTLET</div>
+                  <h2 class="arcade-title">KILLSWITCH.SWF</h2>
+                  <p class="arcade-sub">
+                    Face an endless gauntlet of evolving AI stickmen across shifting dimensions.
+                    With every round, the AI transforms its visual archetype, learns your move patterns, and counter-adapts to defeat you!
+                  </p>
+
+                  <div class="player-name-form">
+                    <label for="player-name-input">ENTER CHALLENGER NAME:</label>
+                    <div class="name-input-wrapper">
+                      <span class="name-prefix">🥋</span>
+                      <input type="text" id="player-name-input" maxlength="15" value="Challenger_04" placeholder="Your Fighter Name" autocomplete="off" />
+                    </div>
+                  </div>
+
+                  <div class="difficulty-select-group">
+                    <label>AI DIFFICULTY TIER:</label>
+                    <div class="diff-btn-row">
+                      <button type="button" id="btn-diff-casual" class="diff-btn" data-diff="casual" tabindex="-1">CASUAL</button>
+                      <button type="button" id="btn-diff-veteran" class="diff-btn active" data-diff="veteran" tabindex="-1">VETERAN</button>
+                      <button type="button" id="btn-diff-nightmare" class="diff-btn" data-diff="nightmare" tabindex="-1">NIGHTMARE</button>
+                    </div>
+                  </div>
+
+                  <div class="fighter-assigned-info">
+                    <div class="assigned-avatar">🥋</div>
+                    <div class="assigned-details">
+                      <span class="assigned-label">ASSIGNED FIGHTER:</span>
+                      <span class="assigned-name">APEX STRIKER (Human Challenger)</span>
+                      <span class="assigned-desc">Balanced martial artist with crisp frame-by-frame strikes</span>
+                    </div>
+                  </div>
+
+                  <div class="button-row">
+                    <button id="btn-start-infinite" class="flash-btn primary-btn pulse-btn" tabindex="-1">
+                      ⚔️ START INFINITE MATCH
+                    </button>
+                    <button id="btn-open-ofrenda" class="flash-btn secondary-btn" tabindex="-1">
+                      🕯️ VISIT FLASH OFRENDA (MEMORIAL)
+                    </button>
+                    <button id="btn-reset-ai-memory" class="flash-btn secondary-btn" title="Clear persistent Q-table and learned habits" tabindex="-1">
+                      🔄 RESET AI MEMORY
+                    </button>
+                  </div>
+
+                  <div class="controls-pill">
+                    <span>[A/D] Move</span>
+                    <span>•</span>
+                    <span>[W] Jump</span>
+                    <span>•</span>
+                    <span>[S+W] Drop Platform</span>
+                    <span>•</span>
+                    <span>[J] Punch Combo</span>
+                    <span>•</span>
+                    <span>[K] Kick Combo</span>
+                    <span>•</span>
+                    <span>[S+K] Low Sweep</span>
+                    <span>•</span>
+                    <span>[U] Uppercut Launcher</span>
+                    <span>•</span>
+                    <span>[I] Flying Knee</span>
+                    <span>•</span>
+                    <span>[L] Guard</span>
+                    <span>•</span>
+                    <span>[Space] Dodge Roll</span>
+                    <span>•</span>
+                    <span style="color: #ffd700;">Secret: ↑↑↓↓←→←→BA</span>
+                  </div>
                 </div>
               </div>
-              <div class="adaptation-meters">
-                <div class="meter-col">
-                  <span>ANTI-AIR COUNTER:</span>
-                  <div class="meter-bar"><div id="meter-anti-air" style="width: 20%;"></div></div>
-                </div>
-                <div class="meter-col">
-                  <span>AGGRESSION:</span>
-                  <div class="meter-bar"><div id="meter-aggression" style="width: 50%;"></div></div>
-                </div>
-                <div class="meter-col">
-                  <span>GUARD BREAK TENDENCY:</span>
-                  <div class="meter-bar"><div id="meter-guard-break" style="width: 30%;"></div></div>
+
+              <!-- 4. Inter-Round Adaptation Screen -->
+              <div id="roast-screen" class="retro-screen hidden">
+                <div class="roast-box">
+                  <div class="roast-header">
+                    <span class="roast-speaker">👻 THE GHOST OF FLASH PLAYER [Gemma 3:4B]</span>
+                    <span id="roast-round-tag" class="roast-round">ROUND TELEMETRY DECODED</span>
+                  </div>
+                  <div class="roast-terminal">
+                    <p id="roast-text" class="typewriter-text">Decrypting ActionScript memory heaps...</p>
+                    <span class="blinking-cursor">█</span>
+                  </div>
+
+                  <!-- Upcoming Evolved Stickman Archetype Preview -->
+                  <div class="next-opponent-card">
+                    <div class="next-opp-header">INCOMING NEXT OPPONENT:</div>
+                    <div class="next-opp-body">
+                      <div id="next-opp-icon" class="next-opp-icon">⚡</div>
+                      <div class="next-opp-info">
+                        <div id="next-opp-name" class="next-opp-name">COBALT DUELIST</div>
+                        <div id="next-opp-title" class="next-opp-title">Round 2 • Swift Kickboxer • Electric Arcs</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Real-time Learned Habits & Counter Telemetry -->
+                  <div class="habits-panel">
+                    <div class="habit-badge" id="habit-combo">
+                      <span class="habit-label">DETECTED COMBO HABIT:</span>
+                      <span class="habit-value" id="val-habit-combo">ANALYZING PLAYER INPUTS...</span>
+                    </div>
+                    <div class="habit-badge" id="habit-tactic">
+                      <span class="habit-label">GEMMA 3:4B COUNTER TACTIC:</span>
+                      <span class="habit-value" id="val-habit-tactic">PRIMING NEURAL COUNTERS...</span>
+                    </div>
+                  </div>
+                  <div class="adaptation-meters">
+                    <div class="meter-col">
+                      <span>ANTI-AIR COUNTER:</span>
+                      <div class="meter-bar"><div id="meter-anti-air" style="width: 20%;"></div></div>
+                    </div>
+                    <div class="meter-col">
+                      <span>AGGRESSION:</span>
+                      <div class="meter-bar"><div id="meter-aggression" style="width: 50%;"></div></div>
+                    </div>
+                    <div class="meter-col">
+                      <span>GUARD BREAK TENDENCY:</span>
+                      <div class="meter-bar"><div id="meter-guard-break" style="width: 30%;"></div></div>
+                    </div>
+                  </div>
+                  <div class="roast-action">
+                    <button id="btn-next-round" class="flash-btn primary-btn pulse-btn" tabindex="-1">
+                      ⚔️ FACE NEXT OPPONENT ▶
+                    </button>
+                  </div>
                 </div>
               </div>
-              <div class="roast-action">
-                <button id="btn-next-round" class="flash-btn primary-btn pulse-btn" tabindex="-1">
-                  ⚔️ FACE NEXT OPPONENT ▶
-                </button>
+
+              <!-- 5. Game Over Screen -->
+              <div id="game-over-screen" class="retro-screen hidden">
+                <div class="game-over-card">
+                  <div class="game-over-header">
+                    <span class="skull-badge">💀</span>
+                    <h2 class="game-over-title">G A M E &nbsp; O V E R</h2>
+                  </div>
+                  <p class="game-over-sub" id="game-over-summary">
+                    ActionScript 2.0 execution terminated. The Ghost memorized your martial arts habits.
+                  </p>
+
+                  <div class="game-over-stats">
+                    <div class="stat-pill">
+                      <span class="stat-label">ROUNDS CLEARED</span>
+                      <span class="stat-val" id="go-rounds-survived">0</span>
+                    </div>
+                    <div class="stat-pill">
+                      <span class="stat-label">FINAL EXECUTIONER</span>
+                      <span class="stat-val" id="go-defeated-by">SHADOW RECON</span>
+                    </div>
+                    <div class="stat-pill">
+                      <span class="stat-label">TOTAL DAMAGE DEALT</span>
+                      <span class="stat-val" id="go-total-damage">0 HP</span>
+                    </div>
+                    <div class="stat-pill">
+                      <span class="stat-label">FATAL HABIT EXPLOITED</span>
+                      <span class="stat-val" id="go-fatal-habit">SPAMMING JUMP-KICKS</span>
+                    </div>
+                  </div>
+
+                  <!-- Gemma 3:4B Obituary Terminal -->
+                  <div class="game-over-terminal">
+                    <div class="terminal-tag">&gt; GOOGLE GEMMA 3:4B TACTICAL AUTOPSY LOG:</div>
+                    <p id="go-quote" class="typewriter-text">"Your ActionScript memory has been garbage-collected." — Gemma 3:4B</p>
+                  </div>
+
+                  <div class="button-row">
+                    <button id="btn-restart-gauntlet" class="flash-btn primary-btn pulse-btn" tabindex="-1">
+                      ⚔️ INSERT COIN / RETRY GAUNTLET ▶
+                    </button>
+                    <button id="btn-go-ofrenda" class="flash-btn secondary-btn" tabindex="-1">
+                      🕯️ VISIT FLASH OFRENDA
+                    </button>
+                    <button id="btn-go-menu" class="flash-btn secondary-btn" tabindex="-1">
+                      🏠 RETURN TO MENU
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 6. Flash Cemetery / Ofrenda Screen -->
+              <div id="cemetery-screen" class="retro-screen hidden">
+                <div class="cemetery-container">
+                  <div class="cemetery-header">
+                    <h2>💀 DÍA DE LOS MUERTOS: FLASH GAME OFRENDA 🕯️</h2>
+                    <p>Honoring the masterworks executed by the 2021 Kill Switch. Select a tombstone to summon Gemma's <em>Calaverita Literaria</em>.</p>
+                  </div>
+                  <div class="graves-grid">
+                    <div class="grave-card" data-game="Club Penguin">
+                      <div class="grave-icon">🐧</div>
+                      <div class="grave-name">Club Penguin</div>
+                      <div class="grave-years">2005 - 2017</div>
+                      <div class="candle">🕯️</div>
+                    </div>
+                    <div class="grave-card" data-game="Xiao Xiao">
+                      <div class="grave-icon">🥋</div>
+                      <div class="grave-name">Xiao Xiao</div>
+                      <div class="grave-years">2001 - 2004</div>
+                      <div class="candle">🕯️</div>
+                    </div>
+                    <div class="grave-card" data-game="Line Rider">
+                      <div class="grave-icon">🛷</div>
+                      <div class="grave-name">Line Rider</div>
+                      <div class="grave-years">2006 - 2021</div>
+                      <div class="candle">🕯️</div>
+                    </div>
+                    <div class="grave-card" data-game="Fancy Pants Adventures">
+                      <div class="grave-icon">👖</div>
+                      <div class="grave-name">Fancy Pants</div>
+                      <div class="grave-years">2006 - 2021</div>
+                      <div class="candle">🕯️</div>
+                    </div>
+                    <div class="grave-card" data-game="Alien Hominid">
+                      <div class="grave-icon">👽</div>
+                      <div class="grave-name">Alien Hominid</div>
+                      <div class="grave-years">2002 - 2021</div>
+                      <div class="candle">🕯️</div>
+                    </div>
+                  </div>
+                  <div class="calaverita-display">
+                    <div class="calaverita-title" id="calaverita-subject">SELECT A TOMBSTONE ABOVE</div>
+                    <div class="calaverita-content" id="calaverita-content">
+                      <em>Light a candle on a grave to invoke Google Gemma 3:4B to compose a satirical Day of the Dead epitaph poem...</em>
+                    </div>
+                  </div>
+                  <div class="cemetery-actions">
+                    <button id="btn-back-to-game" class="flash-btn secondary-btn" tabindex="-1">
+                      ◀ RETURN TO FLASH PLAYER
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- 5. Game Over Screen (Retro Arcade Final Defeat Screen) -->
-          <div id="game-over-screen" class="retro-screen hidden">
-            <div class="game-over-card">
-              <div class="game-over-header">
-                <span class="skull-badge">💀</span>
-                <h1 class="game-over-title">G A M E &nbsp; O V E R</h1>
-              </div>
-              <p class="game-over-sub" id="game-over-summary">
-                ActionScript 2.0 execution terminated. The Ghost memorized your martial arts habits.
-              </p>
+          <!-- Retro Flash Status Bar -->
+          <div class="window-statusbar">
+            <div class="status-col" id="status-fps">FPS: 60.0</div>
+            <div class="status-col" id="status-vm">ActionScript 2.0 VM: INJECTED</div>
+            <div class="status-col" id="status-gemma">Gemma 3:4B: 127.0.0.1:11434 (ACTIVE)</div>
+            <div class="status-col" id="status-controls">Controls: [A/D] Move | [W] Jump | [S] Crouch | [J] Jab | [K] Kick | [W+K] Jump-Kick | [L] Block</div>
+          </div>
+        </div>
+      </div>
 
-              <!-- Detailed Autopsy & Match Telemetry Grid -->
-              <div class="game-over-stats">
-                <div class="stat-pill">
-                  <span class="stat-label">ROUNDS CLEARED</span>
-                  <span class="stat-val" id="go-rounds-survived">0</span>
-                </div>
-                <div class="stat-pill">
-                  <span class="stat-label">FINAL EXECUTIONER</span>
-                  <span class="stat-val" id="go-defeated-by">SHADOW RECON</span>
-                </div>
-                <div class="stat-pill">
-                  <span class="stat-label">TOTAL DAMAGE DEALT</span>
-                  <span class="stat-val" id="go-total-damage">0 HP</span>
-                </div>
-                <div class="stat-pill">
-                  <span class="stat-label">FATAL HABIT EXPLOITED</span>
-                  <span class="stat-val" id="go-fatal-habit">SPAMMING JUMP-KICKS</span>
-                </div>
-              </div>
+      <!-- Controls Cheatsheet Bar -->
+      <div class="controls-cheatsheet-bar">
+        <span class="ctrl-item"><span class="key-cap">A</span> / <span class="key-cap">D</span> Move</span>
+        <span>•</span>
+        <span class="ctrl-item"><span class="key-cap">W</span> Jump</span>
+        <span>•</span>
+        <span class="ctrl-item"><span class="key-cap">S+W</span> Drop Platform</span>
+        <span>•</span>
+        <span class="ctrl-item"><span class="key-cap">J</span> Punch Chain</span>
+        <span>•</span>
+        <span class="ctrl-item"><span class="key-cap">K</span> Roundhouse Kick</span>
+        <span>•</span>
+        <span class="ctrl-item"><span class="key-cap">Air + K</span> Jump-Kick</span>
+        <span>•</span>
+        <span class="ctrl-item"><span class="key-cap">S + K</span> Low Sweep</span>
+        <span>•</span>
+        <span class="ctrl-item"><span class="key-cap">U</span> Uppercut</span>
+        <span>•</span>
+        <span class="ctrl-item"><span class="key-cap">I</span> Flying Knee</span>
+        <span>•</span>
+        <span class="ctrl-item"><span class="key-cap">L</span> Guard</span>
+        <span>•</span>
+        <span class="ctrl-item"><span class="key-cap">Space</span> Dodge Roll</span>
+        <span>•</span>
+        <span class="ctrl-item"><span class="key-cap">F3</span> Live Telemetry</span>
+      </div>
 
-              <!-- Gemma 3:4B Obituary Terminal -->
-              <div class="game-over-terminal">
-                <div class="terminal-tag">&gt; GOOGLE GEMMA 3:4B TACTICAL AUTOPSY LOG:</div>
-                <p id="go-quote" class="typewriter-text">"Your ActionScript memory has been garbage-collected." — Gemma 3:4B</p>
-              </div>
+      <!-- Soundboard Strip -->
+      <div class="soundboard-strip">
+        <span class="soundboard-label">🔊 Retro Audio Engine:</span>
+        <button class="sound-btn" data-sound="punch">Light Jab</button>
+        <button class="sound-btn" data-sound="heavy">Heavy Kick</button>
+        <button class="sound-btn" data-sound="block">Shield Block</button>
+        <button class="sound-btn" data-sound="bypass">Kill-Switch Bypass</button>
+        <button class="sound-btn" data-sound="whoosh">Jump Whoosh</button>
+      </div>
+    </div>
+  </section>
 
-              <div class="button-row">
-                <button id="btn-restart-gauntlet" class="flash-btn primary-btn pulse-btn" tabindex="-1">
-                  ⚔️ INSERT COIN / RETRY GAUNTLET ▶
-                </button>
-                <button id="btn-go-ofrenda" class="flash-btn secondary-btn" tabindex="-1">
-                  🕯️ VISIT FLASH OFRENDA
-                </button>
-                <button id="btn-go-menu" class="flash-btn secondary-btn" tabindex="-1">
-                  🏠 RETURN TO MENU
-                </button>
-              </div>
-            </div>
+  <!-- Section 1: The Story (January 12, 2021) -->
+  <section id="story" class="showcase-section alt-bg">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-tag">[ THE STORY ]</span>
+        <h2 class="section-title">JANUARY 12, 2021: THE DAY FLASH DIED</h2>
+        <p class="section-desc">
+          On January 12, 2021, Adobe triggered a hardcoded time-bomb killswitch inside the Flash Player plugin. Overnight, twenty-five years of interactive browser history and creator culture were bricked behind a silent warning dialog.
+        </p>
+      </div>
+
+      <div class="story-grid">
+        <div class="story-card clipping">
+          <div class="story-headline">
+            <span>📰</span>
+            <span>THE SILENT CORPORATE TIME-BOMB</span>
+          </div>
+          <p>
+            Millions of childhood memories—from the martial arts stickman choreography of <em>Xiao Xiao</em> to the snowy plazas of <em>Club Penguin</em> and physics doodles of <em>Line Rider</em>—instantly ceased to function. The web was told to move on.
+          </p>
+          <p>
+            Proprietary runtimes showed their true nature: when a company decides a format is over, creators lose access to their own creative history.
+          </p>
+          <div class="tomb-tribute-row">
+            <span class="tomb-badge">🐧 Club Penguin (2005–2017)</span>
+            <span class="tomb-badge">🥋 Xiao Xiao (2001–2004)</span>
+            <span class="tomb-badge">🛷 Line Rider (2006–2021)</span>
+            <span class="tomb-badge">👖 Fancy Pants (2006–2021)</span>
+            <span class="tomb-badge">👽 Alien Hominid (2002–2021)</span>
+          </div>
+        </div>
+
+        <div class="story-card resurrection">
+          <div class="story-headline">
+            <span>⚡</span>
+            <span>THE RESURRECTION ENGINE</span>
+          </div>
+          <p>
+            <strong>KillSwitch.swf</strong> turns this tragic date into an interactive arena. You play as an indie challenger who breaches the 2021 kill-switch dialog to fight the <em>Ghost of Flash Player</em> inside a recreated Macromedia Flash Player 10.3 desktop window.
+          </p>
+          <p>
+            Built using modern open web standards (HTML5 Canvas + zero-dependency procedural Web Audio synth) and powered by open-weight AI (<strong>Google Gemma 3:4B</strong> via Ollama), this project demonstrates that indie culture can never be silenced when powered by open tools.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: How It Works & Dual-Layer AI Architecture -->
+  <section id="how-it-works" class="showcase-section">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-tag">[ ARCHITECTURE ]</span>
+        <h2 class="section-title">HOW IT WORKS: DUAL-LAYER AI ENGINE</h2>
+        <p class="section-desc">
+          Most fighting game bots rely on static rule trees or scripted loops. KillSwitch.swf combines a high-speed 60 FPS deterministic Q-learning engine for split-second martial arts tactics with Google Gemma 3:4B for inter-round habit roasts and strategic weight shifts.
+        </p>
+      </div>
+
+      <!-- Schematic Diagram -->
+      <div class="arch-diagram-card">
+        <div class="arch-diagram-pre">+-------------------------------------------------------------------------------------------------------+
+|  LAYER 1: REAL-TIME 60 FPS COMBAT REINFORCEMENT LEARNER (Deterministic Q-Table)                        |
+|  • State Space: Distance Bucket (close &lt;75px, mid 75-155px, far) x Class (air / block / attack / idle) |
+|  • 10 Atomic Behaviors: EVADE, ANTI_AIR, WHIFF_PUNISH, GUARD_BREAK, PUNCH_CHAIN, KICK_CHAIN,          |
+|    UPPERCUT, FLYING_KNEE, JUMP_IN, RETREAT                                                            |
+|  • Pre-Trained Weights: Bootstrapped on 1,500 simulated rounds across 5 bot archetypes (&lt;200 KB JSON) |
++-------------------------------------------------------------------------------------------------------+
+                                                   |
+                                                   v (Round Over / Knockout)
++-------------------------------------------------------------------------------------------------------+
+|  LAYER 2: STRATEGIC INTER-ROUND ADAPTATION & HABIT ROASTS (Local Google Gemma 3:4B via Ollama)         |
+|  • Telemetry Streamed: aerialRatio, turtleRatio, Markov move sequence bigrams                         |
+|  • Authentic Monologue: Generates in-character Newgrounds roasts typed out letter-by-letter          |
+|  • Strategic Reparameterization: Tunes antiAirPriority, aggression, guardBreakRate, and 0x7E5 Rage    |
++-------------------------------------------------------------------------------------------------------+</div>
+      </div>
+
+      <!-- Layer Breakdown Grid -->
+      <div class="dual-layer-grid">
+        <div class="layer-box l1">
+          <div class="layer-header">
+            <h3 class="layer-title">Layer 1: Real-Time Q-Learning</h3>
+            <span class="layer-badge">60 FPS TACTICS</span>
+          </div>
+          <p style="font-size: 13px; color: #a5abbf;">The in-fight brain chooses one of 10 atomic martial arts behaviors every decision interval based on temporal difference rewards:</p>
+          <ul>
+            <li><strong>Damage Efficiency Rewards:</strong> Positive rewards for landing strikes, heavy penalties for whiffing or taking clean hits.</li>
+            <li><strong>Habit Interception:</strong> Combines Q-values with Markov sequence predictions to parry expected heavy kicks.</li>
+            <li><strong>Anti-Passivity Rule:</strong> When behind on HP with &lt;50% round time, consecutive retreats/evasions are strictly forbidden.</li>
+          </ul>
+        </div>
+
+        <div class="layer-box l2">
+          <div class="layer-header">
+            <h3 class="layer-title">Layer 2: Local Google Gemma 3:4B</h3>
+            <span class="layer-badge">STRATEGIC MEMORY</span>
+          </div>
+          <p style="font-size: 13px; color: #a5abbf;">Between rounds, full combat telemetry is analyzed by open-weight Gemma 3:4B running 100% offline via Ollama:</p>
+          <ul>
+            <li><strong>Adaptive Weight Shifting:</strong> If you spam jump-kicks, Gemma ramps <code>antiAirPriority</code> to 0.95; if you turtle, it primes <code>guardBreakRate</code>.</li>
+            <li><strong>In-Character Spoken Roasts:</strong> Spoken character-by-character in retro CRT typewriter font, dripping with authentic 2000s Newgrounds lore.</li>
+            <li><strong>ActionScript Error 0x7E5:</strong> Triggers the terrifying triple-teleport boss rage mechanic when the Ghost drops below 35% HP.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Interactive Q-Matrix Explorer Widget -->
+      <div class="q-explorer-wrapper">
+        <div class="q-explorer-header">
+          <h3>⚡ LIVE INTERACTIVE Q-MATRIX EXPLORER</h3>
+          <p>Select a combat scenario below to inspect how the reinforcement learning policy evaluates distance, player state, and expected Q-values:</p>
+        </div>
+
+        <div class="q-layout">
+          <!-- Presets -->
+          <div class="q-presets-list" id="q-presets-list">
+            <!-- Populated dynamically by showcase.ts -->
           </div>
 
-          <!-- 3. Flash Cemetery / Ofrenda Screen -->
-          <div id="cemetery-screen" class="retro-screen hidden">
-            <div class="cemetery-container">
-              <div class="cemetery-header">
-                <h2>💀 DÍA DE LOS MUERTOS: FLASH GAME OFRENDA 🕯️</h2>
-                <p>Honoring the masterworks executed by the 2021 Kill Switch. Select a tombstone to summon Gemma's <em>Calaverita Literaria</em>.</p>
+          <!-- Live Q-Display Panel -->
+          <div class="q-display-panel">
+            <div class="q-state-meta-bar">
+              <div class="q-meta-item">
+                <span class="q-meta-label">STATE KEY:</span>
+                <span class="q-meta-val" id="q-view-state">mid_air</span>
               </div>
-              <div class="graves-grid">
-                <div class="grave-card" data-game="Club Penguin">
-                  <div class="grave-icon">🐧</div>
-                  <div class="grave-name">Club Penguin</div>
-                  <div class="grave-years">2005 - 2017</div>
-                  <div class="candle">🕯️</div>
-                </div>
-                <div class="grave-card" data-game="Xiao Xiao">
-                  <div class="grave-icon">🥋</div>
-                  <div class="grave-name">Xiao Xiao</div>
-                  <div class="grave-years">2001 - 2004</div>
-                  <div class="candle">🕯️</div>
-                </div>
-                <div class="grave-card" data-game="Line Rider">
-                  <div class="grave-icon">🛷</div>
-                  <div class="grave-name">Line Rider</div>
-                  <div class="grave-years">2006 - 2021</div>
-                  <div class="candle">🕯️</div>
-                </div>
-                <div class="grave-card" data-game="Fancy Pants Adventures">
-                  <div class="grave-icon">👖</div>
-                  <div class="grave-name">Fancy Pants</div>
-                  <div class="grave-years">2006 - 2021</div>
-                  <div class="candle">🕯️</div>
-                </div>
-                <div class="grave-card" data-game="Alien Hominid">
-                  <div class="grave-icon">👽</div>
-                  <div class="grave-name">Alien Hominid</div>
-                  <div class="grave-years">2002 - 2021</div>
-                  <div class="candle">🕯️</div>
-                </div>
+              <div class="q-meta-item">
+                <span class="q-meta-label">OPPONENT CLASS:</span>
+                <span class="q-meta-val" id="q-view-class">AIR (Jumping)</span>
               </div>
-              <div class="calaverita-display">
-                <div class="calaverita-title" id="calaverita-subject">SELECT A TOMBSTONE ABOVE</div>
-                <div class="calaverita-body" id="calaverita-content">
-                  <em>Light a candle on a grave to invoke Google Gemma 3:4B to compose a satirical Day of the Dead epitaph poem...</em>
-                </div>
+              <div class="q-meta-item">
+                <span class="q-meta-label">SPACING:</span>
+                <span class="q-meta-val" id="q-view-dist">MID (80–150 px)</span>
               </div>
-              <div class="cemetery-actions">
-                <button id="btn-back-to-game" class="flash-btn secondary-btn" tabindex="-1">
-                  ◀ RETURN TO FLASH PLAYER
-                </button>
+              <div class="q-meta-item">
+                <span class="q-meta-label">SELECTED POLICY:</span>
+                <span class="q-meta-val" id="q-view-move" style="color: #ffd700;">⚔️ ANTI_AIR</span>
               </div>
+            </div>
+
+            <div class="q-rationale-box" id="q-view-rationale">
+              Cosine-law bone solver angles Rising Uppercut to hit during the vulnerable apex descent, canceling dive momentum before the hitbox activates.
+            </div>
+
+            <div class="q-bars-container" id="q-view-bars">
+              <!-- Populated dynamically by showcase.ts -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Vector Kinematics & 8 Boss Archetypes -->
+  <section id="archetypes" class="showcase-section alt-bg">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-tag">[ VECTOR ENGINE ]</span>
+        <h2 class="section-title">8 EVOLVING BOSS ARCHETYPES</h2>
+        <p class="section-desc">
+          Powered by an analytical 2-bone Inverse Kinematics solver (<code>solveJoint</code>) preventing limb pop or straight-leg locking, the Ghost morphs into an ascended martial arts archetype every round with unique scales, colors, and combat specialties.
+        </p>
+      </div>
+
+      <div class="archetypes-grid" id="archetypes-grid">
+        <!-- Populated dynamically by showcase.ts -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: Human-Calibrated Difficulty & Fair Play -->
+  <section id="difficulty" class="showcase-section">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-tag">[ CALIBRATION ]</span>
+        <h2 class="section-title">HUMAN-CALIBRATED DIFFICULTY TIERS</h2>
+        <p class="section-desc">
+          In prior builds, Nightmare tier had a superhuman 1-frame (16.6ms) reaction latency. We re-tuned all three tiers across 900 simulation rounds with human cognitive limits, mistake rates, and non-stacking round scaling.
+        </p>
+      </div>
+
+      <div class="difficulty-grid">
+        <!-- Casual -->
+        <div class="tier-card casual">
+          <div class="tier-header">
+            <span class="tier-name">CASUAL</span>
+            <span class="tier-winrate">26.7% Win Rate</span>
+          </div>
+          <div class="tier-role">Accessible / Beginner Challenger</div>
+          <div class="tier-specs">
+            <div class="spec-row"><span class="spec-label">Brain:</span><span class="spec-val">Rule-Based Only (Learner OFF)</span></div>
+            <div class="spec-row"><span class="spec-label">Reaction Buffer:</span><span class="spec-val">24 frames (400ms)</span></div>
+            <div class="spec-row"><span class="spec-label">Mistake / Hesitation:</span><span class="spec-val">20% per decision</span></div>
+            <div class="spec-row"><span class="spec-label">Block Chance:</span><span class="spec-val">35% (25f block cooldown)</span></div>
+            <div class="spec-row"><span class="spec-label">Dodge Cooldown:</span><span class="spec-val">150 frames (2.5s)</span></div>
+            <div class="spec-row"><span class="spec-label">Attack Gap:</span><span class="spec-val">26 frames</span></div>
+            <div class="spec-row"><span class="spec-label">0x7E5 Rage Mode:</span><span class="spec-val">Disabled</span></div>
+          </div>
+          <p class="tier-desc">Designed for newcomers to practice combos. The ghost makes frequent hesitation pauses and never executes frame-traps.</p>
+        </div>
+
+        <!-- Veteran -->
+        <div class="tier-card veteran">
+          <div class="tier-header">
+            <span class="tier-name">VETERAN</span>
+            <span class="tier-winrate">47.3% Win Rate</span>
+          </div>
+          <div class="tier-role">Balanced / Competitive Default</div>
+          <div class="tier-specs">
+            <div class="spec-row"><span class="spec-label">Brain:</span><span class="spec-val">Pretrained Q-Table + Halved Learning (α=0.05)</span></div>
+            <div class="spec-row"><span class="spec-label">Reaction Buffer:</span><span class="spec-val">15 frames (250ms Human)</span></div>
+            <div class="spec-row"><span class="spec-label">Mistake / Hesitation:</span><span class="spec-val">14% per decision</span></div>
+            <div class="spec-row"><span class="spec-label">Block Chance:</span><span class="spec-val">42% (25f block cooldown)</span></div>
+            <div class="spec-row"><span class="spec-label">Dodge Cooldown:</span><span class="spec-val">100 frames (1.66s)</span></div>
+            <div class="spec-row"><span class="spec-label">Attack Gap:</span><span class="spec-val">20 frames</span></div>
+            <div class="spec-row"><span class="spec-label">0x7E5 Rage Mode:</span><span class="spec-val">Disabled</span></div>
+          </div>
+          <p class="tier-desc">The authentic competitive experience. Balanced evenly for human players with realistic reaction limits and habit reads.</p>
+        </div>
+
+        <!-- Nightmare -->
+        <div class="tier-card nightmare">
+          <div class="tier-header">
+            <span class="tier-name">NIGHTMARE</span>
+            <span class="tier-winrate">65.7% Win Rate</span>
+          </div>
+          <div class="tier-role">Master / Boss Gauntlet</div>
+          <div class="tier-specs">
+            <div class="spec-row"><span class="spec-label">Brain:</span><span class="spec-val">Full Online Q-Learner (α=0.10, ε=0.05)</span></div>
+            <div class="spec-row"><span class="spec-label">Reaction Buffer:</span><span class="spec-val">10 frames (166ms Pro Human)</span></div>
+            <div class="spec-row"><span class="spec-label">Mistake / Hesitation:</span><span class="spec-val">5% per decision</span></div>
+            <div class="spec-row"><span class="spec-label">Block Chance:</span><span class="spec-val">68% (25f block cooldown)</span></div>
+            <div class="spec-row"><span class="spec-label">Dodge Cooldown:</span><span class="spec-val">70 frames (1.16s)</span></div>
+            <div class="spec-row"><span class="spec-label">Attack Gap:</span><span class="spec-val">12 frames</span></div>
+            <div class="spec-row"><span class="spec-label">0x7E5 Rage Mode:</span><span class="spec-val">Active (&lt;35% HP, 6s Cap)</span></div>
+          </div>
+          <p class="tier-desc">The ultimate test. Ghost continuously rewrites its Q-table during combat to punish repeat patterns, unleashing 0x7E5 teleports when low on HP.</p>
+        </div>
+      </div>
+
+      <!-- Fair Play Safeguards -->
+      <div class="safeguards-box">
+        <h4>⚖️ UNIVERSAL FAIR-PLAY ARCHITECTURE</h4>
+        <div class="safeguards-grid">
+          <div class="safeguard-item">
+            <strong>No Same-Frame Parries:</strong> Defensive reactions enforce a mandatory 2–3 frame delay. Ghost never parries on frame 0 of player input.
+          </div>
+          <div class="safeguard-item">
+            <strong>25-Frame Block Cooldown:</strong> Blocks incur recovery frames so the AI cannot turtle indefinitely against cancel chains.
+          </div>
+          <div class="safeguard-item">
+            <strong>Dynamic Comeback Assist (Hidden):</strong> If the player drops 2 rounds in a row, next round reaction delay eases by +4f and mistake rate by +8%.
+          </div>
+          <div class="safeguard-item">
+            <strong>Non-Stacking Round Scaling:</strong> Round bonuses cycle between Damage, HP, and Speed (+4%/rd, max +25%). Stats never stack simultaneously.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 5: Empirical Benchmarks & Charts -->
+  <section id="benchmarks" class="showcase-section alt-bg">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-tag">[ VERIFICATION ]</span>
+        <h2 class="section-title">EMPIRICAL BENCHMARKS & GENERALIZATION</h2>
+        <p class="section-desc">
+          Evaluated across 1,800 rounds in a deterministic headless browser test against 6 competent adversary archetypes and a 120-round adaptation test with abrupt style switches.
+        </p>
+      </div>
+
+      <div class="benchmark-layout">
+        <!-- Comparative Table -->
+        <div class="benchmark-table-box">
+          <table class="styled-table">
+            <thead>
+              <tr>
+                <th>CONDITION</th>
+                <th>OVERALL WIN RATE (%)</th>
+                <th>AVG GHOST HP LEFT (MAX 180)</th>
+                <th>AVG DAMAGE TAKEN</th>
+                <th>AVG DURATION</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Learner OFF (Rule-Based)</strong></td>
+                <td>53.7% ± 2.0%</td>
+                <td>124.1 ± 2.7 HP</td>
+                <td>55.9 ± 2.7 HP</td>
+                <td>20.1 ± 0.4 s</td>
+              </tr>
+              <tr>
+                <td><strong>Learner ON (Empty Q-Table)</strong></td>
+                <td>70.5% ± 1.9%</td>
+                <td>154.4 ± 1.3 HP</td>
+                <td>25.6 ± 1.3 HP</td>
+                <td>15.8 ± 0.4 s</td>
+              </tr>
+              <tr>
+                <td><strong style="color: #00ffcc;">Learner ON (Pre-Trained Table)</strong></td>
+                <td><strong style="color: #00ffcc;">65.3% ± 1.9%</strong></td>
+                <td><strong style="color: #00ffcc;">156.7 ± 1.3 HP</strong></td>
+                <td><strong style="color: #00ffcc;">23.3 ± 1.3 HP</strong></td>
+                <td><strong style="color: #00ffcc;">17.5 ± 0.4 s</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Embedded Charts -->
+        <div class="benchmark-charts-grid">
+          <div class="chart-card">
+            <div class="chart-title">📊 1,800-Round Benchmark Across 6 Bot Styles</div>
+            <img src="./docs/benchmark-metrics-chart.png" alt="Benchmark Metrics Comparison" class="chart-img" />
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">📈 120-Round Sequential Style-Switch Adaptation Curve</div>
+            <img src="./docs/adaptation-test-chart.png" alt="Adaptation Test Curve" class="chart-img" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 6: Why Open Innovation Matters (Manifesto) -->
+  <section id="manifesto" class="showcase-section">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-tag">[ PHILOSOPHY ]</span>
+        <h2 class="section-title">WHY OPEN INNOVATION MATTERS</h2>
+        <p class="section-desc">
+          When Adobe killed Flash in 2021, it exposed the existential flaw of proprietary software. KillSwitch.swf is our proof of why open-weight models like Google Gemma and open web standards are essential.
+        </p>
+      </div>
+
+      <div class="manifesto-grid">
+        <div class="manifesto-card">
+          <div class="manifesto-icon">🛡️</div>
+          <h3 class="manifesto-title">ZERO CORPORATE KILL-SWITCHES</h3>
+          <p class="manifesto-desc">
+            Running open weights locally via Ollama means no corporate entity can revoke your API key, shut down your endpoint, or brick your game. The weights belong to developers forever.
+          </p>
+        </div>
+
+        <div class="manifesto-card">
+          <div class="manifesto-icon">🔒</div>
+          <h3 class="manifesto-title">100% OFFLINE &amp; PRIVATE</h3>
+          <p class="manifesto-desc">
+            Combat telemetry and player habits never leave your local machine. Inference runs at 60 FPS offline with zero cloud telemetry, zero subscription fees, and complete data sovereignty.
+          </p>
+        </div>
+
+        <div class="manifesto-card">
+          <div class="manifesto-icon">🕯️</div>
+          <h3 class="manifesto-title">DIGITAL CULTURAL PRESERVATION</h3>
+          <p class="manifesto-desc">
+            Just as open web standards (HTML5 Canvas + Web Audio API) allow us to preserve the aesthetic of Flash without proprietary plugins, open-source AI ensures intelligent characters belong to human culture forever.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 7: Quickstart Guide -->
+  <section id="quickstart" class="showcase-section alt-bg">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-tag">[ DEVELOPER SETUP ]</span>
+        <h2 class="section-title">RUN LOCALLY IN 60 SECONDS</h2>
+        <p class="section-desc">
+          Clone the repository and run the local development server with Ollama Gemma 3:4B:
+        </p>
+      </div>
+
+      <div class="quickstart-card">
+        <div class="terminal-topbar">
+          <div class="terminal-dots">
+            <span class="tdot r"></span>
+            <span class="tdot y"></span>
+            <span class="tdot g"></span>
+          </div>
+          <span class="terminal-title">bash — terminal</span>
+          <button class="copy-btn" data-target="quickstart-code">📋 COPY COMMANDS</button>
+        </div>
+        <div class="terminal-body" id="quickstart-code">
+<span class="comment"># 1. Clone the repository</span>
+<span class="cmd">git clone https://github.com/SahooShuvranshu/KillSwitch.swf.git</span>
+<span class="cmd">cd KillSwitch.swf</span>
+
+<span class="comment"># 2. Install dependencies (Vite + TypeScript)</span>
+<span class="cmd">npm install</span>
+
+<span class="comment"># 3. Pull and run Google Gemma 3:4B via Ollama (in a separate terminal)</span>
+<span class="cmd">ollama run gemma3:4b</span>
+
+<span class="comment"># 4. Start the 60 FPS local dev server</span>
+<span class="cmd">npm run dev</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer & Team Credits -->
+  <footer class="showcase-footer">
+    <div class="footer-container">
+      <div class="team-section">
+        <div class="team-title">⚡ BUILT FOR DEV x MLH HACKTOBERFEST 2026 CHALLENGE</div>
+        <div class="team-grid">
+          <div class="team-member-card">
+            <span class="member-avatar">🥋</span>
+            <div>
+              <div class="member-name">Shuvranshu Sekhar Sahoo</div>
+              <div class="member-role">Architecture, 60 FPS Engine &amp; Q-Learning</div>
+            </div>
+          </div>
+          <div class="team-member-card">
+            <span class="member-avatar">⚡</span>
+            <div>
+              <div class="member-name">Pruthiraj Lenka</div>
+              <div class="member-role">Gemma 3:4B Integration &amp; Telemetry</div>
+            </div>
+          </div>
+          <div class="team-member-card">
+            <span class="member-avatar">🕯️</span>
+            <div>
+              <div class="member-name">Suhani Priyadarshini</div>
+              <div class="member-role">Flash Ofrenda, Lore &amp; Calaveritas</div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Retro Flash Status Bar -->
-      <div class="window-statusbar">
-        <div class="status-col" id="status-fps">FPS: 60.0</div>
-        <div class="status-col" id="status-vm">ActionScript 2.0 VM: INJECTED</div>
-        <div class="status-col" id="status-gemma">Gemma 3:4B: 127.0.0.1:11434 (ACTIVE)</div>
-        <div class="status-col" id="status-controls">Controls: [A/D] Move | [W] Jump | [S] Crouch | [J] Jab | [K] Kick | [W+K] Jump-Kick | [L] Block</div>
+      <div class="footer-bottom">
+        <div>MIT License • © 2026 KillSwitch.swf Team. Resurrecting Flash Player with Open Innovation.</div>
+        <div class="footer-links-row">
+          <a href="https://github.com/SahooShuvranshu/KillSwitch.swf" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub Repository</a>
+          <span>•</span>
+          <a href="./SUBMISSION.md" class="footer-link">DEV Submission Article</a>
+          <span>•</span>
+          <a href="./docs/difficulty-tuning.md" class="footer-link">Tuning Report</a>
+          <span>•</span>
+          <a href="#hero" class="footer-link">Back to Top ↑</a>
+        </div>
       </div>
     </div>
-  </div>
+  </footer>
 
-  <script type="module" src="/src/main.ts"></script>
+  <script type="module" src="./src/main.ts"></script>
 </body>
 </html>

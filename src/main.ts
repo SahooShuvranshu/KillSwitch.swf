@@ -10,6 +10,7 @@ import { TelemetryTracker } from './ai/Telemetry';
 import { gemmaGhost, CombatAdaptation } from './ai/GemmaGhost';
 import { AIController } from './engine/AIController';
 import { CemeteryManager } from './ofrenda/Cemetery';
+import { initShowcase } from './showcase';
 
 export type GameFlowState = 'MENU' | 'INTRO' | 'FIGHTING' | 'ROUND_OVER' | 'ROAST' | 'GAME_OVER';
 
@@ -77,8 +78,8 @@ class KillSwitchGame {
     this.loadSavedAIMemory();
     this.startRenderLoop();
 
+    window.__game = this;
     if (import.meta.env.DEV) {
-      window.__game = this;
       window.__setGhostLowHealth = () => {
         if (this.arena?.ghost) {
           this.arena.ghost.health = 5;
@@ -866,4 +867,5 @@ class KillSwitchGame {
 // Initialize game on DOM load
 window.addEventListener('DOMContentLoaded', () => {
   new KillSwitchGame();
+  initShowcase();
 });

@@ -44,6 +44,31 @@ The Ghost is not a hardcoded script. It combines a **high-speed Q-learning reinf
 
 ---
 
+## ⚖️ Calibrated Difficulty Tiers (Human-Like Limits)
+
+Based on empirical calibration across 900 simulation rounds ([`docs/difficulty-tuning.md`](docs/difficulty-tuning.md)), the AI stickman incorporates distinct cognitive tiers tuned to human reaction constraints:
+
+- **Casual (Accessible / Casual):**
+  - **Brain:** Rule-based combat logic only (Q-learner OFF), with a 20% mistake and hesitation rate.
+  - **Reaction Limits:** 24-frame ($400\text{ms}$) decision buffer, 35% block chance with 25-frame block cooldown, 150-frame dodge-roll cooldown, and 26-frame attack gap.
+  - **Mechanics:** Error 0x7E5 Rage Mode disabled. Calibrated to a **26.7%** win rate.
+
+- **Veteran (Competitive / Default):**
+  - **Brain:** Pre-trained Q-table active with learning rate halved ($\alpha = 0.05$) and an exploration floor of $\epsilon = 0.15$.
+  - **Reaction Limits:** 15-frame ($250\text{ms}$) human decision interval, 42% block chance, 100-frame dodge cooldown, 20-frame attack gap, and 35% Markov habit prediction.
+  - **Mechanics:** Error 0x7E5 Rage Mode disabled. Calibrated to a **47.3%** win rate.
+
+- **Nightmare (Master / Boss):**
+  - **Brain:** Full active online Q-learner ($\alpha = 0.10$, $\epsilon = 0.05$) adapting dynamically to player tendencies.
+  - **Reaction Limits:** 10-frame ($166\text{ms}$) decision delay, 68% block chance, 70-frame dodge cooldown, 12-frame attack gap, and 60% Markov move prediction. Never reacts on the same frame as player input (enforces physical $2\text{-frame}$ defense delay).
+  - **Mechanics:** Unleashes the **ActionScript 0x7E5 Time-Bomb** triple teleport below 35% HP (strictly capped at 6 seconds). Calibrated to a **65.7%** win rate.
+
+- **Universal Fair-Play Safeguards:**
+  - **Dynamic Comeback Assist (Hidden):** If the player drops two consecutive rounds, the subsequent round eases ghost reaction delay by $+4$ frames and mistake rate by $+8\%$. Reverts cleanly when player recovers.
+  - **Anti-Passivity Rule:** Forbids consecutive evasion chains (max 1 retreat/evade) when the ghost is tied or behind on HP with under 50% round time remaining.
+
+---
+
 ## 🎨 Vector Visual Overhaul & 2.5D Arena Scenery
 
 `KillSwitch.swf` features an authentic, 100% original vector canvas visual engine designed from the ground up to capture the energy of classic Macromedia Flash animation while delivering modern game feel:
