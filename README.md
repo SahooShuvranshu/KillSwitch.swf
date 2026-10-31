@@ -4,7 +4,7 @@
 
 ![KillSwitch.swf — The Ghost in the Canvas](docs/cover-image.png)
 
-### 🏆 DatrixLabs Hack Day & MLH Hacktoberfest 2026 Week 4: "Ghost in the Machine"
+### 🏆 DEV x MLH Hacktoberfest 2026 — Week 4: "Ghost in the Machine"
 **Targeting Strictly: Best Use of Gemma Track**
 
 <!-- Primary Status Badges -->
@@ -54,7 +54,7 @@
 
 ## 👥 Team Attribution & Hackathon Track
 
-* **Hackathon:** **DatrixLabs Hack Day** & **DEV x MLH Hacktoberfest 2026 Challenge: Week 4 ("Ghost in the Machine")**
+* **Hackathon:** **DEV x MLH Hacktoberfest 2026 Challenge: Week 4 ("Ghost in the Machine")**
 * **Category:** Strictly targeting **Best Use of Gemma** (`#hf26challenge`, `#hacktoberfest`, `#gemma`)
 * **Team Members:**
   * **Shuvranshu Sekhar Sahoo** ([@SahooShuvranshu](https://github.com/SahooShuvranshu)) — *Lead Engine Architect, Kinematics & Dual-Layer AI Controller*
@@ -315,4 +315,4 @@ When Adobe shut down Flash Player in 2021, 25 years of digital art, browser gami
 ---
 
 ## 📜 License
-MIT License • Created for **DatrixLabs Hack Day** & **DEV x MLH Hacktoberfest 2026**.
+MIT License • Created for **DEV x MLH Hacktoberfest 2026**.

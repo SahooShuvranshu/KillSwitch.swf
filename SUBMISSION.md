@@ -7,19 +7,19 @@ cover_image: "https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/m
 canonical_url: "https://sahooshuvranshu.github.io/KillSwitch.swf/"
 ---
 
-*This article is submitted for the **DatrixLabs Hack Day** & **DEV x MLH Hacktoberfest 2026 Challenge: Week 4 ("Ghost in the Machine")** targeting strictly the **Best Use of Gemma** category.*
+*This article is submitted for the **DEV x MLH Hacktoberfest 2026 Challenge: Week 4 ("Ghost in the Machine")** targeting strictly the **Best Use of Gemma** category.*
 
 ---
 
-![KillSwitch.swf — The Ghost in the Canvas](docs/cover-image.png)
+![KillSwitch.swf — The Ghost in the Canvas](https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/main/docs/cover-image.png)
 
 ### 🚀 Quick Links & Team Attribution
 - 🌐 **Live Playable Showcase Website:** [https://sahooshuvranshu.github.io/KillSwitch.swf/](https://sahooshuvranshu.github.io/KillSwitch.swf/)
 - 🔗 **GitHub Repository:** [https://github.com/SahooShuvranshu/KillSwitch.swf](https://github.com/SahooShuvranshu/KillSwitch.swf)
-- 📊 **900-Round Calibration Report:** [docs/difficulty-tuning.md](docs/difficulty-tuning.md)
-- 📈 **1,800-Round Learning Benchmark:** [docs/learning-results.md](docs/learning-results.md)
+- 📊 **900-Round Calibration Report:** [https://github.com/SahooShuvranshu/KillSwitch.swf/blob/main/docs/difficulty-tuning.md](https://github.com/SahooShuvranshu/KillSwitch.swf/blob/main/docs/difficulty-tuning.md)
+- 📈 **1,800-Round Learning Benchmark:** [https://github.com/SahooShuvranshu/KillSwitch.swf/blob/main/docs/learning-results.md](https://github.com/SahooShuvranshu/KillSwitch.swf/blob/main/docs/learning-results.md)
 
-#### 👥 DatrixLabs Hack Day Team
+#### 👥 Hacktoberfest 2026 Team Members
 - **Shuvranshu Sekhar Sahoo** ([@SahooShuvranshu](https://github.com/SahooShuvranshu)) — *Lead Engine Architect, Combat Kinematics & Dual-Layer AI Controller*
 - **Pruthiraj Lenka** — *AI Benchmark Architecture & Headless Difficulty Calibration*
 - **Suhani Priyadarshini** — *Telemetry Ingestion Pipeline & QA Automated Verification*
@@ -138,10 +138,10 @@ If you spam flying jump-kicks or predictable jab-into-kick chains in Round 1:
 - In Round 2, the AI immediately predicts your habits in real time. Whenever you jump, it ducks under and launches a rising dragon kick to knock you out of the sky, flashing a live combat alert:
   `⚡ GEMMA READ: ANTI-AIR INTERCEPT!`
 
-![Learned Habits & Gemma Tactical Telemetry](docs/screenshots/after_f3_overlay.png)
+![Learned Habits & Gemma Tactical Telemetry](https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/main/docs/screenshots/after_f3_overlay.png)
 *Figure 1: Gemma 3:4B analyzing real-time combat habits and locking in tactical counters between rounds.*
 
-![Round 2 Counter Stance](docs/screenshots/after_fight.png)
+![Round 2 Counter Stance](https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/main/docs/screenshots/after_fight.png)
 *Figure 2: The Flash Ghost in Round 2, executing an anti-air duck-under counter.*
 
 ### Gemma-Designed Boss Mechanic: "ActionScript Error 0x7E5 Time-Bomb"
@@ -154,7 +154,7 @@ When the Ghost's health drops below 35% in Nightmare mode, it enters an unhinged
    - **Step 2 (140ms)**: Glitches 120px directly overhead into the ceiling (`⚠️ 0x7E5: TELEPORT [2/3] STACK CORRUPTION`).
    - **Step 3 (280ms)**: Drops down directly behind the player's back and unleashes an unblockable heavy claw strike (`⚠️ 0x7E5: TIME-BOMB SURPRISE CLAW EXECUTION!`).
 
-![ActionScript Error 0x7E5 Rage Teleport](docs/screenshots/after_rage_mode.png)
+![ActionScript Error 0x7E5 Rage Teleport](https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/main/docs/screenshots/after_rage_mode.png)
 *Figure 3: Flash Ghost executing the Gemma 3:4B designed Error 0x7E5 triple-teleport strike.*
 
 ---
@@ -186,10 +186,10 @@ To ensure the Ghost challenges players without feeling cheap or superhuman, we c
 
 To scientifically validate that the Q-learning agent genuinely learns and adapts rather than exploiting hardcoded cheats, we executed a rigorous **1,800-round benchmark** across 6 distinct opponent archetypes:
 
-![Empirical Benchmark Metrics](docs/benchmark-metrics-chart.png)
+![Empirical Benchmark Metrics](https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/main/docs/benchmark-metrics-chart.png)
 *Figure 4: Win rate comparison across 6 opponent archetypes.*
 
-![120-Round Adaptation Test](docs/adaptation-test-chart.png)
+![120-Round Adaptation Test](https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/main/docs/adaptation-test-chart.png)
 *Figure 5: Adaptation test tracking damage convergence across 4 distinct combat phases.*
 
 ### Benchmark Summary Table
