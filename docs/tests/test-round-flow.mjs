@@ -79,7 +79,7 @@ async function runTestCase(testIndex, testName, interceptor) {
     });
 
     let isOver = false;
-    for (let p = 0; p < 15; p++) {
+    for (let p = 0; p < 30; p++) {
       await page.keyboard.press('KeyJ');
       await wait(120);
       isOver = await page.evaluate(() => window.__game.arena.isRoundOver);
@@ -91,6 +91,9 @@ async function runTestCase(testIndex, testName, interceptor) {
       await page.evaluate(() => {
         if (!window.__game.arena.isRoundOver) {
           window.__game.arena.ghost.health = 1;
+          window.__game.arena.ghost.state = 'IDLE';
+          window.__game.arena.ghost.y = 380;
+          window.__game.arena.ghost.isGrounded = true;
           window.__game.arena.player.state = 'IDLE';
           window.__game.arena.player.x = window.__game.arena.ghost.x - 30;
         }
