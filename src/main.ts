@@ -10,7 +10,6 @@ import { TelemetryTracker } from './ai/Telemetry';
 import { gemmaGhost, CombatAdaptation } from './ai/GemmaGhost';
 import { AIController } from './engine/AIController';
 import { CemeteryManager } from './ofrenda/Cemetery';
-import { TrainingSession } from './ai/TrainingSession';
 
 export type GameFlowState = 'MENU' | 'INTRO' | 'FIGHTING' | 'ROUND_OVER' | 'ROAST' | 'GAME_OVER';
 
@@ -91,7 +90,67 @@ class KillSwitchGame {
     if (import.meta.env.DEV) {
       const params = new URLSearchParams(window.location.search);
       if (params.get('train') === '1') {
-        this.runDevTrainingMode();
+        import('./ai/TrainingSession').then(async ({ TrainingSession }) => {
+          this.hideAllScreens();
+          const dash = document.createElement('div');
+          dash.id = 'training-dashboard';
+          dash.style.cssText = 'position:absolute;inset:0;background:#050508;color:#00ffcc;font-family:monospace;padding:24px;z-index:99999;display:flex;flex-direction:column;gap:12px;overflow:auto;';
+          dash.innerHTML = `
+            <h2 style="margin:0;color:#00ffcc;">⚡ KILLSWITCH.SWF — Q-LEARNER HEADLESS TRAINING MODE (?train=1)</h2>
+            <div style="color:#aaa;">Simulating 300 rounds x 5 bot archetypes (1,500 rounds) at warp speed with Gemma stubbed...</div>
+            <div id="train-status" style="font-size:14px;color:#fff;font-weight:bold;">INITIALIZING TRAINING PIPELINE...</div>
+            <div style="background:#222;border:1px solid #444;height:24px;width:100%;border-radius:4px;overflow:hidden;">
+              <div id="train-bar" style="width:0%;height:100%;background:#00ffcc;transition:width 0.1s;"></div>
+            </div>
+            <pre id="train-log" style="background:#000;border:1px solid #333;color:#aaffaa;padding:12px;height:380px;overflow-y:auto;font-size:12px;margin:0;"></pre>
+          `;
+          document.body.appendChild(dash);
+
+          const logEl = document.getElementById('train-log');
+          const statusEl = document.getElementById('train-status');
+          const barEl = document.getElementById('train-bar');
+
+          const log = (msg: string) => {
+            if (logEl) {
+              logEl.textContent += msg + '\n';
+              logEl.scrollTop = logEl.scrollHeight;
+            }
+            console.log(msg);
+          };
+
+          log('▶ Initializing TrainingSession: 5 archetypes (JUMP_KICK, TURTLE, COMBO, HEAVY_KICK, RANDOM_MIX)...');
+          const session = new TrainingSession(this.arena, this.aiController, this.telemetry);
+
+          try {
+            const exportedQ = await session.runFullTraining((p) => {
+              const total = 1500;
+              const pct = Math.round((session.totalRoundsCompleted / total) * 100);
+              if (barEl) barEl.style.width = `${pct}%`;
+              if (statusEl) statusEl.innerText = `[${pct}%] BOT: ${p.bot} | ROUND: ${p.round}/300 | WIN RATE: ${p.winRate}% | EPSILON: ${this.aiController.learner.epsilon.toFixed(2)}`;
+              log(`[Round ${session.totalRoundsCompleted}/1500] Bot: ${p.bot} (Round ${p.round}) — Ghost Win Rate: ${p.winRate}% | Epsilon: ${this.aiController.learner.epsilon.toFixed(2)}`);
+            });
+
+            if (barEl) barEl.style.width = '100%';
+            if (statusEl) statusEl.innerText = `✓ 1,500 ROUNDS TRAINING COMPLETE! Q-TABLE EXPORT READY.`;
+            log('\n========================================================');
+            log('🎉 TRAINING RUN COMPLETE: 1,500 ROUNDS FINISHED');
+            log('Bot archetype breakdown:');
+            for (const [bot, st] of Object.entries(session.statsByBot)) {
+              log(` - ${bot.padEnd(12)}: ${st.ghostWins}/${st.rounds} wins (${st.winRate}%)`);
+            }
+            const qStates = Object.keys(exportedQ).length;
+            log(`Exported Q-Table: ${qStates} unique states retained with >=3 visits.`);
+            log('========================================================\n');
+
+            window.__trainingCompleted = true;
+            window.__exportedQTable = exportedQ;
+            window.__trainingStats = session.statsByBot;
+          } catch (err: any) {
+            if (statusEl) statusEl.innerText = `❌ TRAINING FAILED: ${err.message}`;
+            log(`\n❌ ERROR: ${err.message}`);
+            console.error(err);
+          }
+        });
         return;
       }
     }
@@ -109,69 +168,6 @@ class KillSwitchGame {
           }, 200);
         }
       }
-    }
-  }
-
-  // --- Headless Fast Training Mode (?train=1) ---
-  private async runDevTrainingMode() {
-    this.hideAllScreens();
-    const dash = document.createElement('div');
-    dash.id = 'training-dashboard';
-    dash.style.cssText = 'position:absolute;inset:0;background:#050508;color:#00ffcc;font-family:monospace;padding:24px;z-index:99999;display:flex;flex-direction:column;gap:12px;overflow:auto;';
-    dash.innerHTML = `
-      <h2 style="margin:0;color:#00ffcc;">⚡ KILLSWITCH.SWF — Q-LEARNER HEADLESS TRAINING MODE (?train=1)</h2>
-      <div style="color:#aaa;">Simulating 300 rounds x 5 bot archetypes (1,500 rounds) at warp speed with Gemma stubbed...</div>
-      <div id="train-status" style="font-size:14px;color:#fff;font-weight:bold;">INITIALIZING TRAINING PIPELINE...</div>
-      <div style="background:#222;border:1px solid #444;height:24px;width:100%;border-radius:4px;overflow:hidden;">
-        <div id="train-bar" style="width:0%;height:100%;background:#00ffcc;transition:width 0.1s;"></div>
-      </div>
-      <pre id="train-log" style="background:#000;border:1px solid #333;color:#aaffaa;padding:12px;height:380px;overflow-y:auto;font-size:12px;margin:0;"></pre>
-    `;
-    document.body.appendChild(dash);
-
-    const logEl = document.getElementById('train-log');
-    const statusEl = document.getElementById('train-status');
-    const barEl = document.getElementById('train-bar');
-
-    const log = (msg: string) => {
-      if (logEl) {
-        logEl.textContent += msg + '\n';
-        logEl.scrollTop = logEl.scrollHeight;
-      }
-      console.log(msg);
-    };
-
-    log('▶ Initializing TrainingSession: 5 archetypes (JUMP_KICK, TURTLE, COMBO, HEAVY_KICK, RANDOM_MIX)...');
-    const session = new TrainingSession(this.arena, this.aiController, this.telemetry);
-
-    try {
-      const exportedQ = await session.runFullTraining((p) => {
-        const total = 1500;
-        const pct = Math.round((session.totalRoundsCompleted / total) * 100);
-        if (barEl) barEl.style.width = `${pct}%`;
-        if (statusEl) statusEl.innerText = `[${pct}%] BOT: ${p.bot} | ROUND: ${p.round}/300 | WIN RATE: ${p.winRate}% | EPSILON: ${this.aiController.learner.epsilon.toFixed(2)}`;
-        log(`[Round ${session.totalRoundsCompleted}/1500] Bot: ${p.bot} (Round ${p.round}) — Ghost Win Rate: ${p.winRate}% | Epsilon: ${this.aiController.learner.epsilon.toFixed(2)}`);
-      });
-
-      if (barEl) barEl.style.width = '100%';
-      if (statusEl) statusEl.innerText = `✓ 1,500 ROUNDS TRAINING COMPLETE! Q-TABLE EXPORT READY.`;
-      log('\n========================================================');
-      log('🎉 TRAINING RUN COMPLETE: 1,500 ROUNDS FINISHED');
-      log('Bot archetype breakdown:');
-      for (const [bot, st] of Object.entries(session.statsByBot)) {
-        log(` - ${bot.padEnd(12)}: ${st.ghostWins}/${st.rounds} wins (${st.winRate}%)`);
-      }
-      const qStates = Object.keys(exportedQ).length;
-      log(`Exported Q-Table: ${qStates} unique states retained with >=3 visits.`);
-      log('========================================================\n');
-
-      window.__trainingCompleted = true;
-      window.__exportedQTable = exportedQ;
-      window.__trainingStats = session.statsByBot;
-    } catch (err: any) {
-      if (statusEl) statusEl.innerText = `❌ TRAINING FAILED: ${err.message}`;
-      log(`\n❌ ERROR: ${err.message}`);
-      console.error(err);
     }
   }
 

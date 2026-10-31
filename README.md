@@ -74,6 +74,8 @@ The Ghost is not a hardcoded script. It combines a **high-speed Q-learning reinf
 
 ---
 
+## 🕹️ Controls & Martial Arts Move List
+
 | Action | Primary Keys | Alternate Keys | Technical Frame Details |
 | :--- | :--- | :--- | :--- |
 | **Move Left / Right** | `A` / `D` | `Left` / `Right` Arrow | Responsive vector ground movement |
@@ -92,26 +94,33 @@ The Ghost is not a hardcoded script. It combines a **high-speed Q-learning reinf
 
 ---
 
-## 📊 Q-Learner Combat Benchmark Proof
+## 📊 Empirical Q-Learner Benchmark & Generalization Proof
 
-The Q-learning agent was benchmarked across **30 rounds vs the Jump-Kick Spammer** across 3 modes:
-1. **Mode 1: Rule-Based (Learner OFF)**: Static heuristic rules.
-2. **Mode 2: Learner ON (Empty Start)**: Tabula rasa Q-learning discovering anti-air counters.
-3. **Mode 3: Learner ON (Pre-Trained Weights)**: Pre-loaded with converged weights from 1,500 training bouts.
+The Q-learning agent was evaluated across **1,800 rounds against 6 competent adversary archetypes at Nightmare Difficulty** (reaction delay = 1 frame, block chance = 85%), plus a **120-round continuous adaptation test** with sudden adversary style switches.
 
-![Q-Learner Benchmark Comparison](verification/benchmark-chart.png)
+![Empirical Benchmark Metrics](verification/benchmark-metrics-chart.png)
 
-### 5-Round Block Progression Matrix
+### 1. Overall Performance Across All 6 Bot Styles (600 Rounds / Condition)
 
-| Block | Rounds | Mode 1: Rule-Based (Win% / Avg R) | Mode 2: Empty Q-Table (Win% / Avg R) | Mode 3: Pre-Trained Q (Win% / Avg R) |
-|:-----:|:------:|:---------------------------------:|:-----------------------------------:|:------------------------------------:|
-| **Block 1** | R1-R5 | 100% (+23.46) | 100% (+23.88) | **100%** (**+23.90**) |
-| **Block 2** | R6-R10 | 100% (+23.10) | 100% (+23.22) | **100%** (**+23.64**) |
-| **Block 3** | R11-R15 | 100% (+22.24) | 100% (+23.90) | **100%** (**+24.50**) |
-| **Block 4** | R16-R20 | 100% (+23.88) | 100% (+24.66) | **100%** (**+23.88**) |
-| **Block 5** | R21-R25 | 100% (+23.46) | 100% (+24.90) | **100%** (**+23.30**) |
-| **Block 6** | R26-R30 | 100% (+22.94) | 100% (+24.34) | **100%** (**+24.50**) |
-| **TOTAL** | **R1-R30** | **100%** (+23.18) | **100%** (+24.15) | **100%** (**+23.95**) |
+| Condition | Overall Win Rate (%) | Avg Ghost HP Left (Max 180) | Avg Damage Taken (HP) | Avg Duration (s) |
+| :--- | :---: | :---: | :---: | :---: |
+| **Learner OFF (Rule-Based)** | 53.7% ± 2.0% | 124.1 ± 2.7 | 55.9 ± 2.7 | 20.1 ± 0.4 s |
+| **Learner ON (Empty Table)** | 70.5% ± 1.9% | 154.4 ± 1.3 | 25.6 ± 1.3 | 15.8 ± 0.4 s |
+| **Learner ON (Pre-Trained)** | **65.3% ± 1.9%** | **156.7 ± 1.3** | **23.3 ± 1.3** | **17.5 ± 0.4 s** |
+
+### 2. Generalization on Held-Out Opponent (`MIRROR_COUNTER`)
+A 6th held-out bot style (`MIRROR_COUNTER`)—which was **never present in training** and actively reads the ghost's airborne/blocking states to execute frame-perfect counters—was tested to measure genuine generalization:
+- **Baseline (Learner OFF):** Devastated by the mirror bot, taking **165.8 HP damage** on average and surviving with only **14.2 HP** (32% win rate).
+- **Pre-Trained Q-Table:** Slashed damage taken by **74.2%** down to **42.7 HP**, maintaining **137.3 HP remaining** on average (32% win rate).
+
+### 3. Sequential Adaptation Test (120 Rounds across 3 Abrupt Style Switches)
+
+![Sequential Style Switch Adaptation Curve](verification/adaptation-test-chart.png)
+
+- **Phase 1 (R1–R40 Jump-Kick Spammer):** Damage taken stabilizes at 27.3 HP as anti-air launcher intercepts dominate.
+- **Phase 2 (R41–R80 Turtle / Sweep Bait):** Recalibrates within **6 rounds** to low-sweep guard breaks (`GUARD_BREAK`).
+- **Phase 3 (R81–R120 Combo Rushdown):** Recalibrates within **7 rounds** to whiff-punishing flying knees and evasive rolls.
+- Full per-round data and 5-round block progressions are documented in [`verification/learning-results.md`](file:///D:/Projects/Hacktober%20Fest%202026/KillSwitch.swf/verification/learning-results.md) and [`verification/benchmark-raw.csv`](file:///D:/Projects/Hacktober%20Fest%202026/KillSwitch.swf/verification/benchmark-raw.csv).
 
 ---
 

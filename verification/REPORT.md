@@ -87,22 +87,32 @@ All 4 network & execution scenarios were evaluated under automated Puppeteer con
 
 ---
 
-## 4. Benchmark Progression Summary (`verification/learning-results.md`)
+## 4. Empirical Q-Learner Benchmark & Generalization Proof (`verification/learning-results.md`)
 
-Benchmark: 30 rounds vs Jump-Kick Spammer across 3 controller modes.
+Benchmark: **1,800 rounds across 6 competent adversary archetypes at Nightmare Difficulty** (100 rounds/bot/condition) plus a **120-round sequential adaptation test**.
 
-| Block | Rounds | Mode 1: Rule-Based (Win% / Avg R) | Mode 2: Empty Q-Table (Win% / Avg R) | Mode 3: Pre-Trained Q (Win% / Avg R) |
-|:-----:|:------:|:---------------------------------:|:-----------------------------------:|:------------------------------------:|
-| **Block 1** | R1-R5 | 100% (+23.46) | 100% (+23.88) | **100%** (**+23.90**) |
-| **Block 2** | R6-R10 | 100% (+23.10) | 100% (+23.22) | **100%** (**+23.64**) |
-| **Block 3** | R11-R15 | 100% (+22.24) | 100% (+23.90) | **100%** (**+24.50**) |
-| **Block 4** | R16-R20 | 100% (+23.88) | 100% (+24.66) | **100%** (**+23.88**) |
-| **Block 5** | R21-R25 | 100% (+23.46) | 100% (+24.90) | **100%** (**+23.30**) |
-| **Block 6** | R26-R30 | 100% (+22.94) | 100% (+24.34) | **100%** (**+24.50**) |
-| **OVERALL** | **R1-R30** | **100%** (+23.18) | **100%** (+24.15) | **100%** (**+23.95**) |
+![Benchmark Metrics](benchmark-metrics-chart.png)
 
-- Pre-trained Q-table weights (`mid_air_0 -> ANTI_AIR`: +7.992) consistently intercept incoming jump attacks before the dive hitbox activates.
-- Zero actions fail-safe: verified 0 rounds where ghost was idle.
+### Overall Summary Across All 6 Bot Styles (600 Rounds per Condition)
+
+| Condition | Overall Win Rate (%) | Avg Ghost HP Left (Max 180) | Avg Damage Taken (HP) | Avg Duration (s) |
+| :--- | :---: | :---: | :---: | :---: |
+| **Learner OFF (Rule-Based)** | 53.7% ± 2.0% | 124.1 ± 2.7 | 55.9 ± 2.7 | 20.1 ± 0.4 s |
+| **Learner ON (Empty Table)** | 70.5% ± 1.9% | 154.4 ± 1.3 | 25.6 ± 1.3 | 15.8 ± 0.4 s |
+| **Learner ON (Pre-Trained)** | **65.3% ± 1.9%** | **156.7 ± 1.3** | **23.3 ± 1.3** | **17.5 ± 0.4 s** |
+
+### Performance on HELD-OUT Opponent (`MIRROR_COUNTER`)
+- **Baseline (Learner OFF):** Heavily exploited, suffering **165.8 HP damage** with only **14.2 HP left** (32% win rate).
+- **Pre-Trained Q-Table:** Slashed damage taken by **74.2%** to **42.7 HP**, maintaining **137.3 HP remaining** (32% win rate).
+
+### Sequential Style Switch Adaptation Test (120 Continuous Rounds)
+
+![Adaptation Curve](adaptation-test-chart.png)
+
+- **Phase 1 (R1–R40 Jump-Kick Spammer):** Damage taken stabilizes at 27.3 HP via anti-air launcher intercepts (`ANTI_AIR`).
+- **Phase 2 (R41–R80 Turtle / Sweep Bait):** Recalibrates within **6 rounds** to low-sweep guard breaks (`GUARD_BREAK`).
+- **Phase 3 (R81–R120 Combo Rushdown):** Recalibrates within **7 rounds** to whiff-punishing flying knees and evasive rolls.
+- Raw per-round CSV files: `verification/benchmark-raw.csv` and `verification/adaptation-raw.csv`.
 
 ---
 
