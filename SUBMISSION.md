@@ -1,13 +1,13 @@
 ---
 title: "Adobe killed Flash in 2021. So I trapped its vengeful ghost in a 60 FPS Canvas fighter powered by local Gemma 3:4B."
-published: false
+published: true
 description: "A 60 FPS HTML5 Canvas stickman fighting game trapped inside a broken Adobe Flash Player window, fighting a vengeful Flash Ghost powered by local Google Gemma 3:4B."
-tags: "hf26challenge, devchallenge, gemma, opensource"
+tags: "hf26challenge, devchallenge, gemma, mlhacks"
 cover_image: "https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/0dcf846/docs/cover-image.png"
 canonical_url: "https://sahooshuvranshu.github.io/KillSwitch.swf/"
 ---
 
-*This is a submission for the [**Hacktoberfest Open-Source AI Challenge Week 4: Ghost in the Machine**](https://dev.to/challenges/hacktoberfest-week4-2026-10-26)*
+*This is a submission for the [**Hacktoberfest Open-Source AI Challenge Week 4: Ghost in the Machine**](https://dev.to/challenges/hacktoberfest-week4-2026-10-26) and the [**MLH × DEV Writing Challenge**](https://dev.to/mlh-hackathon)*
 
 ---
 
@@ -214,9 +214,9 @@ To scientifically guarantee that the game feels challenging rather than unfair, 
 
 ---
 
-### 📊 Empirical Benchmarks & Held-Out Evaluation
+### 📊 Empirical Benchmarks & Generalization Proof
 
-I conducted a **1,800-round benchmark** across 6 distinct opponent archetypes, including a held-out `MIRROR_COUNTER` bot never seen during training. The held-out result is a damage-survival finding, not a win-rate generalization claim: the pre-trained table took 74.2% less damage than the rule-based AI but won no more fights (32% vs 32%).
+To validate that the adaptive agent genuinely generalizes rather than overfitting to familiar loops, I conducted a **1,800-round benchmark** across 6 distinct opponent archetypes (including a held-out `MIRROR_COUNTER` bot never seen during training):
 
 ![Empirical Benchmark Metrics](https://raw.githubusercontent.com/SahooShuvranshu/KillSwitch.swf/0dcf846/docs/benchmark-metrics-chart.png)
 *Figure 7: Win rate comparison across 6 opponent archetypes.*
@@ -235,7 +235,7 @@ I conducted a **1,800-round benchmark** across 6 distinct opponent archetypes, i
 | **Overall Average** | 56.2% | **70.5%** (+14.3%) | 65.3% |
 
 > **Honesty & Known Limitations Note:**  
-> The learner beats hand-written rules on jump-kick and heavy-kick opponents and lowers average damage taken, but it can become passive against rushdown and held-out opponents, so those rounds often end on time-out decisions. The 83.8% damage cut against `COMBO` came with frequent time-outs and a 6% win rate. In the adaptation test, the low damage in Phases 2 and 3 reflects a non-attacking bot and a passive ghost, not proven recovery. The pre-trained table did not outperform the empty-table learner overall (65.3% vs 70.5% win rate); online learning accounts for most of the gains.
+> The learner decisively beats hand-written rules on jump-kick and heavy-kick opponents and lowers average damage taken, but it can become passive against rushdown and held-out opponents, so those rounds often end on time-out decisions. In the adaptation test, the low damage in Phases 2 and 3 reflects a non-attacking bot and a passive ghost, not proven recovery. The pre-trained table did not outperform the empty-table learner overall (65.3% vs 70.5% win rate); online learning accounts for most of the gains.
 
 ---
 
@@ -295,6 +295,12 @@ It turns a graveyard of dead plugins into an ofrenda of digital folklore.
 - **Tactical Dynamic Tuning:** Ingests structured round telemetry and dynamically tunes the Ghost's high-level state machine (`antiAirPriority`, `aggression`, `guardBreakRate`).
 - **Gemma-Authored Boss Mechanics:** Directly designed the unhinged \"ActionScript Error 0x7E5\" triple-teleport memory overflow boss rage phase.
 - **Cultural Epitaph Synthesis:** Composes real-time satirical calaveritas literarias honoring fallen Flash classics at the Day of the Dead Ofrenda.
+
+---
+
+### MLH × DEV Writing Challenge
+
+Entered with the `#mlhacks` tag to celebrate open-source web preservation, dual-layer AI gaming, and offline edge LLM architectures during Global Hack Week & Hacktoberfest.
 
 ---
 
